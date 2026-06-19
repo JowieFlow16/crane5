@@ -14,16 +14,349 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chats: {
+        Row: {
+          created_at: string
+          id: string
+          subject: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          subject?: string | null
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          subject?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      documents: {
+        Row: {
+          class_level: Database["public"]["Enums"]["class_level"] | null
+          content_text: string | null
+          created_at: string
+          doc_type: string
+          file_size: number | null
+          id: string
+          name: string
+          storage_path: string
+          subject: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          class_level?: Database["public"]["Enums"]["class_level"] | null
+          content_text?: string | null
+          created_at?: string
+          doc_type?: string
+          file_size?: number | null
+          id?: string
+          name: string
+          storage_path: string
+          subject?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          class_level?: Database["public"]["Enums"]["class_level"] | null
+          content_text?: string | null
+          created_at?: string
+          doc_type?: string
+          file_size?: number | null
+          id?: string
+          name?: string
+          storage_path?: string
+          subject?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          chat_id: string
+          content: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          chat_id: string
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          chat_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          class_level: Database["public"]["Enums"]["class_level"] | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          school: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          class_level?: Database["public"]["Enums"]["class_level"] | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          school?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          class_level?: Database["public"]["Enums"]["class_level"] | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          school?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      progress: {
+        Row: {
+          attempts: number
+          id: string
+          last_studied: string
+          mastery: number
+          subject: string
+          topic: string | null
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          id?: string
+          last_studied?: string
+          mastery?: number
+          subject: string
+          topic?: string | null
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          id?: string
+          last_studied?: string
+          mastery?: number
+          subject?: string
+          topic?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      quiz_results: {
+        Row: {
+          answers: Json
+          created_at: string
+          id: string
+          quiz_id: string | null
+          score: number
+          subject: string | null
+          topic: string | null
+          total: number
+          user_id: string
+          weak_areas: string[] | null
+        }
+        Insert: {
+          answers?: Json
+          created_at?: string
+          id?: string
+          quiz_id?: string | null
+          score?: number
+          subject?: string | null
+          topic?: string | null
+          total?: number
+          user_id: string
+          weak_areas?: string[] | null
+        }
+        Update: {
+          answers?: Json
+          created_at?: string
+          id?: string
+          quiz_id?: string | null
+          score?: number
+          subject?: string | null
+          topic?: string | null
+          total?: number
+          user_id?: string
+          weak_areas?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_results_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quizzes: {
+        Row: {
+          created_at: string
+          difficulty: string
+          id: string
+          questions: Json
+          quiz_type: string
+          subject: string
+          topic: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          difficulty?: string
+          id?: string
+          questions?: Json
+          quiz_type?: string
+          subject: string
+          topic?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          difficulty?: string
+          id?: string
+          questions?: Json
+          quiz_type?: string
+          subject?: string
+          topic?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subjects: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      topics: {
+        Row: {
+          class_level: Database["public"]["Enums"]["class_level"] | null
+          created_at: string
+          id: string
+          name: string
+          subject_id: string
+        }
+        Insert: {
+          class_level?: Database["public"]["Enums"]["class_level"] | null
+          created_at?: string
+          id?: string
+          name: string
+          subject_id: string
+        }
+        Update: {
+          class_level?: Database["public"]["Enums"]["class_level"] | null
+          created_at?: string
+          id?: string
+          name?: string
+          subject_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "topics_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "student" | "teacher" | "parent" | "admin"
+      class_level: "S1" | "S2" | "S3" | "S4" | "S5" | "S6"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +483,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["student", "teacher", "parent", "admin"],
+      class_level: ["S1", "S2", "S3", "S4", "S5", "S6"],
+    },
   },
 } as const
