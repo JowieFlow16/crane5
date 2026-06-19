@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /chat
+Disallow: /quiz
+Disallow: /revision
+Disallow: /admin
+Disallow: /settings
