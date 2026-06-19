@@ -1,29 +1,227 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { motion } from "motion/react";
+import {
+  MessageCircle,
+  ListChecks,
+  NotebookPen,
+  Sparkles,
+  BookOpen,
+  Atom,
+  FlaskConical,
+  Leaf,
+  Calculator,
+  ArrowRight,
+  ShieldCheck,
+  TrendingUp,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/Logo";
+import heroImg from "@/assets/hero.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "Omicron AI — AI Tutor for Ugandan NCDC Students" },
+      {
+        name: "description",
+        content:
+          "Master the Ugandan NCDC curriculum with Omicron AI — your personal AI tutor for chat help, instant quizzes, smart revision notes and progress tracking. Free to start.",
+      },
+      { property: "og:title", content: "Omicron AI — Learn smarter, the Ugandan way" },
+      {
+        property: "og:description",
+        content:
+          "AI-powered tutoring for Ugandan secondary students. Chat, quizzes and revision aligned to the NCDC curriculum.",
+      },
+      { property: "og:image", content: heroImg },
+      { name: "twitter:image", content: heroImg },
     ],
   }),
-  component: Index,
+  component: Landing,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+const features = [
+  {
+    icon: MessageCircle,
+    title: "AI Tutor Chat",
+    desc: "Ask anything across Maths, Sciences and English. Step-by-step explanations in language you actually get.",
+  },
+  {
+    icon: ListChecks,
+    title: "Instant Quizzes",
+    desc: "Generate MCQ or short-answer quizzes by topic and difficulty, with auto-marking and corrections.",
+  },
+  {
+    icon: NotebookPen,
+    title: "Smart Revision",
+    desc: "Topic summaries, key concepts and likely exam questions — built straight from the NCDC syllabus.",
+  },
+  {
+    icon: TrendingUp,
+    title: "Progress Insights",
+    desc: "Track mastery and spot weak areas so you study exactly what matters before exams.",
+  },
+];
+
+const subjects = [
+  { name: "Mathematics", icon: Calculator },
+  { name: "Physics", icon: Atom },
+  { name: "Chemistry", icon: FlaskConical },
+  { name: "Biology", icon: Leaf },
+  { name: "English", icon: BookOpen },
+];
+
+export default function Landing() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-screen bg-background">
+      {/* Nav */}
+      <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-md">
+        <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+          <Logo />
+          <div className="flex items-center gap-2">
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/auth" search={{ mode: "login" }}>
+                Sign in
+              </Link>
+            </Button>
+            <Button asChild variant="hero" size="sm">
+              <Link to="/auth" search={{ mode: "register" }}>
+                Get started
+              </Link>
+            </Button>
+          </div>
+        </nav>
+      </header>
+
+      {/* Hero */}
+      <section className="relative overflow-hidden">
+        <div className="pattern-kente absolute inset-0 opacity-40" />
+        <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:py-24">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              Built for the Ugandan NCDC curriculum
+            </span>
+            <h1 className="mt-5 font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
+              Your personal <span className="text-gradient">AI tutor</span> for every subject.
+            </h1>
+            <p className="mt-5 max-w-md text-lg text-muted-foreground">
+              Omicron AI helps Ugandan students from S1 to S6 understand tough topics,
+              practice with quizzes and revise smarter — anytime, on any device.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button asChild variant="hero" size="xl">
+                <Link to="/auth" search={{ mode: "register" }}>
+                  Start learning free <ArrowRight className="h-5 w-5" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="xl">
+                <Link to="/auth" search={{ mode: "login" }}>
+                  I have an account
+                </Link>
+              </Button>
+            </div>
+            <div className="mt-8 flex items-center gap-2 text-sm text-muted-foreground">
+              <ShieldCheck className="h-4 w-4 text-primary" />
+              Curriculum-grounded answers · No credit card needed
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+            className="relative"
+          >
+            <div className="absolute -inset-4 rounded-[2rem] bg-gradient-primary opacity-20 blur-2xl" />
+            <img
+              src={heroImg}
+              alt="Ugandan students learning with Omicron AI"
+              width={1280}
+              height={960}
+              className="relative w-full rounded-3xl border border-border shadow-elegant"
+            />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Subjects strip */}
+      <section className="border-y border-border bg-secondary/40">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-3 px-4 py-6 sm:gap-6 sm:px-6">
+          {subjects.map((s) => (
+            <div
+              key={s.name}
+              className="flex items-center gap-2 text-sm font-medium text-muted-foreground"
+            >
+              <s.icon className="h-4 w-4 text-primary" />
+              {s.name}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="font-display text-3xl font-bold sm:text-4xl">
+            Everything you need to ace your exams
+          </h2>
+          <p className="mt-3 text-muted-foreground">
+            One platform that teaches, tests and tracks — all aligned to your syllabus.
+          </p>
+        </div>
+        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {features.map((f, i) => (
+            <motion.div
+              key={f.title}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: i * 0.08 }}
+              className="hover-lift rounded-2xl border border-border bg-card p-6 shadow-card"
+            >
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-primary text-primary-foreground">
+                <f.icon className="h-5 w-5" />
+              </div>
+              <h3 className="mt-4 text-lg font-semibold">{f.title}</h3>
+              <p className="mt-2 text-sm text-muted-foreground">{f.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-hero px-6 py-14 text-center sm:px-12">
+          <div className="pattern-kente absolute inset-0 opacity-30" />
+          <div className="relative mx-auto max-w-2xl">
+            <h2 className="font-display text-3xl font-bold text-primary-foreground sm:text-4xl">
+              Ready to study smarter?
+            </h2>
+            <p className="mt-3 text-lg text-primary-foreground/85">
+              Join Omicron AI today and turn confusion into confidence.
+            </p>
+            <Button asChild size="xl" className="mt-8 bg-background text-foreground hover:bg-background/90">
+              <Link to="/auth" search={{ mode: "register" }}>
+                Create your free account <ArrowRight className="h-5 w-5" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <footer className="border-t border-border">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 sm:flex-row sm:px-6">
+          <Logo />
+          <p className="text-sm text-muted-foreground">
+            © {new Date().getFullYear()} Omicron AI · Made for Uganda 🇺🇬
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
