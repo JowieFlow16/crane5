@@ -104,7 +104,7 @@ function QuizPage() {
             topic: topic || null,
             difficulty,
             quiz_type: quizType,
-            questions: questions as unknown as object,
+            questions: questions as unknown as import("@/integrations/supabase/types").Json,
           })
           .select("id")
           .single();
@@ -115,7 +115,7 @@ function QuizPage() {
           topic: topic || null,
           score: correct,
           total: questions.length,
-          answers: answers as unknown as object,
+          answers: answers as unknown as import("@/integrations/supabase/types").Json,
           weak_areas: Array.from(new Set(weak)),
         });
       } catch {
