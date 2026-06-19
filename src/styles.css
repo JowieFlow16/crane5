@@ -237,6 +237,55 @@
     transform: translateY(-4px);
     box-shadow: var(--shadow-elegant);
   }
+  /* Markdown rendering for chat / revision content */
+  .prose-chat {
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+  .prose-chat p {
+    margin: 0.4rem 0;
+  }
+  .prose-chat strong {
+    font-weight: 600;
+    color: var(--color-foreground);
+  }
+  .prose-chat ul,
+  .prose-chat ol {
+    margin: 0.5rem 0;
+    padding-left: 1.25rem;
+  }
+  .prose-chat ul {
+    list-style: disc;
+  }
+  .prose-chat ol {
+    list-style: decimal;
+  }
+  .prose-chat li {
+    margin: 0.2rem 0;
+  }
+  .prose-chat h1,
+  .prose-chat h2,
+  .prose-chat h3 {
+    font-weight: 600;
+    margin: 0.6rem 0 0.3rem;
+  }
+  .prose-chat code {
+    background: var(--color-muted);
+    padding: 0.1rem 0.35rem;
+    border-radius: 0.3rem;
+    font-size: 0.8em;
+  }
+  .prose-chat pre {
+    background: var(--color-muted);
+    padding: 0.75rem;
+    border-radius: 0.6rem;
+    overflow-x: auto;
+    margin: 0.5rem 0;
+  }
+  .prose-chat a {
+    color: var(--color-primary);
+    text-decoration: underline;
+  }
 }
 
 @keyframes float {
