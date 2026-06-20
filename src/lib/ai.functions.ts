@@ -120,7 +120,7 @@ export const generateQuiz = createServerFn({ method: "POST" })
       messages: [
         {
           role: "system",
-          content: `${NCDC_PERSONA}\n\nYou are setting assessment ITEMS exactly the way NCDC sets them.${NCDC_ITEM_FRAMEWORK}${NCDC_SUBJECT_CONSTRUCTS}`,
+          content: `${NCDC_PERSONA}\n\nYou are setting assessment ITEMS exactly the way NCDC sets them.${NCDC_COMPETENCY_LEVELS}${NCDC_ITEM_FRAMEWORK}${NCDC_SUBJECT_CONSTRUCTS}`,
         },
         {
           role: "user",
@@ -129,13 +129,14 @@ export const generateQuiz = createServerFn({ method: "POST" })
           }. ${typeInstruction}
 
 NCDC item rules you MUST follow:
-- Build EVERY item around an authentic Ugandan real-life scenario/context (a farmer, market, swamp, school trip, household, boda-boda, local town, etc.). Put that situation in the "scenario" field and reference it in the "question".
+- Build EVERY item around an authentic Ugandan real-life scenario/context (a farmer, market, swamp, school trip, household, boda-boda, Rolex stand, local town, etc.). Put that situation in the "scenario" field and reference it in the "question".
 - Each item must demand higher-order thinking (apply/analyse/evaluate), NOT pure recall.
-- Tag each item with the competency / Learning Outcome it assesses in the "competency" field.
-- "explanation" must justify the correct answer step by step like an NCDC scoring guide.
+- Tag each item with its competency LEVEL (CK, CU, AP or UE) AND the Learning Outcome it assesses, in the "competency" field (e.g. "AP — applies area & perimeter to a real garden").
+- Across the set, deliberately progress from CK/CU toward AP/UE.
+- "explanation" must justify the correct answer step by step like an NCDC scoring guide, with the reasoning a learner can follow, and may include a short real-life note.
 
 Return ONLY valid JSON of this exact shape:
-{"questions":[{"scenario":"the real-life Ugandan context","question":"the task built on the scenario","type":"mcq"|"short","options":["a","b","c","d"],"answer":"correct option text or model short answer","explanation":"NCDC-style scoring reasoning","topic":"specific sub-topic","competency":"the LO/competency assessed"}]}
+{"questions":[{"scenario":"the real-life Ugandan context","question":"the task built on the scenario","type":"mcq"|"short","options":["a","b","c","d"],"answer":"correct option text or model short answer","explanation":"NCDC-style scoring reasoning","topic":"specific sub-topic","competency":"LEVEL — the LO assessed"}]}
 For "short" items omit the options field.${ref}`,
         },
       ],
