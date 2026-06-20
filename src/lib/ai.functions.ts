@@ -50,6 +50,7 @@ export const chatTutor = createServerFn({ method: "POST" })
 
     const system =
       NCDC_PERSONA +
+      NCDC_FRAMEWORK_BLOCK +
       (data.subject ? `\n\nCurrent subject focus: ${data.subject}.` : "") +
       curriculumContext;
 
