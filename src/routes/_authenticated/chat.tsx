@@ -27,9 +27,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { SUBJECTS } from "@/lib/subjects";
+import { Markdown } from "@/components/Markdown";
 import { toast } from "sonner";
-
-const SUBJECTS = ["Mathematics", "Physics", "Chemistry", "Biology", "English"];
 
 export const Route = createFileRoute("/_authenticated/chat")({
   validateSearch: z.object({ subject: z.string().optional() }),
