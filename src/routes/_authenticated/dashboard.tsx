@@ -167,7 +167,7 @@ function Dashboard() {
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {(subjects ?? []).map((subj, i) => {
-              const Icon = subjectIcons[subj.name] ?? BookOpen;
+              const Icon = subjectIcons[subj.icon ?? ""] ?? BookOpen;
               return (
                 <motion.div
                   key={subj.id}
