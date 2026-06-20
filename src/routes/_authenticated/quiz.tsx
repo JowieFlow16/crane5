@@ -319,6 +319,11 @@ function QuizPage() {
                       <p className="mt-1 rounded-lg bg-muted p-2 text-muted-foreground">
                         💡 {q.explanation}
                       </p>
+                      {q.competency && (
+                        <p className="text-xs text-muted-foreground">
+                          🎯 {q.competency}
+                        </p>
+                      )}
                     </div>
                   </div>
                 );
