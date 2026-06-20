@@ -121,10 +121,11 @@ function RevisionPage() {
           </div>
 
           <Tabs defaultValue="notes" className="mt-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="notes">Notes</TabsTrigger>
               <TabsTrigger value="concepts">Key concepts</TabsTrigger>
               <TabsTrigger value="questions">Exam Qs</TabsTrigger>
+              <TabsTrigger value="references">Resources</TabsTrigger>
             </TabsList>
 
             <TabsContent value="notes" className="mt-4 space-y-3">
@@ -156,9 +157,27 @@ function RevisionPage() {
                 </div>
               ))}
             </TabsContent>
+
+            <TabsContent value="references" className="mt-4 space-y-2">
+              {data.references && data.references.length > 0 ? (
+                data.references.map((r, i) => (
+                  <div key={i} className="flex gap-3 rounded-xl border border-border bg-card p-4 text-sm shadow-card">
+                    <Link2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
+                    <div className="min-w-0 flex-1">
+                      <Markdown>{r}</Markdown>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                  No extra resources for this topic yet.
+                </p>
+              )}
+            </TabsContent>
           </Tabs>
         </motion.div>
       )}
     </div>
+    
   );
 }
