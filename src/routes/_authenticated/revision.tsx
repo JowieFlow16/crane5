@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { motion } from "motion/react";
-import ReactMarkdown from "react-markdown";
 import { Loader2, Sparkles, BookMarked, KeyRound, HelpCircle, FileText } from "lucide-react";
 import { generateRevision } from "@/lib/ai.functions";
 import { Button } from "@/components/ui/button";
@@ -16,14 +15,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Markdown } from "@/components/Markdown";
+import { SUBJECTS } from "@/lib/subjects";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/revision")({
   head: () => ({ meta: [{ title: "Revision · Omicron AI" }] }),
   component: RevisionPage,
 });
-
-const SUBJECTS = ["Mathematics", "Physics", "Chemistry", "Biology", "English"];
 
 interface RevisionData {
   summary: string;
