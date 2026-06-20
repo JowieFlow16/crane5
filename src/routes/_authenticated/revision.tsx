@@ -29,6 +29,7 @@ interface RevisionData {
   notes: string[];
   keyConcepts: string[];
   likelyQuestions: string[];
+  references?: string[];
 }
 
 function RevisionPage() {
