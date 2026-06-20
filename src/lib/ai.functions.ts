@@ -6,6 +6,8 @@ import {
   NCDC_FRAMEWORK_BLOCK,
   NCDC_ITEM_FRAMEWORK,
   NCDC_SUBJECT_CONSTRUCTS,
+  NCDC_COMPETENCY_LEVELS,
+  NCDC_ANSWERING_APPROACH,
 } from "./ncdc-framework";
 
 const chatMessageSchema = z.object({
