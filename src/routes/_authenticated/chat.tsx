@@ -250,9 +250,7 @@ function ChatPage() {
                       )}
                     >
                       {m.role === "assistant" ? (
-                        <div className="prose-chat space-y-2">
-                          <ReactMarkdown>{m.content}</ReactMarkdown>
-                        </div>
+                        <Markdown>{m.content}</Markdown>
                       ) : (
                         m.content
                       )}
