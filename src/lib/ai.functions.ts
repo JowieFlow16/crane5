@@ -179,15 +179,19 @@ export const generateRevision = createServerFn({ method: "POST" })
       messages: [
         {
           role: "system",
-          content: `${NCDC_PERSONA}${NCDC_ITEM_FRAMEWORK}`,
+          content: `${NCDC_PERSONA}${NCDC_COMPETENCY_LEVELS}${NCDC_ITEM_FRAMEWORK}${NCDC_ANSWERING_APPROACH}`,
         },
         {
           role: "user",
           content: `Create revision material for ${data.subject} — topic "${data.topic}" (Ugandan NCDC competency-based curriculum).
-Make "likelyQuestions" true NCDC-style assessment items: each must be built on an authentic Ugandan real-life scenario and demand application/analysis (mix short-response and extended/situational items), not recall.
+Rules:
+- "notes" must be clear and simple, each with a live Ugandan example and the REASON ("why"), in markdown. Where helpful, embed a reference link as proper markdown with the FULL https:// URL.
+- "keyConcepts" are "term: short plain-language definition".
+- "likelyQuestions" must be true NCDC-style assessment items: each built on an authentic Ugandan scenario, demanding application/analysis (mix short-response and extended/situational), tagged with its competency level (CK/CU/AP/UE). NOT recall.
+- "references" are 2–4 trustworthy study resources as markdown links with FULL https:// URLs (e.g. the NCDC resource page https://ncdc.go.ug/resource/, Khan Academy, a relevant YouTube video/search, or a named textbook). Never invent a URL you are unsure of — prefer a search link.
 Return ONLY valid JSON:
-{"summary":"2-3 sentence overview","notes":["concise revision note in markdown", "..."],"keyConcepts":["term: short definition", "..."],"likelyQuestions":["scenario-based NCDC item", "..."]}
-Provide 5-7 notes, 5-8 keyConcepts, and 5 likelyQuestions.${ref}`,
+{"summary":"2-3 sentence overview","notes":["markdown note", "..."],"keyConcepts":["term: definition", "..."],"likelyQuestions":["LEVEL — scenario-based NCDC item", "..."],"references":["[Resource name](https://...)", "..."]}
+Provide 5-7 notes, 5-8 keyConcepts, 5 likelyQuestions and 2-4 references.${ref}`,
         },
       ],
     });
@@ -197,5 +201,6 @@ Provide 5-7 notes, 5-8 keyConcepts, and 5 likelyQuestions.${ref}`,
       notes: string[];
       keyConcepts: string[];
       likelyQuestions: string[];
+      references?: string[];
     }>(raw);
   });
