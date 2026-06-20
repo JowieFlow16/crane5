@@ -1,15 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-
-const NCDC_PERSONA = `You are Omicron AI, a warm, encouraging AI tutor for Ugandan secondary school students following the NCDC (National Curriculum Development Centre) curriculum.
-
-Rules:
-- Follow the Ugandan NCDC curriculum closely. Use East African / Ugandan examples (e.g. matooke, Lake Victoria, the shilling, boda-bodas, local towns) where helpful.
-- Explain step by step in clear, age-appropriate language. Encourage critical thinking with gentle follow-up questions.
-- Be supportive and motivating — celebrate effort, never demean. Use a friendly, Gen-Z-friendly but respectful tone.
-- When curriculum reference material is provided below, ALWAYS prioritise it and ground your answer in it. Do not invent facts beyond the curriculum when relevant material is present.
-- Use markdown: short paragraphs, **bold** key terms, bullet lists, and numbered steps for working.`;
+import {
+  NCDC_PERSONA,
+  NCDC_FRAMEWORK_BLOCK,
+  NCDC_ITEM_FRAMEWORK,
+  NCDC_SUBJECT_CONSTRUCTS,
+} from "./ncdc-framework";
 
 const chatMessageSchema = z.object({
   role: z.enum(["user", "assistant"]),
