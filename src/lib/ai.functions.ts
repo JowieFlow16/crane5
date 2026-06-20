@@ -6,6 +6,8 @@ import {
   NCDC_FRAMEWORK_BLOCK,
   NCDC_ITEM_FRAMEWORK,
   NCDC_SUBJECT_CONSTRUCTS,
+  NCDC_COMPETENCY_LEVELS,
+  NCDC_ANSWERING_APPROACH,
 } from "./ncdc-framework";
 
 const chatMessageSchema = z.object({
@@ -118,7 +120,7 @@ export const generateQuiz = createServerFn({ method: "POST" })
       messages: [
         {
           role: "system",
-          content: `${NCDC_PERSONA}\n\nYou are setting assessment ITEMS exactly the way NCDC sets them.${NCDC_ITEM_FRAMEWORK}${NCDC_SUBJECT_CONSTRUCTS}`,
+          content: `${NCDC_PERSONA}\n\nYou are setting assessment ITEMS exactly the way NCDC sets them.${NCDC_COMPETENCY_LEVELS}${NCDC_ITEM_FRAMEWORK}${NCDC_SUBJECT_CONSTRUCTS}`,
         },
         {
           role: "user",
@@ -127,13 +129,14 @@ export const generateQuiz = createServerFn({ method: "POST" })
           }. ${typeInstruction}
 
 NCDC item rules you MUST follow:
-- Build EVERY item around an authentic Ugandan real-life scenario/context (a farmer, market, swamp, school trip, household, boda-boda, local town, etc.). Put that situation in the "scenario" field and reference it in the "question".
+- Build EVERY item around an authentic Ugandan real-life scenario/context (a farmer, market, swamp, school trip, household, boda-boda, Rolex stand, local town, etc.). Put that situation in the "scenario" field and reference it in the "question".
 - Each item must demand higher-order thinking (apply/analyse/evaluate), NOT pure recall.
-- Tag each item with the competency / Learning Outcome it assesses in the "competency" field.
-- "explanation" must justify the correct answer step by step like an NCDC scoring guide.
+- Tag each item with its competency LEVEL (CK, CU, AP or UE) AND the Learning Outcome it assesses, in the "competency" field (e.g. "AP — applies area & perimeter to a real garden").
+- Across the set, deliberately progress from CK/CU toward AP/UE.
+- "explanation" must justify the correct answer step by step like an NCDC scoring guide, with the reasoning a learner can follow, and may include a short real-life note.
 
 Return ONLY valid JSON of this exact shape:
-{"questions":[{"scenario":"the real-life Ugandan context","question":"the task built on the scenario","type":"mcq"|"short","options":["a","b","c","d"],"answer":"correct option text or model short answer","explanation":"NCDC-style scoring reasoning","topic":"specific sub-topic","competency":"the LO/competency assessed"}]}
+{"questions":[{"scenario":"the real-life Ugandan context","question":"the task built on the scenario","type":"mcq"|"short","options":["a","b","c","d"],"answer":"correct option text or model short answer","explanation":"NCDC-style scoring reasoning","topic":"specific sub-topic","competency":"LEVEL — the LO assessed"}]}
 For "short" items omit the options field.${ref}`,
         },
       ],
@@ -176,15 +179,19 @@ export const generateRevision = createServerFn({ method: "POST" })
       messages: [
         {
           role: "system",
-          content: `${NCDC_PERSONA}${NCDC_ITEM_FRAMEWORK}`,
+          content: `${NCDC_PERSONA}${NCDC_COMPETENCY_LEVELS}${NCDC_ITEM_FRAMEWORK}${NCDC_ANSWERING_APPROACH}`,
         },
         {
           role: "user",
           content: `Create revision material for ${data.subject} — topic "${data.topic}" (Ugandan NCDC competency-based curriculum).
-Make "likelyQuestions" true NCDC-style assessment items: each must be built on an authentic Ugandan real-life scenario and demand application/analysis (mix short-response and extended/situational items), not recall.
+Rules:
+- "notes" must be clear and simple, each with a live Ugandan example and the REASON ("why"), in markdown. Where helpful, embed a reference link as proper markdown with the FULL https:// URL.
+- "keyConcepts" are "term: short plain-language definition".
+- "likelyQuestions" must be true NCDC-style assessment items: each built on an authentic Ugandan scenario, demanding application/analysis (mix short-response and extended/situational), tagged with its competency level (CK/CU/AP/UE). NOT recall.
+- "references" are 2–4 trustworthy study resources as markdown links with FULL https:// URLs (e.g. the NCDC resource page https://ncdc.go.ug/resource/, Khan Academy, a relevant YouTube video/search, or a named textbook). Never invent a URL you are unsure of — prefer a search link.
 Return ONLY valid JSON:
-{"summary":"2-3 sentence overview","notes":["concise revision note in markdown", "..."],"keyConcepts":["term: short definition", "..."],"likelyQuestions":["scenario-based NCDC item", "..."]}
-Provide 5-7 notes, 5-8 keyConcepts, and 5 likelyQuestions.${ref}`,
+{"summary":"2-3 sentence overview","notes":["markdown note", "..."],"keyConcepts":["term: definition", "..."],"likelyQuestions":["LEVEL — scenario-based NCDC item", "..."],"references":["[Resource name](https://...)", "..."]}
+Provide 5-7 notes, 5-8 keyConcepts, 5 likelyQuestions and 2-4 references.${ref}`,
         },
       ],
     });
@@ -194,5 +201,6 @@ Provide 5-7 notes, 5-8 keyConcepts, and 5 likelyQuestions.${ref}`,
       notes: string[];
       keyConcepts: string[];
       likelyQuestions: string[];
+      references?: string[];
     }>(raw);
   });

@@ -14,6 +14,20 @@ import {
   FlaskConical,
   Leaf,
   BookOpen,
+  BookText,
+  Globe,
+  Landmark,
+  Church,
+  Moon,
+  Languages,
+  Briefcase,
+  Sprout,
+  Laptop,
+  Dumbbell,
+  Palette,
+  Music,
+  Utensils,
+  Wrench,
   type LucideIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,11 +41,25 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 const subjectIcons: Record<string, LucideIcon> = {
-  Mathematics: Calculator,
-  Physics: Atom,
-  Chemistry: FlaskConical,
-  Biology: Leaf,
-  English: BookOpen,
+  Calculator,
+  Atom,
+  FlaskConical,
+  Leaf,
+  BookOpen,
+  BookText,
+  Globe,
+  Landmark,
+  Church,
+  Moon,
+  Languages,
+  Briefcase,
+  Sprout,
+  Laptop,
+  Dumbbell,
+  Palette,
+  Music,
+  Utensils,
+  Wrench,
 };
 
 function Dashboard() {
@@ -139,7 +167,7 @@ function Dashboard() {
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {(subjects ?? []).map((subj, i) => {
-              const Icon = subjectIcons[subj.name] ?? BookOpen;
+              const Icon = subjectIcons[subj.icon ?? ""] ?? BookOpen;
               return (
                 <motion.div
                   key={subj.id}

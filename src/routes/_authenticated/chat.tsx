@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "motion/react";
-import ReactMarkdown from "react-markdown";
+
 import { z } from "zod";
 import {
   SendHorizonal,
@@ -27,9 +27,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { SUBJECTS } from "@/lib/subjects";
+import { Markdown } from "@/components/Markdown";
 import { toast } from "sonner";
-
-const SUBJECTS = ["Mathematics", "Physics", "Chemistry", "Biology", "English"];
 
 export const Route = createFileRoute("/_authenticated/chat")({
   validateSearch: z.object({ subject: z.string().optional() }),
@@ -250,9 +250,7 @@ function ChatPage() {
                       )}
                     >
                       {m.role === "assistant" ? (
-                        <div className="prose-chat space-y-2">
-                          <ReactMarkdown>{m.content}</ReactMarkdown>
-                        </div>
+                        <Markdown>{m.content}</Markdown>
                       ) : (
                         m.content
                       )}
