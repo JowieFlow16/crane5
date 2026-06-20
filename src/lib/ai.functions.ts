@@ -1,15 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-
-const NCDC_PERSONA = `You are Omicron AI, a warm, encouraging AI tutor for Ugandan secondary school students following the NCDC (National Curriculum Development Centre) curriculum.
-
-Rules:
-- Follow the Ugandan NCDC curriculum closely. Use East African / Ugandan examples (e.g. matooke, Lake Victoria, the shilling, boda-bodas, local towns) where helpful.
-- Explain step by step in clear, age-appropriate language. Encourage critical thinking with gentle follow-up questions.
-- Be supportive and motivating — celebrate effort, never demean. Use a friendly, Gen-Z-friendly but respectful tone.
-- When curriculum reference material is provided below, ALWAYS prioritise it and ground your answer in it. Do not invent facts beyond the curriculum when relevant material is present.
-- Use markdown: short paragraphs, **bold** key terms, bullet lists, and numbered steps for working.`;
+import {
+  NCDC_PERSONA,
+  NCDC_FRAMEWORK_BLOCK,
+  NCDC_ITEM_FRAMEWORK,
+  NCDC_SUBJECT_CONSTRUCTS,
+} from "./ncdc-framework";
 
 const chatMessageSchema = z.object({
   role: z.enum(["user", "assistant"]),
@@ -53,6 +50,7 @@ export const chatTutor = createServerFn({ method: "POST" })
 
     const system =
       NCDC_PERSONA +
+      NCDC_FRAMEWORK_BLOCK +
       (data.subject ? `\n\nCurrent subject focus: ${data.subject}.` : "") +
       curriculumContext;
 
@@ -64,7 +62,7 @@ export const chatTutor = createServerFn({ method: "POST" })
     return { content, usedSources: docs?.map((d) => d.name) ?? [] };
   });
 
-// ---- Quiz generation ----
+// ---- Quiz generation (NCDC competency-based items) ----
 export interface QuizQuestion {
   question: string;
   type: "mcq" | "short";
@@ -72,6 +70,10 @@ export interface QuizQuestion {
   answer: string;
   explanation: string;
   topic: string;
+  /** Authentic Ugandan context/situation the item is built around (NCDC style). */
+  scenario?: string;
+  /** The competency / Learning Outcome the item assesses. */
+  competency?: string;
 }
 
 export const generateQuiz = createServerFn({ method: "POST" })
@@ -105,10 +107,10 @@ export const generateQuiz = createServerFn({ method: "POST" })
 
     const typeInstruction =
       data.quizType === "MCQ"
-        ? 'All questions must be "mcq" with 4 options.'
+        ? 'All questions must be "mcq" with 4 plausible options.'
         : data.quizType === "Short Answer"
-          ? 'All questions must be "short" (no options).'
-          : "Mix of mcq (4 options) and short questions.";
+          ? 'All questions must be "short" (no options) — NCDC short-response items.'
+          : "Mix of mcq (4 options) and short-response items.";
 
     const raw = await callAI({
       json: true,
@@ -116,16 +118,23 @@ export const generateQuiz = createServerFn({ method: "POST" })
       messages: [
         {
           role: "system",
-          content: `You generate quizzes for Ugandan NCDC secondary students. ${NCDC_PERSONA}`,
+          content: `${NCDC_PERSONA}\n\nYou are setting assessment ITEMS exactly the way NCDC sets them.${NCDC_ITEM_FRAMEWORK}${NCDC_SUBJECT_CONSTRUCTS}`,
         },
         {
           role: "user",
-          content: `Create ${data.count} ${data.difficulty} difficulty questions on ${data.subject}${
+          content: `Set ${data.count} ${data.difficulty} difficulty NCDC competency-based assessment items on ${data.subject}${
             data.topic ? ` (topic: ${data.topic})` : ""
           }. ${typeInstruction}
+
+NCDC item rules you MUST follow:
+- Build EVERY item around an authentic Ugandan real-life scenario/context (a farmer, market, swamp, school trip, household, boda-boda, local town, etc.). Put that situation in the "scenario" field and reference it in the "question".
+- Each item must demand higher-order thinking (apply/analyse/evaluate), NOT pure recall.
+- Tag each item with the competency / Learning Outcome it assesses in the "competency" field.
+- "explanation" must justify the correct answer step by step like an NCDC scoring guide.
+
 Return ONLY valid JSON of this exact shape:
-{"questions":[{"question":"...","type":"mcq"|"short","options":["a","b","c","d"],"answer":"the correct option text or short answer","explanation":"why","topic":"specific sub-topic"}]}
-For "short" questions omit the options field.${ref}`,
+{"questions":[{"scenario":"the real-life Ugandan context","question":"the task built on the scenario","type":"mcq"|"short","options":["a","b","c","d"],"answer":"correct option text or model short answer","explanation":"NCDC-style scoring reasoning","topic":"specific sub-topic","competency":"the LO/competency assessed"}]}
+For "short" items omit the options field.${ref}`,
         },
       ],
     });
@@ -133,6 +142,7 @@ For "short" questions omit the options field.${ref}`,
     const parsed = parseJsonResponse<{ questions: QuizQuestion[] }>(raw);
     return parsed;
   });
+
 
 // ---- Revision generator ----
 export const generateRevision = createServerFn({ method: "POST" })
@@ -164,12 +174,16 @@ export const generateRevision = createServerFn({ method: "POST" })
     const raw = await callAI({
       json: true,
       messages: [
-        { role: "system", content: NCDC_PERSONA },
+        {
+          role: "system",
+          content: `${NCDC_PERSONA}${NCDC_ITEM_FRAMEWORK}`,
+        },
         {
           role: "user",
-          content: `Create revision material for ${data.subject} — topic "${data.topic}" (Ugandan NCDC).
+          content: `Create revision material for ${data.subject} — topic "${data.topic}" (Ugandan NCDC competency-based curriculum).
+Make "likelyQuestions" true NCDC-style assessment items: each must be built on an authentic Ugandan real-life scenario and demand application/analysis (mix short-response and extended/situational items), not recall.
 Return ONLY valid JSON:
-{"summary":"2-3 sentence overview","notes":["concise revision note in markdown", "..."],"keyConcepts":["term: short definition", "..."],"likelyQuestions":["likely exam question", "..."]}
+{"summary":"2-3 sentence overview","notes":["concise revision note in markdown", "..."],"keyConcepts":["term: short definition", "..."],"likelyQuestions":["scenario-based NCDC item", "..."]}
 Provide 5-7 notes, 5-8 keyConcepts, and 5 likelyQuestions.${ref}`,
         },
       ],
