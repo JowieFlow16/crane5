@@ -129,9 +129,7 @@ function RevisionPage() {
             <TabsContent value="notes" className="mt-4 space-y-3">
               {data.notes.map((n, i) => (
                 <div key={i} className="rounded-xl border border-border bg-card p-4 text-sm shadow-card">
-                  <div className="prose-chat">
-                    <ReactMarkdown>{n}</ReactMarkdown>
-                  </div>
+                  <Markdown>{n}</Markdown>
                 </div>
               ))}
             </TabsContent>
@@ -139,8 +137,10 @@ function RevisionPage() {
             <TabsContent value="concepts" className="mt-4 space-y-2">
               {data.keyConcepts.map((c, i) => (
                 <div key={i} className="flex gap-3 rounded-xl border border-border bg-card p-4 text-sm shadow-card">
-                  <KeyRound className="h-4 w-4 shrink-0 text-accent" />
-                  <span>{c}</span>
+                  <KeyRound className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                  <div className="min-w-0 flex-1">
+                    <Markdown>{c}</Markdown>
+                  </div>
                 </div>
               ))}
             </TabsContent>
@@ -148,8 +148,10 @@ function RevisionPage() {
             <TabsContent value="questions" className="mt-4 space-y-2">
               {data.likelyQuestions.map((q, i) => (
                 <div key={i} className="flex gap-3 rounded-xl border border-border bg-card p-4 text-sm shadow-card">
-                  <HelpCircle className="h-4 w-4 shrink-0 text-primary" />
-                  <span>{q}</span>
+                  <HelpCircle className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <div className="min-w-0 flex-1">
+                    <Markdown>{q}</Markdown>
+                  </div>
                 </div>
               ))}
             </TabsContent>
