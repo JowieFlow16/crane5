@@ -219,9 +219,19 @@ function QuizPage() {
             <div className="space-y-4">
               {questions.map((q, i) => (
                 <div key={i} className="rounded-2xl border border-border bg-card p-5 shadow-card">
+                  {q.scenario && (
+                    <p className="mb-2 rounded-lg border-l-2 border-accent bg-accent/5 p-3 text-sm italic text-muted-foreground">
+                      {q.scenario}
+                    </p>
+                  )}
                   <p className="font-medium">
                     <span className="text-primary">{i + 1}.</span> {q.question}
                   </p>
+                  {q.competency && (
+                    <p className="mt-1.5 text-xs text-muted-foreground">
+                      🎯 Competency: {q.competency}
+                    </p>
+                  )}
                   {q.type === "mcq" && q.options ? (
                     <div className="mt-3 space-y-2">
                       {q.options.map((opt) => (
