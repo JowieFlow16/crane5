@@ -174,12 +174,16 @@ export const generateRevision = createServerFn({ method: "POST" })
     const raw = await callAI({
       json: true,
       messages: [
-        { role: "system", content: NCDC_PERSONA },
+        {
+          role: "system",
+          content: `${NCDC_PERSONA}${NCDC_ITEM_FRAMEWORK}`,
+        },
         {
           role: "user",
-          content: `Create revision material for ${data.subject} — topic "${data.topic}" (Ugandan NCDC).
+          content: `Create revision material for ${data.subject} — topic "${data.topic}" (Ugandan NCDC competency-based curriculum).
+Make "likelyQuestions" true NCDC-style assessment items: each must be built on an authentic Ugandan real-life scenario and demand application/analysis (mix short-response and extended/situational items), not recall.
 Return ONLY valid JSON:
-{"summary":"2-3 sentence overview","notes":["concise revision note in markdown", "..."],"keyConcepts":["term: short definition", "..."],"likelyQuestions":["likely exam question", "..."]}
+{"summary":"2-3 sentence overview","notes":["concise revision note in markdown", "..."],"keyConcepts":["term: short definition", "..."],"likelyQuestions":["scenario-based NCDC item", "..."]}
 Provide 5-7 notes, 5-8 keyConcepts, and 5 likelyQuestions.${ref}`,
         },
       ],
