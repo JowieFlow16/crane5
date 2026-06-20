@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { motion } from "motion/react";
-import { Loader2, Sparkles, BookMarked, KeyRound, HelpCircle, FileText } from "lucide-react";
+import { Loader2, Sparkles, BookMarked, KeyRound, HelpCircle, FileText, Link2 } from "lucide-react";
 import { generateRevision } from "@/lib/ai.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
