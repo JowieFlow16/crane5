@@ -14,6 +14,20 @@ import {
   FlaskConical,
   Leaf,
   BookOpen,
+  BookText,
+  Globe,
+  Landmark,
+  Church,
+  Moon,
+  Languages,
+  Briefcase,
+  Sprout,
+  Laptop,
+  Dumbbell,
+  Palette,
+  Music,
+  Utensils,
+  Wrench,
   type LucideIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,11 +41,25 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 const subjectIcons: Record<string, LucideIcon> = {
-  Mathematics: Calculator,
-  Physics: Atom,
-  Chemistry: FlaskConical,
-  Biology: Leaf,
-  English: BookOpen,
+  Calculator,
+  Atom,
+  FlaskConical,
+  Leaf,
+  BookOpen,
+  BookText,
+  Globe,
+  Landmark,
+  Church,
+  Moon,
+  Languages,
+  Briefcase,
+  Sprout,
+  Laptop,
+  Dumbbell,
+  Palette,
+  Music,
+  Utensils,
+  Wrench,
 };
 
 function Dashboard() {
