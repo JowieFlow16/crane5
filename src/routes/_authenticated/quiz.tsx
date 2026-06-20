@@ -24,14 +24,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { SUBJECTS } from "@/lib/subjects";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/quiz")({
   head: () => ({ meta: [{ title: "Quizzes · Omicron AI" }] }),
   component: QuizPage,
 });
-
-const SUBJECTS = ["Mathematics", "Physics", "Chemistry", "Biology", "English"];
 const DIFFICULTIES = ["Easy", "Medium", "Hard"] as const;
 const TYPES = ["MCQ", "Short Answer", "Mixed"] as const;
 
