@@ -62,7 +62,7 @@ export const chatTutor = createServerFn({ method: "POST" })
     return { content, usedSources: docs?.map((d) => d.name) ?? [] };
   });
 
-// ---- Quiz generation ----
+// ---- Quiz generation (NCDC competency-based items) ----
 export interface QuizQuestion {
   question: string;
   type: "mcq" | "short";
@@ -70,6 +70,10 @@ export interface QuizQuestion {
   answer: string;
   explanation: string;
   topic: string;
+  /** Authentic Ugandan context/situation the item is built around (NCDC style). */
+  scenario?: string;
+  /** The competency / Learning Outcome the item assesses. */
+  competency?: string;
 }
 
 export const generateQuiz = createServerFn({ method: "POST" })
@@ -103,10 +107,10 @@ export const generateQuiz = createServerFn({ method: "POST" })
 
     const typeInstruction =
       data.quizType === "MCQ"
-        ? 'All questions must be "mcq" with 4 options.'
+        ? 'All questions must be "mcq" with 4 plausible options.'
         : data.quizType === "Short Answer"
-          ? 'All questions must be "short" (no options).'
-          : "Mix of mcq (4 options) and short questions.";
+          ? 'All questions must be "short" (no options) — NCDC short-response items.'
+          : "Mix of mcq (4 options) and short-response items.";
 
     const raw = await callAI({
       json: true,
@@ -114,16 +118,23 @@ export const generateQuiz = createServerFn({ method: "POST" })
       messages: [
         {
           role: "system",
-          content: `You generate quizzes for Ugandan NCDC secondary students. ${NCDC_PERSONA}`,
+          content: `${NCDC_PERSONA}\n\nYou are setting assessment ITEMS exactly the way NCDC sets them.${NCDC_ITEM_FRAMEWORK}${NCDC_SUBJECT_CONSTRUCTS}`,
         },
         {
           role: "user",
-          content: `Create ${data.count} ${data.difficulty} difficulty questions on ${data.subject}${
+          content: `Set ${data.count} ${data.difficulty} difficulty NCDC competency-based assessment items on ${data.subject}${
             data.topic ? ` (topic: ${data.topic})` : ""
           }. ${typeInstruction}
+
+NCDC item rules you MUST follow:
+- Build EVERY item around an authentic Ugandan real-life scenario/context (a farmer, market, swamp, school trip, household, boda-boda, local town, etc.). Put that situation in the "scenario" field and reference it in the "question".
+- Each item must demand higher-order thinking (apply/analyse/evaluate), NOT pure recall.
+- Tag each item with the competency / Learning Outcome it assesses in the "competency" field.
+- "explanation" must justify the correct answer step by step like an NCDC scoring guide.
+
 Return ONLY valid JSON of this exact shape:
-{"questions":[{"question":"...","type":"mcq"|"short","options":["a","b","c","d"],"answer":"the correct option text or short answer","explanation":"why","topic":"specific sub-topic"}]}
-For "short" questions omit the options field.${ref}`,
+{"questions":[{"scenario":"the real-life Ugandan context","question":"the task built on the scenario","type":"mcq"|"short","options":["a","b","c","d"],"answer":"correct option text or model short answer","explanation":"NCDC-style scoring reasoning","topic":"specific sub-topic","competency":"the LO/competency assessed"}]}
+For "short" items omit the options field.${ref}`,
         },
       ],
     });
@@ -131,6 +142,7 @@ For "short" questions omit the options field.${ref}`,
     const parsed = parseJsonResponse<{ questions: QuizQuestion[] }>(raw);
     return parsed;
   });
+
 
 // ---- Revision generator ----
 export const generateRevision = createServerFn({ method: "POST" })
