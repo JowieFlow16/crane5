@@ -286,6 +286,21 @@
     color: var(--color-primary);
     text-decoration: underline;
   }
+  /* Math (KaTeX) — let long equations scroll instead of overflowing */
+  .prose-chat .katex {
+    font-size: 1.02em;
+  }
+  .prose-chat .katex-display {
+    margin: 0.6rem 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.2rem 0;
+  }
+  /* Mermaid diagrams scale to their container */
+  .mermaid-diagram svg {
+    max-width: 100%;
+    height: auto;
+  }
 }
 
 @keyframes float {
