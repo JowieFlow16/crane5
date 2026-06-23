@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { SUBJECTS } from "@/lib/subjects";
+import { Markdown } from "@/components/Markdown";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/quiz")({
@@ -219,13 +220,16 @@ function QuizPage() {
               {questions.map((q, i) => (
                 <div key={i} className="rounded-2xl border border-border bg-card p-5 shadow-card">
                   {q.scenario && (
-                    <p className="mb-2 rounded-lg border-l-2 border-accent bg-accent/5 p-3 text-sm italic text-muted-foreground">
-                      {q.scenario}
-                    </p>
+                    <div className="mb-2 rounded-lg border-l-2 border-accent bg-accent/5 p-3 text-sm italic text-muted-foreground">
+                      <Markdown>{q.scenario}</Markdown>
+                    </div>
                   )}
-                  <p className="font-medium">
-                    <span className="text-primary">{i + 1}.</span> {q.question}
-                  </p>
+                  <div className="flex gap-1.5 font-medium">
+                    <span className="text-primary">{i + 1}.</span>
+                    <div className="min-w-0 flex-1">
+                      <Markdown>{q.question}</Markdown>
+                    </div>
+                  </div>
                   {q.competency && (
                     <p className="mt-1.5 text-xs text-muted-foreground">
                       🎯 Competency: {q.competency}
@@ -308,16 +312,19 @@ function QuizPage() {
                       ) : (
                         <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
                       )}
-                      <p className="font-medium">{q.question}</p>
+                      <div className="min-w-0 flex-1 font-medium">
+                        <Markdown>{q.question}</Markdown>
+                      </div>
                     </div>
                     <div className="mt-3 space-y-1 pl-7 text-sm">
                       <p className={cn(ok ? "text-success" : "text-destructive")}>
                         Your answer: {answers[i] || "—"}
                       </p>
                       {!ok && <p className="text-success">Correct: {q.answer}</p>}
-                      <p className="mt-1 rounded-lg bg-muted p-2 text-muted-foreground">
-                        💡 {q.explanation}
-                      </p>
+                      <div className="mt-1 rounded-lg bg-muted p-2 text-muted-foreground">
+                        <span className="font-medium">💡 Explanation</span>
+                        <Markdown>{q.explanation}</Markdown>
+                      </div>
                       {q.competency && (
                         <p className="text-xs text-muted-foreground">
                           🎯 {q.competency}
