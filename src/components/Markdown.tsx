@@ -138,14 +138,32 @@ const components: Components = {
       {children}
     </blockquote>
   ),
-  img: ({ src, alt }) => (
-    <img
-      src={typeof src === "string" ? src : undefined}
-      alt={alt ?? ""}
-      loading="lazy"
-      className="my-3 max-h-80 w-auto rounded-xl border border-border"
-    />
-  ),
+  img: ({ src, alt }) => {
+    const url = typeof src === "string" ? src : undefined;
+    if (!url) return null;
+    return (
+      <figure className="my-3 overflow-hidden rounded-xl border border-border bg-card shadow-card">
+        <img
+          src={url}
+          alt={alt ?? ""}
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          className="mx-auto block max-h-96 w-auto"
+          onError={(e) => {
+            // Hide broken AI-suggested images instead of showing a torn-image icon.
+            const fig = (e.currentTarget.closest("figure") as HTMLElement) ?? null;
+            if (fig) fig.style.display = "none";
+          }}
+        />
+        {alt && (
+          <figcaption className="px-3 py-2 text-center text-xs text-muted-foreground">
+            {alt}
+          </figcaption>
+        )}
+      </figure>
+    );
+  },
+
 };
 
 export function Markdown({
