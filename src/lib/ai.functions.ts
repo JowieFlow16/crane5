@@ -205,3 +205,67 @@ Provide 5-7 notes, 5-8 keyConcepts, 5 likelyQuestions and 2-4 references.${ref}`
       references?: string[];
     }>(raw);
   });
+
+// ---- Flashcard generation ----
+export interface Flashcard {
+  front: string;
+  back: string;
+}
+
+export const generateFlashcards = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        subject: z.string(),
+        topic: z.string().min(1),
+        count: z.number().min(4).max(20).default(10),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { callAI, parseJsonResponse } = await import("./ai-gateway.server");
+
+    const raw = await callAI({
+      json: true,
+      temperature: 0.5,
+      messages: [
+        {
+          role: "system",
+          content: `${NCDC_PERSONA}${NCDC_ANSWERING_APPROACH}`,
+        },
+        {
+          role: "user",
+          content: `Create ${data.count} study flashcards for ${data.subject} — topic "${data.topic}" (Uganda NCDC competency-based curriculum).
+Rules:
+- "front" is a short prompt/question or a key term.
+- "back" is a clear, simple, correct answer a Ugandan secondary student understands, with a tiny live example where useful. Keep it concise (1-3 sentences). You may use simple inline LaTeX ($...$) for formulae.
+- Cover the most important, exam-relevant points; progress from basic recall to application.
+Return ONLY valid JSON: {"cards":[{"front":"...","back":"..."}]}`,
+        },
+      ],
+    });
+
+    return parseJsonResponse<{ cards: Flashcard[] }>(raw);
+  });
+
+// ---- AI image / diagram generation (visual research support) ----
+export const generateImage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        prompt: z.string().min(3).max(500),
+        subject: z.string().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { generateImageAI } = await import("./ai-gateway.server");
+    const styled = `Educational, clearly labelled illustration for a Ugandan secondary school ${
+      data.subject ? `${data.subject} ` : ""
+    }student. Clean, accurate, textbook-style diagram with readable labels and a light background. Subject: ${data.prompt}`;
+    const url = await generateImageAI(styled);
+    return { url };
+  });
+
