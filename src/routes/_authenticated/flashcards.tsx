@@ -30,8 +30,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SUBJECTS } from "@/lib/subjects";
 import { Markdown } from "@/components/Markdown";
-import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/_authenticated/flashcards")({
   head: () => ({ meta: [{ title: "Flashcards · Omicron AI" }] }),

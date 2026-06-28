@@ -17,6 +17,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedRevisionRouteImport } from './routes/_authenticated/revision'
 import { Route as AuthenticatedQuizRouteImport } from './routes/_authenticated/quiz'
+import { Route as AuthenticatedFlashcardsRouteImport } from './routes/_authenticated/flashcards'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -60,6 +61,11 @@ const AuthenticatedQuizRoute = AuthenticatedQuizRouteImport.update({
   path: '/quiz',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFlashcardsRoute = AuthenticatedFlashcardsRouteImport.update({
+  id: '/flashcards',
+  path: '/flashcards',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -84,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/flashcards': typeof AuthenticatedFlashcardsRoute
   '/quiz': typeof AuthenticatedQuizRoute
   '/revision': typeof AuthenticatedRevisionRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/flashcards': typeof AuthenticatedFlashcardsRoute
   '/quiz': typeof AuthenticatedQuizRoute
   '/revision': typeof AuthenticatedRevisionRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -110,6 +118,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/chat': typeof AuthenticatedChatRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/flashcards': typeof AuthenticatedFlashcardsRoute
   '/_authenticated/quiz': typeof AuthenticatedQuizRoute
   '/_authenticated/revision': typeof AuthenticatedRevisionRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
@@ -124,6 +133,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/chat'
     | '/dashboard'
+    | '/flashcards'
     | '/quiz'
     | '/revision'
     | '/settings'
@@ -136,6 +146,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/chat'
     | '/dashboard'
+    | '/flashcards'
     | '/quiz'
     | '/revision'
     | '/settings'
@@ -149,6 +160,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/chat'
     | '/_authenticated/dashboard'
+    | '/_authenticated/flashcards'
     | '/_authenticated/quiz'
     | '/_authenticated/revision'
     | '/_authenticated/settings'
@@ -220,6 +232,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedQuizRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/flashcards': {
+      id: '/_authenticated/flashcards'
+      path: '/flashcards'
+      fullPath: '/flashcards'
+      preLoaderRoute: typeof AuthenticatedFlashcardsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -248,6 +267,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedChatRoute: typeof AuthenticatedChatRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedFlashcardsRoute: typeof AuthenticatedFlashcardsRoute
   AuthenticatedQuizRoute: typeof AuthenticatedQuizRoute
   AuthenticatedRevisionRoute: typeof AuthenticatedRevisionRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
@@ -257,6 +277,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedChatRoute: AuthenticatedChatRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedFlashcardsRoute: AuthenticatedFlashcardsRoute,
   AuthenticatedQuizRoute: AuthenticatedQuizRoute,
   AuthenticatedRevisionRoute: AuthenticatedRevisionRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
