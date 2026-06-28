@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookmarks: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          kind: string
+          subject: string | null
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          kind?: string
+          subject?: string | null
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          subject?: string | null
+          title?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       chats: {
         Row: {
           created_at: string
@@ -80,6 +110,81 @@ export type Database = {
         }
         Relationships: []
       }
+      flashcards: {
+        Row: {
+          back: string
+          created_at: string
+          due_date: string
+          ease: number
+          front: string
+          id: string
+          interval_days: number
+          reps: number
+          subject: string | null
+          topic: string | null
+          user_id: string
+        }
+        Insert: {
+          back: string
+          created_at?: string
+          due_date?: string
+          ease?: number
+          front: string
+          id?: string
+          interval_days?: number
+          reps?: number
+          subject?: string | null
+          topic?: string | null
+          user_id: string
+        }
+        Update: {
+          back?: string
+          created_at?: string
+          due_date?: string
+          ease?: number
+          front?: string
+          id?: string
+          interval_days?: number
+          reps?: number
+          subject?: string | null
+          topic?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      leaderboard: {
+        Row: {
+          avatar_url: string | null
+          class_level: string | null
+          current_streak: number
+          full_name: string | null
+          level: number
+          updated_at: string
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          avatar_url?: string | null
+          class_level?: string | null
+          current_streak?: number
+          full_name?: string | null
+          level?: number
+          updated_at?: string
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          avatar_url?: string | null
+          class_level?: string | null
+          current_streak?: number
+          full_name?: string | null
+          level?: number
+          updated_at?: string
+          user_id?: string
+          xp?: number
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           chat_id: string
@@ -118,31 +223,40 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           class_level: Database["public"]["Enums"]["class_level"] | null
           created_at: string
           email: string | null
+          favorite_subjects: string[]
           full_name: string | null
           id: string
+          learning_goal: string | null
           school: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           class_level?: Database["public"]["Enums"]["class_level"] | null
           created_at?: string
           email?: string | null
+          favorite_subjects?: string[]
           full_name?: string | null
           id: string
+          learning_goal?: string | null
           school?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           class_level?: Database["public"]["Enums"]["class_level"] | null
           created_at?: string
           email?: string | null
+          favorite_subjects?: string[]
           full_name?: string | null
           id?: string
+          learning_goal?: string | null
           school?: string | null
           updated_at?: string
         }
@@ -258,6 +372,36 @@ export type Database = {
         }
         Relationships: []
       }
+      study_tasks: {
+        Row: {
+          created_at: string
+          done: boolean
+          due_date: string | null
+          id: string
+          subject: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          done?: boolean
+          due_date?: string | null
+          id?: string
+          subject?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          done?: boolean
+          due_date?: string | null
+          id?: string
+          subject?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subjects: {
         Row: {
           color: string | null
@@ -341,12 +485,63 @@ export type Database = {
         }
         Relationships: []
       }
+      user_stats: {
+        Row: {
+          created_at: string
+          current_streak: number
+          last_active: string | null
+          level: number
+          longest_streak: number
+          updated_at: string
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          last_active?: string | null
+          level?: number
+          longest_streak?: number
+          updated_at?: string
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          last_active?: string | null
+          level?: number
+          longest_streak?: number
+          updated_at?: string
+          user_id?: string
+          xp?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      award_xp: {
+        Args: { p_amount: number }
+        Returns: {
+          created_at: string
+          current_streak: number
+          last_active: string | null
+          level: number
+          longest_streak: number
+          updated_at: string
+          user_id: string
+          xp: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "user_stats"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       app_role: "student" | "teacher" | "parent" | "admin"

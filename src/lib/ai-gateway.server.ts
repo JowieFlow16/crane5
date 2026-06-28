@@ -55,3 +55,42 @@ export function parseJsonResponse<T>(raw: string): T {
     .trim();
   return JSON.parse(cleaned) as T;
 }
+
+/**
+ * Generate an image with the Lovable AI Gateway (Gemini image model).
+ * Returns a data URL (data:image/png;base64,...) or throws.
+ */
+export async function generateImageAI(prompt: string): Promise<string> {
+  const key = process.env.LOVABLE_API_KEY;
+  if (!key) throw new Error("Missing LOVABLE_API_KEY");
+
+  const res = await fetch(GATEWAY_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${key}`,
+    },
+    body: JSON.stringify({
+      model: "google/gemini-2.5-flash-image-preview",
+      messages: [{ role: "user", content: prompt }],
+      modalities: ["image", "text"],
+    }),
+  });
+
+  if (res.status === 429) throw new Error("RATE_LIMIT");
+  if (res.status === 402) throw new Error("CREDITS");
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`AI image error ${res.status}: ${text}`);
+  }
+
+  const data = (await res.json()) as {
+    choices?: {
+      message?: { images?: { image_url?: { url?: string } }[] };
+    }[];
+  };
+  const url = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+  if (!url) throw new Error("No image returned");
+  return url;
+}
+

@@ -17,7 +17,11 @@ export interface Profile {
   avatar_url: string | null;
   class_level: string | null;
   school: string | null;
+  bio: string | null;
+  learning_goal: string | null;
+  favorite_subjects: string[] | null;
 }
+
 
 interface AuthContextValue {
   user: User | null;

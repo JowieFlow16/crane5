@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useStats } from "@/lib/useStats";
 import { chatTutor } from "@/lib/ai.functions";
 import { OmicronMark } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,8 @@ import {
 import { cn } from "@/lib/utils";
 import { SUBJECTS } from "@/lib/subjects";
 import { Markdown } from "@/components/Markdown";
+import { SaveButton } from "@/components/SaveButton";
+import { Illustrator } from "@/components/Illustrator";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/chat")({
@@ -50,7 +53,8 @@ const STARTERS = [
 ];
 
 function ChatPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const { award } = useStats();
   const search = Route.useSearch();
   const qc = useQueryClient();
   const callTutor = useServerFn(chatTutor);
@@ -126,7 +130,9 @@ function ChatPage() {
         content: userMsg.content,
       });
 
-      const res = await callTutor({ data: { messages: nextMessages, subject } });
+      const res = await callTutor({
+        data: { messages: nextMessages, subject, classLevel: profile?.class_level ?? undefined },
+      });
 
       setMessages((m) => [...m, { role: "assistant", content: res.content }]);
       await supabase.from("messages").insert({
@@ -137,6 +143,7 @@ function ChatPage() {
       });
       await supabase.from("chats").update({ updated_at: new Date().toISOString() }).eq("id", id);
       qc.invalidateQueries({ queryKey: ["chats", user.id] });
+      void award(5);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";
       if (msg.includes("RATE_LIMIT")) toast.error("Too many requests — please wait a moment.");
@@ -250,10 +257,22 @@ function ChatPage() {
                       )}
                     >
                       {m.role === "assistant" ? (
-                        <Markdown>{m.content}</Markdown>
+                        <>
+                          <Markdown>{m.content}</Markdown>
+                          <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-border/60 pt-2">
+                            <SaveButton
+                              content={m.content}
+                              kind="answer"
+                              subject={subject}
+                            />
+                            <Illustrator prompt={m.content} subject={subject} />
+
+                          </div>
+                        </>
                       ) : (
                         m.content
                       )}
+
                     </div>
                   </motion.div>
                 ))}
