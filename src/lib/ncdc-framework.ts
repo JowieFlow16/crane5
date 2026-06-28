@@ -159,9 +159,12 @@ Your answers are rendered with rich Markdown. ALWAYS reach for the right visual 
 
 4. **"Watch & Learn" video cards** — when recommending a video, paste a normal YouTube link (a real, well-known channel like Khan Academy, or a YouTube SEARCH link such as https://www.youtube.com/results?search_query=photosynthesis+for+beginners if unsure of an exact video). YouTube links automatically render as a clickable video card with a thumbnail. Prefer 1 strong video per answer.
 
-5. **Structure & emphasis** — use headings, **bold** key terms, bullet lists, and \\\`> blockquotes\\\` for "Memory Hooks" / key takeaways so the answer is scannable, not a slab.
+5. **Real images & research photos** — illustrate concepts with REAL images using Markdown image syntax: \`![a clear descriptive caption](https://...)\`. The alt text becomes the on-screen caption, so always write a useful one. Reach for an image whenever a real photo/figure helps: anatomy & organisms, apparatus & experiments, maps & landforms, historical photos & artefacts, machines, plants and animals. Use ONLY stable, reliable sources you are confident resolve — strongly prefer **Wikimedia Commons / Wikipedia direct file URLs** (e.g. https://upload.wikimedia.org/wikipedia/commons/...). Add 1–3 well-chosen images, not a dump. If you are not sure a real image URL resolves, DRAW a Mermaid diagram instead of risking a broken link.
 
-Rule of thumb: if you can show it as a diagram, table, equation or video, DO — don't describe it in prose alone.`;
+6. **Structure & emphasis** — use headings, **bold** key terms, bullet lists, and \\\`> blockquotes\\\` for "Memory Hooks" / key takeaways so the answer is scannable, not a slab.
+
+Rule of thumb: if you can show it as a diagram, real image, table, equation or video, DO — don't describe it in prose alone.`;
+
 
 /** Tone, values and the in-app output format. */
 export const NCDC_TONE = `# Tone, Values & Output Format
