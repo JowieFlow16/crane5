@@ -152,6 +152,39 @@ export type Database = {
         }
         Relationships: []
       }
+      leaderboard: {
+        Row: {
+          avatar_url: string | null
+          class_level: string | null
+          current_streak: number
+          full_name: string | null
+          level: number
+          updated_at: string
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          avatar_url?: string | null
+          class_level?: string | null
+          current_streak?: number
+          full_name?: string | null
+          level?: number
+          updated_at?: string
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          avatar_url?: string | null
+          class_level?: string | null
+          current_streak?: number
+          full_name?: string | null
+          level?: number
+          updated_at?: string
+          user_id?: string
+          xp?: number
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           chat_id: string
@@ -508,18 +541,6 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
-      }
-      get_leaderboard: {
-        Args: { limit_n?: number }
-        Returns: {
-          avatar_url: string
-          class_level: string
-          current_streak: number
-          full_name: string
-          level: number
-          user_id: string
-          xp: number
-        }[]
       }
     }
     Enums: {
