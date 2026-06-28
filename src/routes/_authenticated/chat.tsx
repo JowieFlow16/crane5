@@ -257,10 +257,21 @@ function ChatPage() {
                       )}
                     >
                       {m.role === "assistant" ? (
-                        <Markdown>{m.content}</Markdown>
+                        <>
+                          <Markdown>{m.content}</Markdown>
+                          <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-border/60 pt-2">
+                            <SaveButton
+                              content={m.content}
+                              kind="tutor"
+                              subject={subject}
+                            />
+                            <Illustrator context={m.content} subject={subject} />
+                          </div>
+                        </>
                       ) : (
                         m.content
                       )}
+
                     </div>
                   </motion.div>
                 ))}
