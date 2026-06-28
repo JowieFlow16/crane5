@@ -4,6 +4,10 @@ import {
   MessageCircle,
   ListChecks,
   NotebookPen,
+  Layers,
+  CalendarCheck,
+  Bookmark,
+  Trophy,
   Settings,
   Shield,
   LogOut,
@@ -23,19 +27,29 @@ import {
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/Logo";
 import { useAuth } from "@/lib/auth";
+import { useStats } from "@/lib/useStats";
+import { levelProgress } from "@/lib/gamification";
 import { cn } from "@/lib/utils";
 
-const mainItems = [
+const learnItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "AI Tutor", url: "/chat", icon: MessageCircle },
   { title: "Quizzes", url: "/quiz", icon: ListChecks },
   { title: "Revision", url: "/revision", icon: NotebookPen },
+  { title: "Flashcards", url: "/flashcards", icon: Layers },
+];
+
+const growItems = [
+  { title: "Planner", url: "/planner", icon: CalendarCheck },
+  { title: "Library", url: "/saved", icon: Bookmark },
+  { title: "Leaderboard", url: "/leaderboard", icon: Trophy },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { isAdmin, profile, signOut } = useAuth();
+  const { stats } = useStats();
   const path = useRouterState({ select: (r) => r.location.pathname });
   const isActive = (url: string) => path === url;
 
@@ -52,7 +66,25 @@ export function AppSidebar() {
           <SidebarGroupLabel>Learn</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems.map((item) => (
+              {learnItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                    <Link to={item.url} className="flex items-center gap-3">
+                      <item.icon className="h-4 w-4 shrink-0" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Grow</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {growItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
                     <Link to={item.url} className="flex items-center gap-3">
@@ -103,17 +135,33 @@ export function AppSidebar() {
 
       <SidebarFooter className="border-t border-sidebar-border p-3">
         <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-sm font-semibold text-sidebar-primary-foreground">
-            {(profile?.full_name ?? profile?.email ?? "U").charAt(0).toUpperCase()}
-          </div>
+          {profile?.avatar_url ? (
+            <img
+              src={profile.avatar_url}
+              alt=""
+              className="h-8 w-8 shrink-0 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-sm font-semibold text-sidebar-primary-foreground">
+              {(profile?.full_name ?? profile?.email ?? "U").charAt(0).toUpperCase()}
+            </div>
+          )}
           {!collapsed && (
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-sidebar-foreground">
                 {profile?.full_name ?? "Student"}
               </p>
-              <p className="truncate text-xs text-sidebar-foreground/60">
-                {profile?.class_level ?? "Omicron AI"}
-              </p>
+              <div className="mt-1 flex items-center gap-1.5">
+                <span className="text-[0.65rem] font-semibold text-primary">
+                  Lv {stats?.level ?? 1}
+                </span>
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-sidebar-accent">
+                  <div
+                    className="h-full rounded-full bg-gradient-primary transition-all"
+                    style={{ width: `${levelProgress(stats?.xp ?? 0)}%` }}
+                  />
+                </div>
+              </div>
             </div>
           )}
           {!collapsed && (
