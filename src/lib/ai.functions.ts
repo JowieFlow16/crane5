@@ -24,6 +24,7 @@ export const chatTutor = createServerFn({ method: "POST" })
       .object({
         messages: z.array(chatMessageSchema).min(1),
         subject: z.string().optional(),
+        classLevel: z.string().optional(),
       })
       .parse(input),
   )
@@ -55,7 +56,11 @@ export const chatTutor = createServerFn({ method: "POST" })
       NCDC_PERSONA +
       NCDC_FRAMEWORK_BLOCK +
       (data.subject ? `\n\nCurrent subject focus: ${data.subject}.` : "") +
+      (data.classLevel
+        ? `\n\nThe learner is in ${data.classLevel}. Pitch depth, vocabulary and examples to this level.`
+        : "") +
       curriculumContext;
+
 
     const content = await callAI({
       messages: [{ role: "system", content: system }, ...data.messages],
