@@ -262,10 +262,11 @@ function ChatPage() {
                           <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-border/60 pt-2">
                             <SaveButton
                               content={m.content}
-                              kind="tutor"
+                              kind="answer"
                               subject={subject}
                             />
-                            <Illustrator context={m.content} subject={subject} />
+                            <Illustrator prompt={m.content} subject={subject} />
+
                           </div>
                         </>
                       ) : (
