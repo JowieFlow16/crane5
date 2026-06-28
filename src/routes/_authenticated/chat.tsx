@@ -53,7 +53,8 @@ const STARTERS = [
 ];
 
 function ChatPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const { award } = useStats();
   const search = Route.useSearch();
   const qc = useQueryClient();
   const callTutor = useServerFn(chatTutor);
