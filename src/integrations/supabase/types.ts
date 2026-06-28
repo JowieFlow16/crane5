@@ -490,7 +490,37 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      award_xp: {
+        Args: { p_amount: number }
+        Returns: {
+          created_at: string
+          current_streak: number
+          last_active: string | null
+          level: number
+          longest_streak: number
+          updated_at: string
+          user_id: string
+          xp: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "user_stats"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      get_leaderboard: {
+        Args: { limit_n?: number }
+        Returns: {
+          avatar_url: string
+          class_level: string
+          current_streak: number
+          full_name: string
+          level: number
+          user_id: string
+          xp: number
+        }[]
+      }
     }
     Enums: {
       app_role: "student" | "teacher" | "parent" | "admin"
