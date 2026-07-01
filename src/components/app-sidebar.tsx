@@ -8,6 +8,7 @@ import {
   CalendarCheck,
   Bookmark,
   Trophy,
+  Users,
   Settings,
   Shield,
   LogOut,
