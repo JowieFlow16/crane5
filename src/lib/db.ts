@@ -64,3 +64,32 @@ export interface LeaderboardRow {
   level: number;
   current_streak: number;
 }
+
+export type PostKind = "update" | "progress" | "question" | "win";
+
+export interface Post {
+  id: string;
+  user_id: string;
+  author_name: string | null;
+  author_avatar: string | null;
+  author_class: string | null;
+  content: string;
+  image_url: string | null;
+  kind: PostKind;
+  subject: string | null;
+  likes_count: number;
+  comments_count: number;
+  created_at: string;
+  /** Client-side: whether the current user has liked this post. */
+  liked_by_me?: boolean;
+}
+
+export interface PostComment {
+  id: string;
+  post_id: string;
+  user_id: string;
+  author_name: string | null;
+  author_avatar: string | null;
+  content: string;
+  created_at: string;
+}

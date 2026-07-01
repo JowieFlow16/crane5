@@ -1,7 +1,11 @@
 // Server-only helper for Lovable AI Gateway (Google Gemini under the hood).
 // Filename ends with .server.ts so it is never bundled to the client.
-// NOTE FOR FUTURE: To swap to your own Gemini API key, replace the gateway URL
-// and Authorization header below with the Google Generative AI endpoint + key.
+// Default chat model tuned for speed: gemini-3-flash-preview.
+
+/** Fast default chat/text model used across the tutor, quizzes and revision. */
+export const FAST_TEXT_MODEL = "google/gemini-3-flash-preview";
+/** Fast, high-quality image model (Nano Banana 2) for on-demand illustrations. */
+export const IMAGE_MODEL = "google/gemini-3.1-flash-image";
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
@@ -26,7 +30,7 @@ export async function callAI(opts: {
       Authorization: `Bearer ${key}`,
     },
     body: JSON.stringify({
-      model: opts.model ?? "google/gemini-2.5-flash",
+      model: opts.model ?? FAST_TEXT_MODEL,
       messages: opts.messages,
       temperature: opts.temperature ?? 0.6,
       ...(opts.json ? { response_format: { type: "json_object" } } : {}),
@@ -71,7 +75,7 @@ export async function generateImageAI(prompt: string): Promise<string> {
       Authorization: `Bearer ${key}`,
     },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash-image-preview",
+      model: IMAGE_MODEL,
       messages: [{ role: "user", content: prompt }],
       modalities: ["image", "text"],
     }),

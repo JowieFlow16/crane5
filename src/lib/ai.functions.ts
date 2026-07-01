@@ -64,7 +64,6 @@ export const chatTutor = createServerFn({ method: "POST" })
 
     const content = await callAI({
       messages: [{ role: "system", content: system }, ...data.messages],
-      model: "google/gemini-2.5-flash",
     });
 
     return { content, usedSources: docs?.map((d) => d.name) ?? [] };
