@@ -41,6 +41,7 @@ const learnItems = [
 ];
 
 const growItems = [
+  { title: "Community", url: "/community", icon: Users },
   { title: "Planner", url: "/planner", icon: CalendarCheck },
   { title: "Library", url: "/saved", icon: Bookmark },
   { title: "Leaderboard", url: "/leaderboard", icon: Trophy },
