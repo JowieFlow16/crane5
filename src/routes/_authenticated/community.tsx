@@ -12,7 +12,6 @@ import {
   Sparkles,
   ImagePlus,
   Loader2,
-  Flame,
   Trophy,
   X,
 } from "lucide-react";
