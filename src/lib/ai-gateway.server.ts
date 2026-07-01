@@ -75,7 +75,7 @@ export async function generateImageAI(prompt: string): Promise<string> {
       Authorization: `Bearer ${key}`,
     },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash-image-preview",
+      model: IMAGE_MODEL,
       messages: [{ role: "user", content: prompt }],
       modalities: ["image", "text"],
     }),
