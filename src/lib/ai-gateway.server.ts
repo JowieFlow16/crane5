@@ -30,7 +30,7 @@ export async function callAI(opts: {
       Authorization: `Bearer ${key}`,
     },
     body: JSON.stringify({
-      model: opts.model ?? "google/gemini-2.5-flash",
+      model: opts.model ?? FAST_TEXT_MODEL,
       messages: opts.messages,
       temperature: opts.temperature ?? 0.6,
       ...(opts.json ? { response_format: { type: "json_object" } } : {}),
