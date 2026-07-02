@@ -57,7 +57,7 @@ const growItems = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const { isAdmin, profile, signOut } = useAuth();
+  const { isAdmin, isTeacher, profile, signOut } = useAuth();
   const { stats } = useStats();
   const path = useRouterState({ select: (r) => r.location.pathname });
   const isActive = (url: string) => path === url;
