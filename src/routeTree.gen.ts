@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTeachersRouteImport } from './routes/_authenticated/teachers'
+import { Route as AuthenticatedTeachRouteImport } from './routes/_authenticated/teach'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSavedRouteImport } from './routes/_authenticated/saved'
 import { Route as AuthenticatedRevisionRouteImport } from './routes/_authenticated/revision'
@@ -55,6 +56,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthenticatedTeachersRoute = AuthenticatedTeachersRouteImport.update({
   id: '/teachers',
   path: '/teachers',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTeachRoute = AuthenticatedTeachRouteImport.update({
+  id: '/teach',
+  path: '/teach',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
@@ -136,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/revision': typeof AuthenticatedRevisionRoute
   '/saved': typeof AuthenticatedSavedRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/teach': typeof AuthenticatedTeachRoute
   '/teachers': typeof AuthenticatedTeachersRoute
 }
 export interface FileRoutesByTo {
@@ -155,6 +162,7 @@ export interface FileRoutesByTo {
   '/revision': typeof AuthenticatedRevisionRoute
   '/saved': typeof AuthenticatedSavedRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/teach': typeof AuthenticatedTeachRoute
   '/teachers': typeof AuthenticatedTeachersRoute
 }
 export interface FileRoutesById {
@@ -176,6 +184,7 @@ export interface FileRoutesById {
   '/_authenticated/revision': typeof AuthenticatedRevisionRoute
   '/_authenticated/saved': typeof AuthenticatedSavedRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/teach': typeof AuthenticatedTeachRoute
   '/_authenticated/teachers': typeof AuthenticatedTeachersRoute
 }
 export interface FileRouteTypes {
@@ -197,6 +206,7 @@ export interface FileRouteTypes {
     | '/revision'
     | '/saved'
     | '/settings'
+    | '/teach'
     | '/teachers'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -216,6 +226,7 @@ export interface FileRouteTypes {
     | '/revision'
     | '/saved'
     | '/settings'
+    | '/teach'
     | '/teachers'
   id:
     | '__root__'
@@ -236,6 +247,7 @@ export interface FileRouteTypes {
     | '/_authenticated/revision'
     | '/_authenticated/saved'
     | '/_authenticated/settings'
+    | '/_authenticated/teach'
     | '/_authenticated/teachers'
   fileRoutesById: FileRoutesById
 }
@@ -289,6 +301,13 @@ declare module '@tanstack/react-router' {
       path: '/teachers'
       fullPath: '/teachers'
       preLoaderRoute: typeof AuthenticatedTeachersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/teach': {
+      id: '/_authenticated/teach'
+      path: '/teach'
+      fullPath: '/teach'
+      preLoaderRoute: typeof AuthenticatedTeachRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings': {
@@ -391,6 +410,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRevisionRoute: typeof AuthenticatedRevisionRoute
   AuthenticatedSavedRoute: typeof AuthenticatedSavedRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedTeachRoute: typeof AuthenticatedTeachRoute
   AuthenticatedTeachersRoute: typeof AuthenticatedTeachersRoute
 }
 
@@ -407,6 +427,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRevisionRoute: AuthenticatedRevisionRoute,
   AuthenticatedSavedRoute: AuthenticatedSavedRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedTeachRoute: AuthenticatedTeachRoute,
   AuthenticatedTeachersRoute: AuthenticatedTeachersRoute,
 }
 

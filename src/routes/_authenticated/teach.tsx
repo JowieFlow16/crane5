@@ -112,7 +112,7 @@ function TeachPage() {
         />
       )}
 
-      {approved ? <TeacherDashboard tp={tp} /> : <ApplicationForm tp={tp} profile={profile} />}
+      {approved ? <TeacherDashboard tp={tp ?? null} /> : <ApplicationForm tp={tp ?? null} profile={profile} />}
     </div>
   );
 }
