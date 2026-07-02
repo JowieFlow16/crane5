@@ -12,6 +12,8 @@ import {
   Settings,
   Shield,
   LogOut,
+  MessagesSquare,
+  GraduationCap,
 } from "lucide-react";
 import {
   Sidebar,
@@ -40,8 +42,13 @@ const learnItems = [
   { title: "Flashcards", url: "/flashcards", icon: Layers },
 ];
 
-const growItems = [
+const connectItems = [
+  { title: "Messages", url: "/messages", icon: MessagesSquare },
+  { title: "Find a Teacher", url: "/teachers", icon: GraduationCap },
   { title: "Community", url: "/community", icon: Users },
+];
+
+const growItems = [
   { title: "Planner", url: "/planner", icon: CalendarCheck },
   { title: "Library", url: "/saved", icon: Bookmark },
   { title: "Leaderboard", url: "/leaderboard", icon: Trophy },
