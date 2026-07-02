@@ -38,6 +38,13 @@ export const Route = createFileRoute("/_authenticated/admin")({
 });
 
 const SUBJECTS = ["Mathematics", "Physics", "Chemistry", "Biology", "English"];
+
+const cnStatus = (status: string) =>
+  status === "approved"
+    ? "rounded-full bg-success/15 px-2 py-0.5 text-[0.7rem] font-medium capitalize text-success"
+    : status === "rejected"
+      ? "rounded-full bg-destructive/10 px-2 py-0.5 text-[0.7rem] font-medium capitalize text-destructive"
+      : "rounded-full bg-amber-500/15 px-2 py-0.5 text-[0.7rem] font-medium capitalize text-amber-600";
 const CLASSES = ["S1", "S2", "S3", "S4", "S5", "S6"];
 const DOC_TYPES = ["notes", "past paper", "marking guide", "textbook", "teacher resource"];
 
