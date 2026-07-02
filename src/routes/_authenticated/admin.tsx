@@ -68,6 +68,34 @@ function AdminPage() {
     },
   });
 
+  const { data: teacherApps } = useQuery({
+    queryKey: ["teacher-applications"],
+    enabled: isAdmin,
+    queryFn: async (): Promise<TeacherProfile[]> => {
+      const { data } = await db
+        .from("teacher_profiles")
+        .select("*")
+        .order("created_at", { ascending: false });
+      return (data as TeacherProfile[]) ?? [];
+    },
+  });
+
+  const reviewTeacher = async (t: TeacherProfile, status: "approved" | "rejected") => {
+    const { error } = await db
+      .from("teacher_profiles")
+      .update({ status } as never)
+      .eq("id", t.id);
+    if (error) {
+      toast.error("Couldn't update application.");
+      return;
+    }
+    if (status === "approved") {
+      await db.from("user_roles").insert({ user_id: t.id, role: "teacher" } as never);
+    }
+    qc.invalidateQueries({ queryKey: ["teacher-applications"] });
+    toast.success(status === "approved" ? "Teacher approved 🎓" : "Application rejected.");
+  };
+
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !name.trim()) return;
