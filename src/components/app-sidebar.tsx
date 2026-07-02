@@ -90,6 +90,24 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
+          <SidebarGroupLabel>Connect</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {connectItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                    <Link to={item.url} className="flex items-center gap-3">
+                      <item.icon className="h-4 w-4 shrink-0" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
           <SidebarGroupLabel>Grow</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -103,9 +121,18 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive("/teach")}>
+                  <Link to="/teach" className="flex items-center gap-3">
+                    <GraduationCap className="h-4 w-4 shrink-0" />
+                    {!collapsed && <span>{isTeacher ? "Teacher Center" : "Become a Teacher"}</span>}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
 
         {isAdmin && (
           <SidebarGroup>
