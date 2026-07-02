@@ -29,6 +29,7 @@ interface AuthContextValue {
   profile: Profile | null;
   roles: AppRole[];
   isAdmin: boolean;
+  isTeacher: boolean;
   loading: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
