@@ -93,3 +93,60 @@ export interface PostComment {
   content: string;
   created_at: string;
 }
+
+export type TeacherStatus = "pending" | "approved" | "rejected";
+
+export interface TeacherProfile {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  headline: string | null;
+  bio: string | null;
+  school: string | null;
+  subjects: string[];
+  experience_years: number;
+  class_levels: string[];
+  contact_note: string | null;
+  status: TeacherStatus;
+  rating_avg: number;
+  students_helped: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Conversation {
+  id: string;
+  user_lo: string;
+  user_hi: string;
+  lo_name: string | null;
+  lo_avatar: string | null;
+  lo_role: string;
+  hi_name: string | null;
+  hi_avatar: string | null;
+  hi_role: string;
+  last_message: string | null;
+  last_sender: string | null;
+  last_at: string;
+  created_at: string;
+}
+
+export interface DirectMessage {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  recipient_id: string;
+  content: string;
+  read: boolean;
+  created_at: string;
+}
+
+/** Helper: pick the "other" participant's display info from a conversation. */
+export function otherParty(c: Conversation, myId: string) {
+  const isLo = c.user_lo === myId;
+  return {
+    id: isLo ? c.user_hi : c.user_lo,
+    name: (isLo ? c.hi_name : c.lo_name) ?? "User",
+    avatar: isLo ? c.hi_avatar : c.lo_avatar,
+    role: isLo ? c.hi_role : c.lo_role,
+  };
+}
