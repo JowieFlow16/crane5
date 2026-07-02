@@ -29,6 +29,7 @@ interface AuthContextValue {
   profile: Profile | null;
   roles: AppRole[];
   isAdmin: boolean;
+  isTeacher: boolean;
   loading: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -81,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     profile,
     roles,
     isAdmin: roles.includes("admin"),
+    isTeacher: roles.includes("teacher"),
     loading,
     signOut: async () => {
       await supabase.auth.signOut();

@@ -12,6 +12,8 @@ import {
   Settings,
   Shield,
   LogOut,
+  MessagesSquare,
+  GraduationCap,
 } from "lucide-react";
 import {
   Sidebar,
@@ -40,8 +42,13 @@ const learnItems = [
   { title: "Flashcards", url: "/flashcards", icon: Layers },
 ];
 
-const growItems = [
+const connectItems = [
+  { title: "Messages", url: "/messages", icon: MessagesSquare },
+  { title: "Find a Teacher", url: "/teachers", icon: GraduationCap },
   { title: "Community", url: "/community", icon: Users },
+];
+
+const growItems = [
   { title: "Planner", url: "/planner", icon: CalendarCheck },
   { title: "Library", url: "/saved", icon: Bookmark },
   { title: "Leaderboard", url: "/leaderboard", icon: Trophy },
@@ -50,7 +57,7 @@ const growItems = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const { isAdmin, profile, signOut } = useAuth();
+  const { isAdmin, isTeacher, profile, signOut } = useAuth();
   const { stats } = useStats();
   const path = useRouterState({ select: (r) => r.location.pathname });
   const isActive = (url: string) => path === url;
@@ -83,6 +90,24 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
+          <SidebarGroupLabel>Connect</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {connectItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                    <Link to={item.url} className="flex items-center gap-3">
+                      <item.icon className="h-4 w-4 shrink-0" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
           <SidebarGroupLabel>Grow</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -96,9 +121,18 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive("/teach")}>
+                  <Link to="/teach" className="flex items-center gap-3">
+                    <GraduationCap className="h-4 w-4 shrink-0" />
+                    {!collapsed && <span>{isTeacher ? "Teacher Center" : "Become a Teacher"}</span>}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
 
         {isAdmin && (
           <SidebarGroup>

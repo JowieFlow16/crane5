@@ -10,8 +10,14 @@ import {
   Search,
   ShieldAlert,
   Database,
+  GraduationCap,
+  Check,
+  X,
+  BadgeCheck,
+  School,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { db, type TeacherProfile } from "@/lib/db";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +38,13 @@ export const Route = createFileRoute("/_authenticated/admin")({
 });
 
 const SUBJECTS = ["Mathematics", "Physics", "Chemistry", "Biology", "English"];
+
+const cnStatus = (status: string) =>
+  status === "approved"
+    ? "rounded-full bg-success/15 px-2 py-0.5 text-[0.7rem] font-medium capitalize text-success"
+    : status === "rejected"
+      ? "rounded-full bg-destructive/10 px-2 py-0.5 text-[0.7rem] font-medium capitalize text-destructive"
+      : "rounded-full bg-amber-500/15 px-2 py-0.5 text-[0.7rem] font-medium capitalize text-amber-600";
 const CLASSES = ["S1", "S2", "S3", "S4", "S5", "S6"];
 const DOC_TYPES = ["notes", "past paper", "marking guide", "textbook", "teacher resource"];
 
@@ -61,6 +74,34 @@ function AdminPage() {
       return data ?? [];
     },
   });
+
+  const { data: teacherApps } = useQuery({
+    queryKey: ["teacher-applications"],
+    enabled: isAdmin,
+    queryFn: async (): Promise<TeacherProfile[]> => {
+      const { data } = await db
+        .from("teacher_profiles")
+        .select("*")
+        .order("created_at", { ascending: false });
+      return (data as TeacherProfile[]) ?? [];
+    },
+  });
+
+  const reviewTeacher = async (t: TeacherProfile, status: "approved" | "rejected") => {
+    const { error } = await db
+      .from("teacher_profiles")
+      .update({ status } as never)
+      .eq("id", t.id);
+    if (error) {
+      toast.error("Couldn't update application.");
+      return;
+    }
+    if (status === "approved") {
+      await db.from("user_roles").insert({ user_id: t.id, role: "teacher" } as never);
+    }
+    qc.invalidateQueries({ queryKey: ["teacher-applications"] });
+    toast.success(status === "approved" ? "Teacher approved 🎓" : "Application rejected.");
+  };
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,6 +203,84 @@ function AdminPage() {
       <p className="mt-1 text-muted-foreground">
         Upload curriculum documents. Pasted text becomes searchable by the AI tutor (RAG).
       </p>
+
+      {/* Teacher applications */}
+      <section className="mt-8">
+        <div className="flex items-center gap-2">
+          <GraduationCap className="h-5 w-5 text-primary" />
+          <h2 className="font-display text-xl font-bold">Teacher applications</h2>
+          {(teacherApps ?? []).some((t) => t.status === "pending") && (
+            <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-600">
+              {(teacherApps ?? []).filter((t) => t.status === "pending").length} pending
+            </span>
+          )}
+        </div>
+        <div className="mt-3 space-y-2">
+          {(teacherApps ?? []).length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+              No teacher applications yet.
+            </div>
+          ) : (
+            (teacherApps ?? []).map((t) => (
+              <div
+                key={t.id}
+                className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-card sm:flex-row sm:items-center"
+              >
+                {t.avatar_url ? (
+                  <img src={t.avatar_url} alt="" className="h-12 w-12 shrink-0 rounded-xl object-cover" />
+                ) : (
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-primary text-lg font-bold text-primary-foreground">
+                    {(t.full_name ?? "T").charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="truncate font-medium">{t.full_name ?? "Teacher"}</span>
+                    {t.status === "approved" && <BadgeCheck className="h-4 w-4 text-primary" />}
+                    <span
+                      className={cnStatus(t.status)}
+                    >
+                      {t.status}
+                    </span>
+                  </div>
+                  {t.headline && <p className="truncate text-sm text-muted-foreground">{t.headline}</p>}
+                  <div className="mt-0.5 flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground">
+                    {t.school && (
+                      <span className="inline-flex items-center gap-1">
+                        <School className="h-3.5 w-3.5" /> {t.school}
+                      </span>
+                    )}
+                    <span>{t.experience_years} yrs</span>
+                    <span className="truncate">{(t.subjects ?? []).join(", ")}</span>
+                  </div>
+                </div>
+                {t.status !== "approved" && (
+                  <button
+                    onClick={() => reviewTeacher(t, "approved")}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-success/15 px-3 py-1.5 text-sm font-medium text-success hover:bg-success/25"
+                  >
+                    <Check className="h-4 w-4" /> Approve
+                  </button>
+                )}
+                {t.status !== "rejected" && (
+                  <button
+                    onClick={() => reviewTeacher(t, "rejected")}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1.5 text-sm font-medium text-destructive hover:bg-destructive/20"
+                  >
+                    <X className="h-4 w-4" /> Reject
+                  </button>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      </section>
+
+      <div className="mt-10 flex items-center gap-2">
+        <Database className="h-5 w-5 text-primary" />
+        <h2 className="font-display text-xl font-bold">Knowledge base documents</h2>
+      </div>
+
 
       <div className="mt-6 grid gap-6 lg:grid-cols-5">
         {/* Upload form */}

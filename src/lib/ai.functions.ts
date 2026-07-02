@@ -273,3 +273,225 @@ export const generateImage = createServerFn({ method: "POST" })
     return { url };
   });
 
+// ============================================================================
+// Direct Messaging — start / fetch a conversation between two users
+// ============================================================================
+export const getOrCreateConversation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ otherUserId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const me = context.userId as string;
+    const other = data.otherUserId;
+    if (me === other) throw new Error("You cannot message yourself.");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [lo, hi] = me < other ? [me, other] : [other, me];
+
+    const { data: existing } = await supabaseAdmin
+      .from("conversations")
+      .select("*")
+      .eq("user_lo", lo)
+      .eq("user_hi", hi)
+      .maybeSingle();
+    if (existing) return existing;
+
+    const [{ data: profs }, { data: roleRows }] = await Promise.all([
+      supabaseAdmin.from("profiles").select("id, full_name, avatar_url").in("id", [lo, hi]),
+      supabaseAdmin.from("user_roles").select("user_id, role").in("user_id", [lo, hi]),
+    ]);
+    const profOf = (id: string) =>
+      (profs ?? []).find((p) => p.id === id) as
+        | { full_name: string | null; avatar_url: string | null }
+        | undefined;
+    const roleOf = (id: string) =>
+      (roleRows ?? []).some((r) => r.user_id === id && r.role === "teacher")
+        ? "teacher"
+        : "student";
+
+    const { data: created, error } = await supabaseAdmin
+      .from("conversations")
+      .insert({
+        user_lo: lo,
+        user_hi: hi,
+        lo_name: profOf(lo)?.full_name ?? "User",
+        lo_avatar: profOf(lo)?.avatar_url ?? null,
+        lo_role: roleOf(lo),
+        hi_name: profOf(hi)?.full_name ?? "User",
+        hi_avatar: profOf(hi)?.avatar_url ?? null,
+        hi_role: roleOf(hi),
+      } as never)
+      .select("*")
+      .single();
+    if (error) throw new Error(error.message);
+    return created;
+  });
+
+// ============================================================================
+// Teacher Copilot — AI tools exclusively for verified teachers
+// ============================================================================
+
+/** Lesson plan generator (NCDC competency-based). */
+export const generateLessonPlan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        subject: z.string(),
+        topic: z.string().min(1),
+        classLevel: z.string(),
+        duration: z.string().default("80 minutes"),
+        notes: z.string().max(1000).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { callAI } = await import("./ai-gateway.server");
+    const { NCDC_TEACHER_PERSONA, NCDC_FRAMEWORK_BLOCK } = await import("./ncdc-framework");
+    const content = await callAI({
+      temperature: 0.6,
+      messages: [
+        { role: "system", content: NCDC_TEACHER_PERSONA + NCDC_FRAMEWORK_BLOCK },
+        {
+          role: "user",
+          content: `Create a complete, classroom-ready NCDC lesson plan.
+Subject: ${data.subject}
+Topic: ${data.topic}
+Class: ${data.classLevel}
+Lesson duration: ${data.duration}
+${data.notes ? `Teacher notes: ${data.notes}` : ""}
+
+Return well-formatted Markdown with these sections:
+1. **Lesson Overview** (topic, class, time, competency focus)
+2. **Learning Outcome(s)** — split into Knowledge, Understanding, Skills, Values
+3. **Generic skills & cross-cutting issues** addressed
+4. **Materials / local resources** (realistic for a Ugandan school)
+5. **Lesson sequence** in a Markdown table: | Phase | Time | Teacher activity | Learner activity | (Intro/Development/Conclusion) — use authentic Ugandan examples
+6. **Differentiation** for mixed abilities
+7. **Assessment** — 2 quick NCDC-style scenario items (tagged CK/CU/AP/UE) with a short marking guide
+8. **Homework / extension**
+Use LaTeX for any maths and a Mermaid diagram if a process helps.`,
+        },
+      ],
+    });
+    return { content };
+  });
+
+/** Exam / item builder that returns a ready-to-print paper + marking guide. */
+export const generateExam = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        subject: z.string(),
+        topic: z.string().optional(),
+        classLevel: z.string(),
+        count: z.number().min(2).max(15).default(6),
+        difficulty: z.enum(["Easy", "Medium", "Hard", "Mixed"]).default("Mixed"),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { callAI } = await import("./ai-gateway.server");
+    const {
+      NCDC_TEACHER_PERSONA,
+      NCDC_COMPETENCY_LEVELS,
+      NCDC_ITEM_FRAMEWORK,
+      NCDC_SUBJECT_CONSTRUCTS,
+    } = await import("./ncdc-framework");
+    const content = await callAI({
+      temperature: 0.6,
+      messages: [
+        {
+          role: "system",
+          content: `${NCDC_TEACHER_PERSONA}${NCDC_COMPETENCY_LEVELS}${NCDC_ITEM_FRAMEWORK}${NCDC_SUBJECT_CONSTRUCTS}`,
+        },
+        {
+          role: "user",
+          content: `Set an NCDC ${data.difficulty} assessment paper with ${data.count} items.
+Subject: ${data.subject}${data.topic ? `\nTopic: ${data.topic}` : ""}
+Class: ${data.classLevel}
+
+Return clean Markdown with two clearly separated parts:
+## PART A — Question Paper
+- A short header (Subject, Class, Time, Instructions).
+- Number each item. Build EVERY item on an authentic Ugandan real-life scenario, then a task demanding higher-order thinking (apply/analyse/evaluate). Progress from CK/CU toward AP/UE. Show mark allocations, e.g. (04 marks).
+## PART B — Marking Guide
+- For each item: the competency level (CK/CU/AP/UE), expected response / model answer, and a RACE-based scoring scheme (Relevance, Accuracy, Coherence, Excellence) in a Markdown table.
+Use LaTeX for maths.`,
+        },
+      ],
+    });
+    return { content };
+  });
+
+/** Draft a reply to a student's DM in the teacher's voice. */
+export const draftReply = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        studentMessage: z.string().min(1).max(2000),
+        subject: z.string().optional(),
+        tone: z.enum(["Warm", "Concise", "Detailed"]).default("Warm"),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { callAI } = await import("./ai-gateway.server");
+    const { NCDC_TEACHER_PERSONA } = await import("./ncdc-framework");
+    const content = await callAI({
+      temperature: 0.6,
+      messages: [
+        { role: "system", content: NCDC_TEACHER_PERSONA },
+        {
+          role: "user",
+          content: `A student sent this message${data.subject ? ` about ${data.subject}` : ""}:
+"""${data.studentMessage}"""
+
+Draft a ${data.tone.toLowerCase()}, encouraging reply I (the teacher) can send. Explain the concept simply and correctly with a live Ugandan example, and end with a small check-for-understanding question. Return ONLY the message text (no preamble), ready to send.`,
+        },
+      ],
+    });
+    return { content };
+  });
+
+/** Summarise recent student questions into class insights for a teacher. */
+export const classInsights = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        messages: z.array(z.string()).min(1).max(60),
+        subjects: z.array(z.string()).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { callAI } = await import("./ai-gateway.server");
+    const { NCDC_TEACHER_PERSONA } = await import("./ncdc-framework");
+    const content = await callAI({
+      temperature: 0.5,
+      messages: [
+        { role: "system", content: NCDC_TEACHER_PERSONA },
+        {
+          role: "user",
+          content: `Here are recent questions/messages students sent me${
+            data.subjects?.length ? ` (I teach ${data.subjects.join(", ")})` : ""
+          }:
+${data.messages.map((m, i) => `${i + 1}. ${m}`).join("\n")}
+
+Analyse them and return concise Markdown with:
+- **Common struggles / misconceptions** (bullet list)
+- **Priority topics to reteach** (ranked)
+- **2 quick classroom actions** for tomorrow
+- **1 NCDC scenario item** I can use to check the weakest area (with the competency level tagged).
+Keep it practical and short.`,
+        },
+      ],
+    });
+    return { content };
+  });
+
+

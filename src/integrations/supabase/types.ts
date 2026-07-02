@@ -71,6 +71,92 @@ export type Database = {
         }
         Relationships: []
       }
+      conversations: {
+        Row: {
+          created_at: string
+          hi_avatar: string | null
+          hi_name: string | null
+          hi_role: string
+          id: string
+          last_at: string
+          last_message: string | null
+          last_sender: string | null
+          lo_avatar: string | null
+          lo_name: string | null
+          lo_role: string
+          user_hi: string
+          user_lo: string
+        }
+        Insert: {
+          created_at?: string
+          hi_avatar?: string | null
+          hi_name?: string | null
+          hi_role?: string
+          id?: string
+          last_at?: string
+          last_message?: string | null
+          last_sender?: string | null
+          lo_avatar?: string | null
+          lo_name?: string | null
+          lo_role?: string
+          user_hi: string
+          user_lo: string
+        }
+        Update: {
+          created_at?: string
+          hi_avatar?: string | null
+          hi_name?: string | null
+          hi_role?: string
+          id?: string
+          last_at?: string
+          last_message?: string | null
+          last_sender?: string | null
+          lo_avatar?: string | null
+          lo_name?: string | null
+          lo_role?: string
+          user_hi?: string
+          user_lo?: string
+        }
+        Relationships: []
+      }
+      direct_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          read: boolean
+          recipient_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          read?: boolean
+          recipient_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          read?: boolean
+          recipient_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "direct_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           class_level: Database["public"]["Enums"]["class_level"] | null
@@ -541,6 +627,60 @@ export type Database = {
           id?: string
           name?: string
           slug?: string
+        }
+        Relationships: []
+      }
+      teacher_profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          class_levels: string[]
+          contact_note: string | null
+          created_at: string
+          experience_years: number
+          full_name: string | null
+          headline: string | null
+          id: string
+          rating_avg: number
+          school: string | null
+          status: string
+          students_helped: number
+          subjects: string[]
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          class_levels?: string[]
+          contact_note?: string | null
+          created_at?: string
+          experience_years?: number
+          full_name?: string | null
+          headline?: string | null
+          id: string
+          rating_avg?: number
+          school?: string | null
+          status?: string
+          students_helped?: number
+          subjects?: string[]
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          class_levels?: string[]
+          contact_note?: string | null
+          created_at?: string
+          experience_years?: number
+          full_name?: string | null
+          headline?: string | null
+          id?: string
+          rating_avg?: number
+          school?: string | null
+          status?: string
+          students_helped?: number
+          subjects?: string[]
+          updated_at?: string
         }
         Relationships: []
       }
