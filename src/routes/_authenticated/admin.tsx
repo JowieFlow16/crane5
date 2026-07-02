@@ -10,8 +10,14 @@ import {
   Search,
   ShieldAlert,
   Database,
+  GraduationCap,
+  Check,
+  X,
+  BadgeCheck,
+  School,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { db, type TeacherProfile } from "@/lib/db";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
