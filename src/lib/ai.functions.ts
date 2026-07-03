@@ -168,7 +168,8 @@ export const generateRevision = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { callAI, parseJsonResponse } = await import("./ai-gateway.server");
 
-    const { data: docs } = await context.supabase
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: docs } = await supabaseAdmin
       .from("documents")
       .select("content_text")
       .ilike("subject", `%${data.subject}%`)
