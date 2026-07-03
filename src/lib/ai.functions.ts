@@ -28,12 +28,13 @@ export const chatTutor = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data }) => {
     const { callAI } = await import("./ai-gateway.server");
 
-    // ---- RAG: pull relevant curriculum documents ----
+    // ---- RAG: pull relevant curriculum documents (privileged server-side read) ----
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     let curriculumContext = "";
-    let query = context.supabase
+    let query = supabaseAdmin
       .from("documents")
       .select("name, subject, content_text")
       .not("content_text", "is", null)
@@ -96,10 +97,11 @@ export const generateQuiz = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data }) => {
     const { callAI, parseJsonResponse } = await import("./ai-gateway.server");
 
-    const { data: docs } = await context.supabase
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: docs } = await supabaseAdmin
       .from("documents")
       .select("name, content_text")
       .ilike("subject", `%${data.subject}%`)
@@ -163,10 +165,11 @@ export const generateRevision = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data }) => {
     const { callAI, parseJsonResponse } = await import("./ai-gateway.server");
 
-    const { data: docs } = await context.supabase
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: docs } = await supabaseAdmin
       .from("documents")
       .select("content_text")
       .ilike("subject", `%${data.subject}%`)
