@@ -794,14 +794,6 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      search_curriculum: {
-        Args: { p_limit?: number; p_subject?: string }
-        Returns: {
-          content_text: string
-          name: string
-          subject: string
-        }[]
-      }
     }
     Enums: {
       app_role: "student" | "teacher" | "parent" | "admin"
