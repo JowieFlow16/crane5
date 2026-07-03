@@ -28,7 +28,7 @@ export const chatTutor = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data }) => {
     const { callAI } = await import("./ai-gateway.server");
 
     // ---- RAG: pull relevant curriculum documents (privileged server-side read) ----
@@ -97,7 +97,7 @@ export const generateQuiz = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data }) => {
     const { callAI, parseJsonResponse } = await import("./ai-gateway.server");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -165,7 +165,7 @@ export const generateRevision = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data }) => {
     const { callAI, parseJsonResponse } = await import("./ai-gateway.server");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
