@@ -31,9 +31,10 @@ export const chatTutor = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { callAI } = await import("./ai-gateway.server");
 
-    // ---- RAG: pull relevant curriculum documents ----
+    // ---- RAG: pull relevant curriculum documents (privileged server-side read) ----
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     let curriculumContext = "";
-    let query = context.supabase
+    let query = supabaseAdmin
       .from("documents")
       .select("name, subject, content_text")
       .not("content_text", "is", null)
