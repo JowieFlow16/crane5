@@ -273,6 +273,9 @@ function AuthPage() {
               </>
             )}
           </p>
+          <div className="mt-6 flex justify-center border-t border-border pt-4">
+            <PoweredByAltrastate />
+          </div>
         </motion.div>
       </div>
     </div>
