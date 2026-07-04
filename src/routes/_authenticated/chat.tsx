@@ -247,6 +247,7 @@ function ChatPage() {
       else toast.error("Omicron couldn't respond. Please try again.");
       setMessages((m) => m.slice(0, -1));
       setInput(text);
+      if (sentAttachments.length) setAttachments(sentAttachments);
     } finally {
       setThinking(false);
     }
