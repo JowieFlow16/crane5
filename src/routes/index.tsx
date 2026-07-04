@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
+import { PoweredByAltrastate } from "@/components/PoweredBy";
 import heroImg from "@/assets/hero.jpg";
 
 export const Route = createFileRoute("/")({
