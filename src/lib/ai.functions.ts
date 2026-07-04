@@ -16,6 +16,14 @@ const chatMessageSchema = z.object({
   content: z.string(),
 });
 
+/** A user-supplied attachment (image or document) as a base64 data URL. */
+const attachmentSchema = z.object({
+  name: z.string().max(200),
+  mimeType: z.string().max(120),
+  /** data:<mime>;base64,... */
+  dataUrl: z.string().max(14_000_000),
+});
+
 // ---- AI Tutor chat ----
 export const chatTutor = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
