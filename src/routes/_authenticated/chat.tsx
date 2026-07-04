@@ -89,7 +89,54 @@ function ChatPage() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const incoming = Array.from(files);
+    let total = attachments.reduce((s, a) => s + a.size, 0);
+    const accepted: Attachment[] = [];
+    for (const file of incoming) {
+      if (attachments.length + accepted.length >= 5) {
+        toast.error("You can attach up to 5 files.");
+        break;
+      }
+      const isImage = file.type.startsWith("image/");
+      const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+      if (!isImage && !isPdf) {
+        toast.error(`${file.name}: only images and PDFs are supported.`);
+        continue;
+      }
+      if (file.size > MAX_FILE_BYTES) {
+        toast.error(`${file.name} is too large (max 8 MB).`);
+        continue;
+      }
+      if (total + file.size > MAX_TOTAL_BYTES) {
+        toast.error("Attachments exceed the 16 MB limit for one message.");
+        break;
+      }
+      try {
+        const dataUrl = await readAsDataUrl(file);
+        accepted.push({
+          name: file.name,
+          mimeType: file.type || (isPdf ? "application/pdf" : "application/octet-stream"),
+          dataUrl,
+          size: file.size,
+        });
+        total += file.size;
+      } catch {
+        toast.error(`Couldn't read ${file.name}.`);
+      }
+    }
+    if (accepted.length) setAttachments((prev) => [...prev, ...accepted]);
+    if (fileRef.current) fileRef.current.value = "";
+  };
+
+  const removeAttachment = (idx: number) =>
+    setAttachments((prev) => prev.filter((_, i) => i !== idx));
+
 
   const { data: chats } = useQuery({
     queryKey: ["chats", user?.id],
