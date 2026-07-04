@@ -16,6 +16,14 @@ const chatMessageSchema = z.object({
   content: z.string(),
 });
 
+/** A user-supplied attachment (image or document) as a base64 data URL. */
+const attachmentSchema = z.object({
+  name: z.string().max(200),
+  mimeType: z.string().max(120),
+  /** data:<mime>;base64,... */
+  dataUrl: z.string().max(14_000_000),
+});
+
 // ---- AI Tutor chat ----
 export const chatTutor = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -25,11 +33,16 @@ export const chatTutor = createServerFn({ method: "POST" })
         messages: z.array(chatMessageSchema).min(1),
         subject: z.string().optional(),
         classLevel: z.string().optional(),
+        attachments: z.array(attachmentSchema).max(5).optional(),
       })
       .parse(input),
   )
   .handler(async ({ data }) => {
     const { callAI } = await import("./ai-gateway.server");
+    type ContentPart =
+      | { type: "text"; text: string }
+      | { type: "image_url"; image_url: { url: string } }
+      | { type: "file"; file: { filename: string; file_data: string } };
 
     // ---- RAG: pull relevant curriculum documents (privileged server-side read) ----
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -53,6 +66,7 @@ export const chatTutor = createServerFn({ method: "POST" })
           .join("\n\n");
     }
 
+    const hasAttachments = (data.attachments?.length ?? 0) > 0;
     const system =
       NCDC_PERSONA +
       NCDC_FRAMEWORK_BLOCK +
@@ -60,11 +74,42 @@ export const chatTutor = createServerFn({ method: "POST" })
       (data.classLevel
         ? `\n\nThe learner is in ${data.classLevel}. Pitch depth, vocabulary and examples to this level.`
         : "") +
+      (hasAttachments
+        ? "\n\nThe learner has attached one or more files (images and/or documents). Carefully read, analyse and use EVERY attachment to answer their prompt: transcribe relevant text, interpret diagrams/photos, solve questions shown, mark their work, or extract data as the prompt requires. Reference what you see specifically. If an attachment is unclear or unreadable, say so politely."
+        : "") +
       curriculumContext;
 
+    // Attach files to the most recent user message as multimodal parts.
+    const outgoing: { role: "user" | "assistant"; content: string | ContentPart[] }[] = [
+      ...data.messages,
+    ];
+    if (hasAttachments) {
+      let lastUserIdx = -1;
+      for (let i = outgoing.length - 1; i >= 0; i--) {
+        if (outgoing[i].role === "user") {
+          lastUserIdx = i;
+          break;
+        }
+      }
+      if (lastUserIdx >= 0) {
+        const original = outgoing[lastUserIdx];
+        const textContent = typeof original.content === "string" ? original.content : "";
+        const parts: ContentPart[] = [
+          { type: "text", text: textContent || "Please analyse the attached file(s)." },
+        ];
+        for (const a of data.attachments!) {
+          if (a.mimeType.startsWith("image/")) {
+            parts.push({ type: "image_url", image_url: { url: a.dataUrl } });
+          } else {
+            parts.push({ type: "file", file: { filename: a.name, file_data: a.dataUrl } });
+          }
+        }
+        outgoing[lastUserIdx] = { role: "user", content: parts };
+      }
+    }
 
     const content = await callAI({
-      messages: [{ role: "system", content: system }, ...data.messages],
+      messages: [{ role: "system", content: system }, ...outgoing],
     });
 
     return { content, usedSources: docs?.map((d) => d.name) ?? [] };

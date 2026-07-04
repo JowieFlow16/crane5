@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/lib/auth";
 import { Logo } from "@/components/Logo";
+import { PoweredByAltrastate } from "@/components/PoweredBy";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -273,6 +274,9 @@ function AuthPage() {
               </>
             )}
           </p>
+          <div className="mt-6 flex justify-center border-t border-border pt-4">
+            <PoweredByAltrastate />
+          </div>
         </motion.div>
       </div>
     </div>

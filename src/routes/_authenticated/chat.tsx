@@ -12,6 +12,9 @@ import {
   MessageCircle,
   BookOpen,
   Sparkles,
+  Paperclip,
+  X,
+  FileText,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -40,10 +43,32 @@ export const Route = createFileRoute("/_authenticated/chat")({
   component: ChatPage,
 });
 
+interface Attachment {
+  name: string;
+  mimeType: string;
+  dataUrl: string;
+  size: number;
+}
+
 interface Msg {
   role: "user" | "assistant";
   content: string;
+  attachments?: Attachment[];
 }
+
+const MAX_FILE_BYTES = 8 * 1024 * 1024; // 8 MB per file
+const MAX_TOTAL_BYTES = 16 * 1024 * 1024; // 16 MB per message
+const ACCEPTED = "image/*,.pdf,application/pdf";
+
+function readAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
 
 const STARTERS = [
   "Explain Newton's second law with a Ugandan example",
@@ -64,7 +89,54 @@ function ChatPage() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const incoming = Array.from(files);
+    let total = attachments.reduce((s, a) => s + a.size, 0);
+    const accepted: Attachment[] = [];
+    for (const file of incoming) {
+      if (attachments.length + accepted.length >= 5) {
+        toast.error("You can attach up to 5 files.");
+        break;
+      }
+      const isImage = file.type.startsWith("image/");
+      const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+      if (!isImage && !isPdf) {
+        toast.error(`${file.name}: only images and PDFs are supported.`);
+        continue;
+      }
+      if (file.size > MAX_FILE_BYTES) {
+        toast.error(`${file.name} is too large (max 8 MB).`);
+        continue;
+      }
+      if (total + file.size > MAX_TOTAL_BYTES) {
+        toast.error("Attachments exceed the 16 MB limit for one message.");
+        break;
+      }
+      try {
+        const dataUrl = await readAsDataUrl(file);
+        accepted.push({
+          name: file.name,
+          mimeType: file.type || (isPdf ? "application/pdf" : "application/octet-stream"),
+          dataUrl,
+          size: file.size,
+        });
+        total += file.size;
+      } catch {
+        toast.error(`Couldn't read ${file.name}.`);
+      }
+    }
+    if (accepted.length) setAttachments((prev) => [...prev, ...accepted]);
+    if (fileRef.current) fileRef.current.value = "";
+  };
+
+  const removeAttachment = (idx: number) =>
+    setAttachments((prev) => prev.filter((_, i) => i !== idx));
+
 
   const { data: chats } = useQuery({
     queryKey: ["chats", user?.id],
@@ -95,14 +167,22 @@ function ChatPage() {
   const newChat = () => {
     setChatId(null);
     setMessages([]);
+    setAttachments([]);
   };
 
   const send = async (text: string) => {
-    if (!text.trim() || thinking || !user) return;
-    const userMsg: Msg = { role: "user", content: text.trim() };
+    const trimmed = text.trim();
+    if ((!trimmed && attachments.length === 0) || thinking || !user) return;
+    const sentAttachments = attachments;
+    const userMsg: Msg = {
+      role: "user",
+      content: trimmed,
+      attachments: sentAttachments.length ? sentAttachments : undefined,
+    };
     const nextMessages = [...messages, userMsg];
     setMessages(nextMessages);
     setInput("");
+    setAttachments([]);
     setThinking(true);
 
     try {
@@ -114,7 +194,7 @@ function ChatPage() {
           .insert({
             user_id: user.id,
             subject,
-            title: text.trim().slice(0, 50),
+            title: (trimmed || sentAttachments[0]?.name || "Attachment").slice(0, 50),
           })
           .select("id")
           .single();
@@ -123,15 +203,31 @@ function ChatPage() {
         setChatId(id);
       }
 
+      const storedContent =
+        trimmed +
+        (sentAttachments.length
+          ? `${trimmed ? "\n\n" : ""}📎 ${sentAttachments.map((a) => a.name).join(", ")}`
+          : "");
       await supabase.from("messages").insert({
         chat_id: id,
         user_id: user.id,
         role: "user",
-        content: userMsg.content,
+        content: storedContent,
       });
 
       const res = await callTutor({
-        data: { messages: nextMessages, subject, classLevel: profile?.class_level ?? undefined },
+        data: {
+          messages: nextMessages.map((m) => ({ role: m.role, content: m.content })),
+          subject,
+          classLevel: profile?.class_level ?? undefined,
+          attachments: sentAttachments.length
+            ? sentAttachments.map((a) => ({
+                name: a.name,
+                mimeType: a.mimeType,
+                dataUrl: a.dataUrl,
+              }))
+            : undefined,
+        },
       });
 
       setMessages((m) => [...m, { role: "assistant", content: res.content }]);
@@ -151,6 +247,7 @@ function ChatPage() {
       else toast.error("Omicron couldn't respond. Please try again.");
       setMessages((m) => m.slice(0, -1));
       setInput(text);
+      if (sentAttachments.length) setAttachments(sentAttachments);
     } finally {
       setThinking(false);
     }
@@ -270,8 +367,34 @@ function ChatPage() {
                           </div>
                         </>
                       ) : (
-                        m.content
+                        <div className="space-y-2">
+                          {m.attachments?.length ? (
+                            <div className="flex flex-wrap gap-2">
+                              {m.attachments.map((a, ai) =>
+                                a.mimeType.startsWith("image/") ? (
+                                  <img
+                                    key={ai}
+                                    src={a.dataUrl}
+                                    alt={a.name}
+                                    className="h-24 w-24 rounded-lg border border-primary-foreground/20 object-cover"
+                                  />
+                                ) : (
+                                  <span
+                                    key={ai}
+                                    className="flex items-center gap-1.5 rounded-lg bg-primary-foreground/15 px-2.5 py-1.5 text-xs"
+                                  >
+                                    <FileText className="h-3.5 w-3.5" />
+                                    <span className="max-w-[10rem] truncate">{a.name}</span>
+                                  </span>
+                                ),
+                              )}
+                            </div>
+                          ) : null}
+                          {m.content && <span className="whitespace-pre-wrap">{m.content}</span>}
+                        </div>
                       )}
+
+
 
                     </div>
                   </motion.div>
@@ -302,38 +425,92 @@ function ChatPage() {
 
         {/* Composer */}
         <div className="border-t border-border p-4">
-          <div className="mx-auto flex max-w-2xl items-end gap-2">
-            <Textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  send(input);
+          <div className="mx-auto max-w-2xl">
+            {attachments.length > 0 && (
+              <div className="mb-2 flex flex-wrap gap-2">
+                {attachments.map((a, i) => (
+                  <div
+                    key={i}
+                    className="group relative flex items-center gap-2 rounded-xl border border-border bg-card px-2.5 py-1.5 text-xs shadow-card"
+                  >
+                    {a.mimeType.startsWith("image/") ? (
+                      <img
+                        src={a.dataUrl}
+                        alt={a.name}
+                        className="h-8 w-8 rounded-md object-cover"
+                      />
+                    ) : (
+                      <FileText className="h-4 w-4 text-primary" />
+                    )}
+                    <span className="max-w-[9rem] truncate">{a.name}</span>
+                    <button
+                      onClick={() => removeAttachment(i)}
+                      className="rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      aria-label={`Remove ${a.name}`}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex items-end gap-2">
+              <input
+                ref={fileRef}
+                type="file"
+                accept={ACCEPTED}
+                multiple
+                className="hidden"
+                onChange={(e) => handleFiles(e.target.files)}
+              />
+              <Button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={thinking}
+                variant="outline"
+                size="icon"
+                className="h-11 w-11 shrink-0 rounded-full"
+                aria-label="Attach files"
+              >
+                <Paperclip className="h-5 w-5" />
+              </Button>
+              <Textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    send(input);
+                  }
+                }}
+                placeholder={
+                  attachments.length
+                    ? "Ask about your attachment…"
+                    : `Ask about ${subject}…`
                 }
-              }}
-              placeholder={`Ask about ${subject}…`}
-              rows={1}
-              className="max-h-40 min-h-[44px] resize-none rounded-2xl"
-            />
-            <Button
-              onClick={() => send(input)}
-              disabled={thinking || !input.trim()}
-              variant="hero"
-              size="icon"
-              className="h-11 w-11 shrink-0 rounded-full"
-            >
-              {thinking ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <SendHorizonal className="h-5 w-5" />
-              )}
-            </Button>
+                rows={1}
+                className="max-h-40 min-h-[44px] resize-none rounded-2xl"
+              />
+              <Button
+                onClick={() => send(input)}
+                disabled={thinking || (!input.trim() && attachments.length === 0)}
+                variant="hero"
+                size="icon"
+                className="h-11 w-11 shrink-0 rounded-full"
+              >
+                {thinking ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <SendHorizonal className="h-5 w-5" />
+                )}
+              </Button>
+            </div>
           </div>
           <p className="mx-auto mt-2 max-w-2xl text-center text-xs text-muted-foreground">
-            Omicron AI can make mistakes. Always check important facts.
+            Omicron AI can make mistakes. Attach images or PDFs (max 8 MB each). Always check important facts.
           </p>
         </div>
+
       </div>
     </div>
   );

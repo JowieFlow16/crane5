@@ -2,16 +2,23 @@
 // Filename ends with .server.ts so it is never bundled to the client.
 // Default chat model tuned for speed: gemini-3-flash-preview.
 
-/** Fast default chat/text model used across the tutor, quizzes and revision. */
-export const FAST_TEXT_MODEL = "google/gemini-3-flash-preview";
+/** Fast, wiser default chat/text model used across the tutor, quizzes and revision. */
+export const FAST_TEXT_MODEL = "google/gemini-3.5-flash";
 /** Fast, high-quality image model (Nano Banana 2) for on-demand illustrations. */
 export const IMAGE_MODEL = "google/gemini-3.1-flash-image";
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
+/** A multimodal content part (text, image or document) for a chat message. */
+export type ContentPart =
+  | { type: "text"; text: string }
+  | { type: "image_url"; image_url: { url: string } }
+  | { type: "file"; file: { filename: string; file_data: string } };
+
 export interface ChatMessage {
   role: "system" | "user" | "assistant";
-  content: string;
+  /** Plain text, or an array of multimodal parts (for attachments). */
+  content: string | ContentPart[];
 }
 
 export async function callAI(opts: {

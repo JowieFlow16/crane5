@@ -29,6 +29,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/Logo";
+import { PoweredByAltrastate } from "@/components/PoweredBy";
 import { useAuth } from "@/lib/auth";
 import { useStats } from "@/lib/useStats";
 import { levelProgress } from "@/lib/gamification";
@@ -210,6 +211,11 @@ export function AppSidebar() {
             </button>
           )}
         </div>
+        {!collapsed && (
+          <div className="mt-3 border-t border-sidebar-border pt-3">
+            <PoweredByAltrastate className="justify-center" />
+          </div>
+        )}
       </SidebarFooter>
     </Sidebar>
   );
