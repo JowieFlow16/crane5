@@ -29,6 +29,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/Logo";
+import { PoweredByAltrastate } from "@/components/PoweredBy";
 import { useAuth } from "@/lib/auth";
 import { useStats } from "@/lib/useStats";
 import { levelProgress } from "@/lib/gamification";
