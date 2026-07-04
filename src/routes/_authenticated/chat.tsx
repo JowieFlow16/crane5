@@ -167,14 +167,22 @@ function ChatPage() {
   const newChat = () => {
     setChatId(null);
     setMessages([]);
+    setAttachments([]);
   };
 
   const send = async (text: string) => {
-    if (!text.trim() || thinking || !user) return;
-    const userMsg: Msg = { role: "user", content: text.trim() };
+    const trimmed = text.trim();
+    if ((!trimmed && attachments.length === 0) || thinking || !user) return;
+    const sentAttachments = attachments;
+    const userMsg: Msg = {
+      role: "user",
+      content: trimmed,
+      attachments: sentAttachments.length ? sentAttachments : undefined,
+    };
     const nextMessages = [...messages, userMsg];
     setMessages(nextMessages);
     setInput("");
+    setAttachments([]);
     setThinking(true);
 
     try {
@@ -186,7 +194,7 @@ function ChatPage() {
           .insert({
             user_id: user.id,
             subject,
-            title: text.trim().slice(0, 50),
+            title: (trimmed || sentAttachments[0]?.name || "Attachment").slice(0, 50),
           })
           .select("id")
           .single();
@@ -195,15 +203,31 @@ function ChatPage() {
         setChatId(id);
       }
 
+      const storedContent =
+        trimmed +
+        (sentAttachments.length
+          ? `${trimmed ? "\n\n" : ""}📎 ${sentAttachments.map((a) => a.name).join(", ")}`
+          : "");
       await supabase.from("messages").insert({
         chat_id: id,
         user_id: user.id,
         role: "user",
-        content: userMsg.content,
+        content: storedContent,
       });
 
       const res = await callTutor({
-        data: { messages: nextMessages, subject, classLevel: profile?.class_level ?? undefined },
+        data: {
+          messages: nextMessages.map((m) => ({ role: m.role, content: m.content })),
+          subject,
+          classLevel: profile?.class_level ?? undefined,
+          attachments: sentAttachments.length
+            ? sentAttachments.map((a) => ({
+                name: a.name,
+                mimeType: a.mimeType,
+                dataUrl: a.dataUrl,
+              }))
+            : undefined,
+        },
       });
 
       setMessages((m) => [...m, { role: "assistant", content: res.content }]);
