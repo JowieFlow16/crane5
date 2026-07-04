@@ -367,8 +367,32 @@ function ChatPage() {
                           </div>
                         </>
                       ) : (
-                        m.content
-                      )}
+                        <div className="space-y-2">
+                          {m.attachments?.length ? (
+                            <div className="flex flex-wrap gap-2">
+                              {m.attachments.map((a, ai) =>
+                                a.mimeType.startsWith("image/") ? (
+                                  <img
+                                    key={ai}
+                                    src={a.dataUrl}
+                                    alt={a.name}
+                                    className="h-24 w-24 rounded-lg border border-primary-foreground/20 object-cover"
+                                  />
+                                ) : (
+                                  <span
+                                    key={ai}
+                                    className="flex items-center gap-1.5 rounded-lg bg-primary-foreground/15 px-2.5 py-1.5 text-xs"
+                                  >
+                                    <FileText className="h-3.5 w-3.5" />
+                                    <span className="max-w-[10rem] truncate">{a.name}</span>
+                                  </span>
+                                ),
+                              )}
+                            </div>
+                          ) : null}
+                          {m.content && <span className="whitespace-pre-wrap">{m.content}</span>}
+                        </div>
+
 
                     </div>
                   </motion.div>
