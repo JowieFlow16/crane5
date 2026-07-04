@@ -210,6 +210,11 @@ export function AppSidebar() {
             </button>
           )}
         </div>
+        {!collapsed && (
+          <div className="mt-3 border-t border-sidebar-border pt-3">
+            <PoweredByAltrastate className="justify-center" />
+          </div>
+        )}
       </SidebarFooter>
     </Sidebar>
   );
