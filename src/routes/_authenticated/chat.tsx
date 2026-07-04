@@ -392,6 +392,8 @@ function ChatPage() {
                           ) : null}
                           {m.content && <span className="whitespace-pre-wrap">{m.content}</span>}
                         </div>
+                      )}
+
 
 
                     </div>
