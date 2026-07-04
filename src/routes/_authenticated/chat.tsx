@@ -425,38 +425,92 @@ function ChatPage() {
 
         {/* Composer */}
         <div className="border-t border-border p-4">
-          <div className="mx-auto flex max-w-2xl items-end gap-2">
-            <Textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  send(input);
+          <div className="mx-auto max-w-2xl">
+            {attachments.length > 0 && (
+              <div className="mb-2 flex flex-wrap gap-2">
+                {attachments.map((a, i) => (
+                  <div
+                    key={i}
+                    className="group relative flex items-center gap-2 rounded-xl border border-border bg-card px-2.5 py-1.5 text-xs shadow-card"
+                  >
+                    {a.mimeType.startsWith("image/") ? (
+                      <img
+                        src={a.dataUrl}
+                        alt={a.name}
+                        className="h-8 w-8 rounded-md object-cover"
+                      />
+                    ) : (
+                      <FileText className="h-4 w-4 text-primary" />
+                    )}
+                    <span className="max-w-[9rem] truncate">{a.name}</span>
+                    <button
+                      onClick={() => removeAttachment(i)}
+                      className="rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      aria-label={`Remove ${a.name}`}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex items-end gap-2">
+              <input
+                ref={fileRef}
+                type="file"
+                accept={ACCEPTED}
+                multiple
+                className="hidden"
+                onChange={(e) => handleFiles(e.target.files)}
+              />
+              <Button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={thinking}
+                variant="outline"
+                size="icon"
+                className="h-11 w-11 shrink-0 rounded-full"
+                aria-label="Attach files"
+              >
+                <Paperclip className="h-5 w-5" />
+              </Button>
+              <Textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    send(input);
+                  }
+                }}
+                placeholder={
+                  attachments.length
+                    ? "Ask about your attachment…"
+                    : `Ask about ${subject}…`
                 }
-              }}
-              placeholder={`Ask about ${subject}…`}
-              rows={1}
-              className="max-h-40 min-h-[44px] resize-none rounded-2xl"
-            />
-            <Button
-              onClick={() => send(input)}
-              disabled={thinking || !input.trim()}
-              variant="hero"
-              size="icon"
-              className="h-11 w-11 shrink-0 rounded-full"
-            >
-              {thinking ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <SendHorizonal className="h-5 w-5" />
-              )}
-            </Button>
+                rows={1}
+                className="max-h-40 min-h-[44px] resize-none rounded-2xl"
+              />
+              <Button
+                onClick={() => send(input)}
+                disabled={thinking || (!input.trim() && attachments.length === 0)}
+                variant="hero"
+                size="icon"
+                className="h-11 w-11 shrink-0 rounded-full"
+              >
+                {thinking ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <SendHorizonal className="h-5 w-5" />
+                )}
+              </Button>
+            </div>
           </div>
           <p className="mx-auto mt-2 max-w-2xl text-center text-xs text-muted-foreground">
-            Omicron AI can make mistakes. Always check important facts.
+            Omicron AI can make mistakes. Attach images or PDFs (max 8 MB each). Always check important facts.
           </p>
         </div>
+
       </div>
     </div>
   );
