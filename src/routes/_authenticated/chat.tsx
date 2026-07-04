@@ -43,10 +43,32 @@ export const Route = createFileRoute("/_authenticated/chat")({
   component: ChatPage,
 });
 
+interface Attachment {
+  name: string;
+  mimeType: string;
+  dataUrl: string;
+  size: number;
+}
+
 interface Msg {
   role: "user" | "assistant";
   content: string;
+  attachments?: Attachment[];
 }
+
+const MAX_FILE_BYTES = 8 * 1024 * 1024; // 8 MB per file
+const MAX_TOTAL_BYTES = 16 * 1024 * 1024; // 16 MB per message
+const ACCEPTED = "image/*,.pdf,application/pdf";
+
+function readAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
 
 const STARTERS = [
   "Explain Newton's second law with a Ugandan example",
