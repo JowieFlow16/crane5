@@ -72,7 +72,7 @@ const subjects = [
   { name: "English", icon: BookOpen },
 ];
 
-export default function Landing() {
+function Landing() {
   return (
     <div className="min-h-screen bg-background">
       {/* Nav */}
