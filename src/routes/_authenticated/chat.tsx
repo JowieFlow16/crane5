@@ -36,6 +36,7 @@ import { Markdown } from "@/components/Markdown";
 import { SaveButton } from "@/components/SaveButton";
 import { Illustrator } from "@/components/Illustrator";
 import { toast } from "sonner";
+import { aiErrorMessage } from "@/lib/ai-errors";
 
 export const Route = createFileRoute("/_authenticated/chat")({
   validateSearch: z.object({ subject: z.string().optional() }),
@@ -241,10 +242,7 @@ function ChatPage() {
       qc.invalidateQueries({ queryKey: ["chats", user.id] });
       void award(5);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "";
-      if (msg.includes("RATE_LIMIT")) toast.error("Too many requests — please wait a moment.");
-      else if (msg.includes("CREDITS")) toast.error("AI usage limit reached. Please try later.");
-      else toast.error("Omicron couldn't respond. Please try again.");
+      toast.error(aiErrorMessage(err, "Omicron couldn't respond. Please try again."));
       setMessages((m) => m.slice(0, -1));
       setInput(text);
       if (sentAttachments.length) setAttachments(sentAttachments);

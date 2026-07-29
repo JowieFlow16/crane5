@@ -31,6 +31,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SUBJECTS } from "@/lib/subjects";
 import { Markdown } from "@/components/Markdown";
 import { toast } from "sonner";
+import { aiErrorMessage } from "@/lib/ai-errors";
 
 
 export const Route = createFileRoute("/_authenticated/flashcards")({
@@ -114,9 +115,7 @@ function FlashcardsPage() {
       toast.success(`${rows.length} flashcards added 🎴`);
       setTopic("");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "";
-      if (msg.includes("CREDITS")) toast.error("AI usage limit reached. Try later.");
-      else toast.error("Couldn't create flashcards.");
+      toast.error(aiErrorMessage(err, "Couldn't create flashcards."));
     } finally {
       setBusy(false);
     }

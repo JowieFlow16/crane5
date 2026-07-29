@@ -14,6 +14,7 @@ import {
   Search,
 } from "lucide-react";
 import { toast } from "sonner";
+import { aiErrorMessage } from "@/lib/ai-errors";
 import { supabase } from "@/integrations/supabase/client";
 import {
   db,
@@ -282,8 +283,8 @@ function Thread({
       });
       setText(content);
       toast.success("AI draft ready — edit then send.");
-    } catch {
-      toast.error("Couldn't draft a reply.");
+    } catch (err) {
+      toast.error(aiErrorMessage(err, "Couldn't draft a reply."));
     } finally {
       setDrafting(false);
     }
