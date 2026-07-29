@@ -7,6 +7,8 @@ import {
 } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { provisionAccount } from "@/lib/account.functions";
+
 
 export type AppRole = "student" | "teacher" | "parent" | "admin";
 
