@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { AiLimitsAdmin } from "@/components/AiLimitsAdmin";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Admin · Omicron AI" }] }),
@@ -401,6 +402,8 @@ function AdminPage() {
           )}
         </div>
       </div>
+
+      <AiLimitsAdmin />
     </div>
   );
 }

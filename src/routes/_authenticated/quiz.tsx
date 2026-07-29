@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { SUBJECTS } from "@/lib/subjects";
 import { Markdown } from "@/components/Markdown";
 import { toast } from "sonner";
+import { aiErrorMessage } from "@/lib/ai-errors";
 
 export const Route = createFileRoute("/_authenticated/quiz")({
   head: () => ({ meta: [{ title: "Quizzes · Omicron AI" }] }),
@@ -76,9 +77,7 @@ function QuizPage() {
       setAnswers(new Array(res.questions.length).fill(""));
       setStage("taking");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "";
-      if (msg.includes("CREDITS")) toast.error("AI usage limit reached. Try later.");
-      else toast.error("Couldn't generate the quiz. Please try again.");
+      toast.error(aiErrorMessage(err, "Couldn't generate the quiz. Please try again."));
     } finally {
       setBusy(false);
     }

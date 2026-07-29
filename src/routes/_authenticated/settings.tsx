@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
+import { AiUsageCard } from "@/components/AiUsageCard";
 import { Camera, Loader2, LogOut, Moon, Sun, Target, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -265,6 +266,9 @@ function SettingsPage() {
           <Switch checked={theme === "dark"} onCheckedChange={toggleTheme} />
         </div>
       </motion.section>
+
+      <AiUsageCard className="mt-5" />
+
 
       <Button onClick={handleSignOut} variant="outline" className="mt-5 w-full text-destructive hover:bg-destructive/10">
         <LogOut className="h-4 w-4" /> Sign out

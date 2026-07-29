@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Markdown } from "@/components/Markdown";
 import { SUBJECTS } from "@/lib/subjects";
 import { toast } from "sonner";
+import { aiErrorMessage } from "@/lib/ai-errors";
 
 export const Route = createFileRoute("/_authenticated/revision")({
   head: () => ({ meta: [{ title: "Revision · Omicron AI" }] }),
@@ -49,9 +50,7 @@ function RevisionPage() {
       const res = await callRevision({ data: { subject, topic: topic.trim() } });
       setData(res);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "";
-      if (msg.includes("CREDITS")) toast.error("AI usage limit reached. Try later.");
-      else toast.error("Couldn't generate revision. Please try again.");
+      toast.error(aiErrorMessage(err, "Couldn't generate revision. Please try again."));
     } finally {
       setBusy(false);
     }

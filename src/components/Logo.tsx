@@ -26,16 +26,26 @@ export function OmicronMark({ className }: { className?: string }) {
 export function Logo({
   className,
   showText = true,
+  byline = true,
 }: {
   className?: string;
   showText?: boolean;
+  /** Show the "By Altrastate" company byline beneath the wordmark. */
+  byline?: boolean;
 }) {
   return (
-    <div className={cn("flex items-center gap-2.5", className)}>
-      <OmicronMark className="h-9 w-9" />
+    <div className={cn("flex min-w-0 items-center gap-2.5", className)}>
+      <OmicronMark className="h-9 w-9 shrink-0" />
       {showText && (
-        <span className="font-display text-lg font-bold tracking-tight">
-          Omicron <span className="text-gradient">AI</span>
+        <span className="flex min-w-0 flex-col leading-none">
+          <span className="truncate font-display text-lg font-bold tracking-tight">
+            Omicron <span className="text-gradient">AI</span>
+          </span>
+          {byline && (
+            <span className="mt-1 truncate text-[0.6rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+              By Altrastate
+            </span>
+          )}
         </span>
       )}
     </div>

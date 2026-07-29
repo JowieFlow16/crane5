@@ -14,6 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_plans: {
+        Row: {
+          created_at: string
+          daily_images: number
+          daily_requests: number
+          id: string
+          name: string
+          sort_order: number
+          unlimited: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          daily_images?: number
+          daily_requests?: number
+          id: string
+          name: string
+          sort_order?: number
+          unlimited?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          daily_images?: number
+          daily_requests?: number
+          id?: string
+          name?: string
+          sort_order?: number
+          unlimited?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ai_usage: {
+        Row: {
+          created_at: string
+          failed_requests: number
+          images_today: number
+          last_request_at: string | null
+          last_reset_date: string
+          requests_today: number
+          successful_requests: number
+          total_requests: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          failed_requests?: number
+          images_today?: number
+          last_request_at?: string | null
+          last_reset_date?: string
+          requests_today?: number
+          successful_requests?: number
+          total_requests?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          failed_requests?: number
+          images_today?: number
+          last_request_at?: string | null
+          last_reset_date?: string
+          requests_today?: number
+          successful_requests?: number
+          total_requests?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bookmarks: {
         Row: {
           content: string
@@ -716,6 +788,41 @@ export type Database = {
           },
         ]
       }
+      user_ai_plans: {
+        Row: {
+          created_at: string
+          note: string | null
+          plan_id: string
+          unlimited: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          note?: string | null
+          plan_id: string
+          unlimited?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          note?: string | null
+          plan_id?: string
+          unlimited?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_ai_plans_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "ai_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -775,6 +882,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      ai_effective_limits: {
+        Args: { p_user_id: string }
+        Returns: {
+          daily_images: number
+          daily_requests: number
+          plan_id: string
+          plan_name: string
+          unlimited: boolean
+        }[]
+      }
+      ai_usage_snapshot: { Args: { p_user_id: string }; Returns: Json }
       award_xp: {
         Args: { p_amount: number }
         Returns: {
@@ -793,6 +911,14 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      consume_ai_quota: {
+        Args: { p_kind?: string; p_user_id: string }
+        Returns: Json
+      }
+      record_ai_result: {
+        Args: { p_success: boolean; p_user_id: string }
+        Returns: undefined
       }
     }
     Enums: {

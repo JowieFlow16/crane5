@@ -5,6 +5,7 @@ import { ImagePlus, Loader2, Download } from "lucide-react";
 import { generateImage } from "@/lib/ai.functions";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { aiErrorMessage } from "@/lib/ai-errors";
 
 interface IllustratorProps {
   prompt: string;
@@ -28,10 +29,7 @@ export function Illustrator({ prompt, subject, className }: IllustratorProps) {
       const res = await callGenerate({ data: { prompt: prompt.slice(0, 480), subject } });
       setUrl(res.url);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "";
-      if (msg.includes("RATE_LIMIT")) toast.error("Too many requests — wait a moment.");
-      else if (msg.includes("CREDITS")) toast.error("AI usage limit reached. Try later.");
-      else toast.error("Couldn't create the illustration.");
+      toast.error(aiErrorMessage(err, "Couldn't create the illustration."));
     } finally {
       setBusy(false);
     }

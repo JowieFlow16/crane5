@@ -19,6 +19,7 @@ import {
   Check,
 } from "lucide-react";
 import { toast } from "sonner";
+import { aiErrorMessage } from "@/lib/ai-errors";
 import { db, type TeacherProfile, type Conversation, type DirectMessage } from "@/lib/db";
 import { useAuth } from "@/lib/auth";
 import { SUBJECTS } from "@/lib/subjects";
@@ -450,8 +451,8 @@ function LessonPlanTool({ teacherSubjects }: { teacherSubjects: string[] }) {
     try {
       const { content } = await run({ data: { subject, topic, classLevel, duration, notes } });
       setOut(content);
-    } catch {
-      toast.error("Couldn't generate the lesson plan.");
+    } catch (err) {
+      toast.error(aiErrorMessage(err, "Couldn't generate the lesson plan."));
     } finally {
       setBusy(false);
     }
@@ -515,8 +516,8 @@ function ExamTool({ teacherSubjects }: { teacherSubjects: string[] }) {
         data: { subject, topic: topic || undefined, classLevel, count: Number(count), difficulty },
       });
       setOut(content);
-    } catch {
-      toast.error("Couldn't build the exam.");
+    } catch (err) {
+      toast.error(aiErrorMessage(err, "Couldn't build the exam."));
     } finally {
       setBusy(false);
     }
@@ -613,8 +614,8 @@ function InsightsTool({ subjects, userId }: { subjects: string[]; userId?: strin
 
       const { content } = await run({ data: { messages: msgs.slice(0, 60), subjects } });
       setOut(content);
-    } catch {
-      toast.error("Couldn't generate insights.");
+    } catch (err) {
+      toast.error(aiErrorMessage(err, "Couldn't generate insights."));
     } finally {
       setBusy(false);
     }
