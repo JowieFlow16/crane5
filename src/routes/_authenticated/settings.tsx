@@ -81,13 +81,22 @@ function SettingsPage() {
       if (!url) throw new Error("no url");
       const { error: profErr } = await supabase
         .from("profiles")
-        .update({ avatar_url: url })
-        .eq("id", user.id);
+        .upsert({ id: user.id, email: profile?.email ?? user.email ?? null, avatar_url: url } as never, {
+          onConflict: "id",
+        });
       if (profErr) throw profErr;
+      await supabase
+        .from("leaderboard")
+        .update({ avatar_url: url })
+        .eq("user_id", user.id);
       await refreshProfile();
       toast.success("Profile picture updated! 📸");
-    } catch {
-      toast.error("Couldn't upload picture.");
+    } catch (err) {
+      toast.error(
+        err instanceof Error && err.message
+          ? `Couldn't upload picture: ${err.message}`
+          : "Couldn't upload picture.",
+      );
     } finally {
       setUploading(false);
     }
@@ -96,20 +105,29 @@ function SettingsPage() {
   const save = async () => {
     if (!user) return;
     setBusy(true);
-    const { error } = await supabase
-      .from("profiles")
-      .update({
+    const { error } = await supabase.from("profiles").upsert(
+      {
+        id: user.id,
+        email: profile?.email ?? user.email ?? null,
         full_name: fullName,
         school,
         class_level: classLevel as never,
         bio,
         learning_goal: goal,
         favorite_subjects: favorites,
-      } as never)
-      .eq("id", user.id);
+      } as never,
+      { onConflict: "id" },
+    );
+    if (!error) {
+      // Keep the public leaderboard card in sync with the new name/class.
+      await supabase
+        .from("leaderboard")
+        .update({ full_name: fullName, class_level: classLevel })
+        .eq("user_id", user.id);
+    }
     setBusy(false);
     if (error) {
-      toast.error("Couldn't save changes.");
+      toast.error(`Couldn't save changes: ${error.message}`);
       return;
     }
     await refreshProfile();
