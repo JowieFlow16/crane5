@@ -54,20 +54,6 @@ function AuthPage() {
     if (!loading && user) navigate({ to: "/dashboard" });
   }, [user, loading, navigate]);
 
-  const handleGoogle = async () => {
-    setBusy(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + "/dashboard",
-    });
-    if (result.error) {
-      toast.error("Google sign-in failed. Please try again.");
-      setBusy(false);
-      return;
-    }
-    if (result.redirected) return;
-    navigate({ to: "/dashboard" });
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
@@ -81,14 +67,17 @@ function AuthPage() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            emailRedirectTo: window.location.origin + "/dashboard",
-            data: { full_name: fullName, class_level: classLevel },
-          },
+          options: { data: { full_name: fullName, class_level: classLevel } },
         });
         if (error) throw error;
-        toast.success("Account created! Check your email to confirm, then sign in.");
-        setMode("login");
+        // No email verification — sign the new learner straight in.
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (signInError) throw signInError;
+        toast.success("Welcome to Omicron AI!");
+        navigate({ to: "/dashboard" });
       } else {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: window.location.origin + "/reset-password",
@@ -103,6 +92,7 @@ function AuthPage() {
       setBusy(false);
     }
   };
+
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
