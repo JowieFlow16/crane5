@@ -110,11 +110,21 @@ export const chatTutor = createServerFn({ method: "POST" })
         }
       }
 
-      const content = await callAI({
-        messages: [{ role: "system", content: system }, ...outgoing],
-      });
+      // Never let a provider hiccup surface as a server crash — reply in-chat
+      // with a calm, human message instead.
+      try {
+        const content = await callAI({
+          messages: [{ role: "system", content: system }, ...outgoing],
+        });
+        return { content, usedSources: docs?.map((d) => d.name) ?? [] };
+      } catch {
+        return {
+          content:
+            "I couldn't reach my brain for that one 😅 — the AI service is busy right now. Please send your question again in a moment.",
+          usedSources: [],
+        };
+      }
 
-      return { content, usedSources: docs?.map((d) => d.name) ?? [] };
     });
   });
 
