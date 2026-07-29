@@ -237,7 +237,10 @@ export type Database = {
           doc_type: string
           file_size: number | null
           id: string
+          last_fetched_at: string | null
           name: string
+          source_type: string
+          source_url: string | null
           storage_path: string
           subject: string | null
           uploaded_by: string | null
@@ -249,7 +252,10 @@ export type Database = {
           doc_type?: string
           file_size?: number | null
           id?: string
+          last_fetched_at?: string | null
           name: string
+          source_type?: string
+          source_url?: string | null
           storage_path: string
           subject?: string | null
           uploaded_by?: string | null
@@ -261,7 +267,10 @@ export type Database = {
           doc_type?: string
           file_size?: number | null
           id?: string
+          last_fetched_at?: string | null
           name?: string
+          source_type?: string
+          source_url?: string | null
           storage_path?: string
           subject?: string | null
           uploaded_by?: string | null
