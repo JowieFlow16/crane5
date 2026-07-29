@@ -90,7 +90,7 @@ export function getProviderConfig(id: ProviderId = getProviderId()): ProviderCon
         id: "lovable",
         url: "https://ai.gateway.lovable.dev/v1/chat/completions",
         keyEnv: "LOVABLE_API_KEY",
-        models: envList("AI_MODELS") ?? ["google/gemini-3.5-flash"],
+        models: envList("AI_MODELS") ?? LOVABLE_MODELS,
       };
   }
 }
@@ -102,5 +102,7 @@ export function getFallbackProviderId(primary: ProviderId): ProviderId | undefin
     | undefined;
   if (configured) return configured === primary ? undefined : configured;
   if (primary !== "lovable" && process.env.LOVABLE_API_KEY) return "lovable";
+  if (primary === "lovable" && process.env.OPENROUTER_API_KEY) return "openrouter";
   return undefined;
+
 }
