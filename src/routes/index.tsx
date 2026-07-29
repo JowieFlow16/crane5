@@ -151,7 +151,7 @@ function Landing() {
       </section>
 
       {/* Subjects strip */}
-      <section className="border-y border-border bg-secondary/40">
+      <section id="subjects" className="scroll-mt-20 border-y border-border bg-secondary/40">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-3 px-4 py-6 sm:gap-6 sm:px-6">
           {subjects.map((s) => (
             <div
@@ -166,7 +166,7 @@ function Landing() {
       </section>
 
       {/* Features */}
-      <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+      <section id="features" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-16 sm:px-6 sm:py-20">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-3xl font-bold sm:text-4xl">
             Everything you need to ace your exams
