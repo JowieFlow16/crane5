@@ -45,10 +45,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const loadExtras = async (uid: string) => {
+    // Make sure the account has a profile + role row (no database trigger runs
+    // on sign-up, so this is what provisions new learners).
+    try {
+      await provisionAccount({ data: undefined });
+    } catch {
+      /* non-fatal — the client-side fallback below still applies */
+    }
+
     const [{ data: prof }, { data: roleRows }] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", uid),
     ]);
+
 
     let resolved = (prof as Profile | null) ?? null;
 
