@@ -403,7 +403,10 @@ function AdminPage() {
         </div>
       </div>
 
+      <LinkLearning isAdmin={isAdmin} />
+
       <AiLimitsAdmin />
+
     </div>
   );
 }
