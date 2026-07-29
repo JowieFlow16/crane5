@@ -215,17 +215,85 @@ function Landing() {
         </div>
       </section>
 
-      <footer className="border-t border-border">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 sm:flex-row sm:px-6">
-          <Logo />
-          <div className="flex flex-col items-center gap-2 sm:items-end">
-            <PoweredByAltrastate />
-            <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} Omicron AI · Made for Uganda 🇺🇬
+      <footer className="mt-16 border-t border-border bg-card/40">
+        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="min-w-0 lg:col-span-2">
+              <Logo />
+              <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
+                Omicron AI is an AI-powered learning companion built around the Ugandan NCDC
+                curriculum — tutoring, quizzes, revision and progress tracking in one place.
+              </p>
+              <p className="mt-4 text-sm text-muted-foreground">
+                A product of{" "}
+                <span className="font-medium text-foreground">Altrastate Technologies Ltd</span>,
+                Kampala, Uganda.
+              </p>
+            </div>
+
+            <div className="min-w-0">
+              <h3 className="text-sm font-semibold">Product</h3>
+              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                <li>
+                  <a href="#features" className="transition-colors hover:text-foreground">
+                    Features
+                  </a>
+                </li>
+                <li>
+                  <a href="#subjects" className="transition-colors hover:text-foreground">
+                    Subjects
+                  </a>
+                </li>
+                <li>
+                  <Link
+                    to="/auth"
+                    search={{ mode: "register" }}
+                    className="transition-colors hover:text-foreground"
+                  >
+                    Create an account
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/auth"
+                    search={{ mode: "login" }}
+                    className="transition-colors hover:text-foreground"
+                  >
+                    Sign in
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            <div className="min-w-0">
+              <h3 className="text-sm font-semibold">Company</h3>
+              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                <li>
+                  <a
+                    href="mailto:hello@altrastate.com"
+                    className="break-all transition-colors hover:text-foreground"
+                  >
+                    hello@altrastate.com
+                  </a>
+                </li>
+                <li>Support: Mon–Sat, 8am–8pm EAT</li>
+                <li>Kampala, Uganda</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-10 grid gap-4 border-t border-border pt-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+            <p className="text-xs text-muted-foreground">
+              © {new Date().getFullYear()} Altrastate Technologies Ltd. Omicron AI and the Omicron
+              AI logo are trademarks of Altrastate Technologies Ltd. All rights reserved.
             </p>
+            <div className="sm:justify-self-end">
+              <PoweredByAltrastate />
+            </div>
           </div>
         </div>
       </footer>
+
 
     </div>
   );
