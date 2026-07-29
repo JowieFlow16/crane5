@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 
 export interface TrailStep {
   /** Text shown to the learner. */
@@ -18,15 +18,15 @@ function buildSteps(subject: string | undefined, hasAttachments: boolean): Trail
     t += gap;
   };
 
-  push("Reading your question", 700);
-  if (hasAttachments) push("Looking at what you attached", 1100);
-  push(`Identifying the ${topic} concepts involved`, 900);
-  push("Searching the NCDC curriculum notes", 1400);
-  push("Searching the Ugandan web for real examples", 1600);
-  push("Connecting the ideas", 1500);
-  push("Working through it step by step", 2600);
-  push("Almost done", 4000);
-  push("Polishing the explanation", 60_000);
+  push("Parsing your question", 350);
+  if (hasAttachments) push("Scanning your attachments", 500);
+  push(`Mapping the ${topic} concepts`, 450);
+  push("Pulling NCDC curriculum notes", 600);
+  push("Cross-checking Ugandan examples", 650);
+  push("Linking the ideas together", 700);
+  push("Reasoning step by step", 1200);
+  push("Composing your answer", 2000);
+  push("Final polish", 60_000);
   return steps;
 }
 
@@ -56,7 +56,7 @@ export function ThinkingTrail({
         if (elapsed >= steps[i].at) next = i;
       }
       setIndex(next);
-    }, 150);
+    }, 80);
     return () => clearInterval(id);
   }, [steps]);
 
@@ -65,32 +65,58 @@ export function ThinkingTrail({
 
   return (
     <div className={className}>
-      <div className="space-y-1.5">
-        <AnimatePresence initial={false}>
-          {visible.map((s, i) => {
-            const isCurrent = i === visible.length - 1;
-            return (
-              <motion.div
-                key={s.label}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: isCurrent ? 1 : 0.55, y: 0 }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.25 }}
-                className="flex items-center gap-2 text-sm"
-              >
-                {isCurrent ? (
-                  <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-primary" />
-                ) : (
-                  <Check className="h-3.5 w-3.5 shrink-0 text-primary" />
-                )}
-                <span className={isCurrent ? "font-medium" : "text-muted-foreground"}>
-                  {s.label}
-                  {isCurrent && <AnimatedDots />}
-                </span>
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
+      <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-primary/[0.04] px-3 py-2.5">
+        {/* Sweeping shimmer to signal live activity */}
+        <motion.span
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 bg-gradient-to-r from-transparent via-primary/15 to-transparent"
+          animate={{ x: ["0%", "400%"] }}
+          transition={{ duration: 1.8, repeat: Infinity, ease: "linear" }}
+        />
+        <div className="relative space-y-1.5">
+          <AnimatePresence initial={false}>
+            {visible.map((s, i) => {
+              const isCurrent = i === visible.length - 1;
+              return (
+                <motion.div
+                  key={s.label}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: isCurrent ? 1 : 0.45, y: 0 }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.18 }}
+                  className="flex items-center gap-2 text-sm"
+                >
+                  {isCurrent ? (
+                    <motion.span
+                      className="relative flex h-3.5 w-3.5 shrink-0 items-center justify-center"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 2.4, repeat: Infinity, ease: "linear" }}
+                    >
+                      <Sparkles className="h-3.5 w-3.5 text-primary" />
+                    </motion.span>
+                  ) : (
+                    <Check className="h-3.5 w-3.5 shrink-0 text-primary" />
+                  )}
+                  <span
+                    className={
+                      isCurrent
+                        ? "bg-gradient-to-r from-primary via-foreground to-primary bg-[length:200%_100%] bg-clip-text font-medium text-transparent"
+                        : "text-muted-foreground"
+                    }
+                    style={
+                      isCurrent
+                        ? { animation: "omicron-shimmer 1.6s linear infinite" }
+                        : undefined
+                    }
+                  >
+                    {s.label}
+                    {isCurrent && <AnimatedDots />}
+                  </span>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );

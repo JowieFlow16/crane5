@@ -28,8 +28,10 @@ export interface ChatOptions {
   temperature?: number;
 }
 
-const MAX_ATTEMPTS_PER_MODEL = 2;
-const REQUEST_TIMEOUT_MS = 30_000;
+// Speed first: fail fast and move to the next model instead of waiting out a
+// slow provider. One retry only for the very first model.
+const MAX_ATTEMPTS_PER_MODEL = 1;
+const REQUEST_TIMEOUT_MS = 18_000;
 
 /** Errors that mean: try the same model again, then the next model. */
 function isTransient(status: number) {
@@ -58,6 +60,8 @@ async function callModel(
         model,
         messages: opts.messages,
         temperature: opts.temperature ?? 0.6,
+        // Skip hidden reasoning passes on models that support it — big latency win.
+        ...(model.startsWith("openai/gpt-5") ? { reasoning_effort: "none" } : {}),
         ...(opts.json ? { response_format: { type: "json_object" } } : {}),
       }),
       signal: controller.signal,

@@ -324,3 +324,8 @@
   from { opacity: 0; transform: translateY(10px) scale(0.96); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
+
+@keyframes omicron-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}

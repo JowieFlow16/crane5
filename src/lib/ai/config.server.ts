@@ -23,7 +23,11 @@ const OPENROUTER_FREE_MODELS = [
 ];
 
 /** Fast, high-quality models on the Lovable AI Gateway (primary provider). */
-const LOVABLE_MODELS = ["google/gemini-3.6-flash", "openai/gpt-5.4-mini"];
+const LOVABLE_MODELS = [
+  "google/gemini-3.6-flash",
+  "google/gemini-3.1-flash-lite",
+  "openai/gpt-5.4-mini",
+];
 
 
 

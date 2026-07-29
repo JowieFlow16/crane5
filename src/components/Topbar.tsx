@@ -38,9 +38,17 @@ export function Topbar() {
           <Bell className="h-5 w-5" />
           <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-accent" />
         </button>
-        <div className="ml-1 flex h-9 w-9 items-center justify-center rounded-full bg-gradient-primary text-sm font-semibold text-primary-foreground">
-          {(profile?.full_name ?? profile?.email ?? "U").charAt(0).toUpperCase()}
-        </div>
+        {profile?.avatar_url ? (
+          <img
+            src={profile.avatar_url}
+            alt={profile.full_name ?? "Your profile"}
+            className="ml-1 h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-border"
+          />
+        ) : (
+          <div className="ml-1 flex h-9 w-9 items-center justify-center rounded-full bg-gradient-primary text-sm font-semibold text-primary-foreground">
+            {(profile?.full_name ?? profile?.email ?? "U").charAt(0).toUpperCase()}
+          </div>
+        )}
       </div>
     </header>
   );
