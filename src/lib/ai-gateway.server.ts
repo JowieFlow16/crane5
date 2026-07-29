@@ -1,60 +1,22 @@
-// Server-only helper for Lovable AI Gateway (Google Gemini under the hood).
+// Server-only AI facade. Behaviour and call signatures are unchanged for callers;
+// text generation now routes through the provider layer (OpenRouter by default,
+// with automatic model selection, retries and failover).
 // Filename ends with .server.ts so it is never bundled to the client.
-// Default chat model tuned for speed: gemini-3-flash-preview.
 
-/** Fast, wiser default chat/text model used across the tutor, quizzes and revision. */
-export const FAST_TEXT_MODEL = "google/gemini-3.5-flash";
-/** Fast, high-quality image model (Nano Banana 2) for on-demand illustrations. */
+import { chat, type ChatMessage, type ChatOptions, type ContentPart } from "./ai/client.server";
+import { getProviderConfig } from "./ai/config.server";
+
+export type { ChatMessage, ContentPart };
+
+/** First model in the active provider's priority list (informational). */
+export const FAST_TEXT_MODEL = getProviderConfig().models[0];
+/** Image model (image generation stays on the Lovable AI Gateway). */
 export const IMAGE_MODEL = "google/gemini-3.1-flash-image";
 
-const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const LOVABLE_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
-/** A multimodal content part (text, image or document) for a chat message. */
-export type ContentPart =
-  | { type: "text"; text: string }
-  | { type: "image_url"; image_url: { url: string } }
-  | { type: "file"; file: { filename: string; file_data: string } };
-
-export interface ChatMessage {
-  role: "system" | "user" | "assistant";
-  /** Plain text, or an array of multimodal parts (for attachments). */
-  content: string | ContentPart[];
-}
-
-export async function callAI(opts: {
-  messages: ChatMessage[];
-  model?: string;
-  json?: boolean;
-  temperature?: number;
-}): Promise<string> {
-  const key = process.env.LOVABLE_API_KEY;
-  if (!key) throw new Error("Missing LOVABLE_API_KEY");
-
-  const res = await fetch(GATEWAY_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${key}`,
-    },
-    body: JSON.stringify({
-      model: opts.model ?? FAST_TEXT_MODEL,
-      messages: opts.messages,
-      temperature: opts.temperature ?? 0.6,
-      ...(opts.json ? { response_format: { type: "json_object" } } : {}),
-    }),
-  });
-
-  if (res.status === 429) throw new Error("RATE_LIMIT");
-  if (res.status === 402) throw new Error("CREDITS");
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`AI gateway error ${res.status}: ${text}`);
-  }
-
-  const data = (await res.json()) as {
-    choices?: { message?: { content?: string } }[];
-  };
-  return data.choices?.[0]?.message?.content ?? "";
+export async function callAI(opts: ChatOptions): Promise<string> {
+  return chat(opts);
 }
 
 export function parseJsonResponse<T>(raw: string): T {
@@ -75,7 +37,7 @@ export async function generateImageAI(prompt: string): Promise<string> {
   const key = process.env.LOVABLE_API_KEY;
   if (!key) throw new Error("Missing LOVABLE_API_KEY");
 
-  const res = await fetch(GATEWAY_URL, {
+  const res = await fetch(LOVABLE_GATEWAY_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -104,4 +66,3 @@ export async function generateImageAI(prompt: string): Promise<string> {
   if (!url) throw new Error("No image returned");
   return url;
 }
-
