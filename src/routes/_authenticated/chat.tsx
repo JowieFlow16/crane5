@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ThinkingTrail } from "@/components/ThinkingTrail";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -90,6 +91,7 @@ function ChatPage() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
+  const [thinkingHasAttachments, setThinkingHasAttachments] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -184,6 +186,7 @@ function ChatPage() {
     setMessages(nextMessages);
     setInput("");
     setAttachments([]);
+    setThinkingHasAttachments(sentAttachments.length > 0);
     setThinking(true);
 
     try {
