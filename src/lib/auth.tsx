@@ -49,9 +49,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", uid),
     ]);
-    setProfile((prof as Profile) ?? null);
+
+    let resolved = (prof as Profile | null) ?? null;
+
+    // Self-heal: some accounts have no profile row yet (e.g. created before the
+    // profile was provisioned). Create it on first load so the settings page,
+    // dashboard greeting and leaderboard all work.
+    if (!resolved) {
+      const { data: authUser } = await supabase.auth.getUser();
+      const meta = (authUser.user?.user_metadata ?? {}) as Record<string, unknown>;
+      const { data: created } = await supabase
+        .from("profiles")
+        .upsert(
+          {
+            id: uid,
+            email: authUser.user?.email ?? null,
+            full_name: (meta.full_name as string) ?? (meta.name as string) ?? null,
+            class_level: (meta.class_level as string) ?? null,
+          } as never,
+          { onConflict: "id" },
+        )
+        .select("*")
+        .maybeSingle();
+      resolved = (created as Profile | null) ?? null;
+    }
+
+    setProfile(resolved);
+
     setRoles(((roleRows ?? []) as { role: AppRole }[]).map((r) => r.role));
   };
+
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {

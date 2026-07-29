@@ -28,8 +28,8 @@ export interface ChatOptions {
   temperature?: number;
 }
 
-const MAX_ATTEMPTS_PER_MODEL = 3;
-const REQUEST_TIMEOUT_MS = 90_000;
+const MAX_ATTEMPTS_PER_MODEL = 2;
+const REQUEST_TIMEOUT_MS = 30_000;
 
 /** Errors that mean: try the same model again, then the next model. */
 function isTransient(status: number) {
@@ -121,7 +121,7 @@ async function runProvider(
 
         const retryable = aborted || status === undefined || isTransient(status);
         if (!retryable) break; // hard error (400/401/403/404) — move to next model
-        if (attempt < MAX_ATTEMPTS_PER_MODEL) await sleep(300 * attempt);
+        if (attempt < MAX_ATTEMPTS_PER_MODEL) await sleep(200 * attempt);
       }
     }
   }

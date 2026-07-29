@@ -15,17 +15,16 @@ export interface ProviderConfig {
   headers?: Record<string, string>;
 }
 
-/** Reliable free OpenRouter chat models, in priority order. */
-// Verified live against OpenRouter's free tier, ordered by quality + latency.
+/** Fast OpenRouter free models, used only as a backup. */
 const OPENROUTER_FREE_MODELS = [
   "google/gemma-4-31b-it:free",
   "openai/gpt-oss-20b:free",
   "inclusionai/ling-3.0-flash:free",
-  "google/gemma-4-26b-a4b-it:free",
-  "nvidia/nemotron-3-super-120b-a12b:free",
-  "nvidia/nemotron-nano-12b-v2-vl:free",
-  "nvidia/nemotron-nano-9b-v2:free",
 ];
+
+/** Fast, high-quality models on the Lovable AI Gateway (primary provider). */
+const LOVABLE_MODELS = ["google/gemini-3.6-flash", "openai/gpt-5.4-mini"];
+
 
 
 function envList(name: string): string[] | undefined {
@@ -38,12 +37,17 @@ function envList(name: string): string[] | undefined {
   return list.length ? list : undefined;
 }
 
-/** Which provider to use. Defaults to OpenRouter when its key is present. */
+/**
+ * Which provider to use. Defaults to the Lovable AI Gateway — it is by far the
+ * fastest and most reliable path (free OpenRouter models queue heavily), and it
+ * stays as the primary unless AI_PROVIDER explicitly says otherwise.
+ */
 export function getProviderId(): ProviderId {
   const configured = process.env.AI_PROVIDER?.trim().toLowerCase() as ProviderId | undefined;
   if (configured) return configured;
-  return process.env.OPENROUTER_API_KEY ? "openrouter" : "lovable";
+  return process.env.LOVABLE_API_KEY ? "lovable" : "openrouter";
 }
+
 
 export function getProviderConfig(id: ProviderId = getProviderId()): ProviderConfig {
   switch (id) {
@@ -86,7 +90,7 @@ export function getProviderConfig(id: ProviderId = getProviderId()): ProviderCon
         id: "lovable",
         url: "https://ai.gateway.lovable.dev/v1/chat/completions",
         keyEnv: "LOVABLE_API_KEY",
-        models: envList("AI_MODELS") ?? ["google/gemini-3.5-flash"],
+        models: envList("AI_MODELS") ?? LOVABLE_MODELS,
       };
   }
 }
@@ -98,5 +102,7 @@ export function getFallbackProviderId(primary: ProviderId): ProviderId | undefin
     | undefined;
   if (configured) return configured === primary ? undefined : configured;
   if (primary !== "lovable" && process.env.LOVABLE_API_KEY) return "lovable";
+  if (primary === "lovable" && process.env.OPENROUTER_API_KEY) return "openrouter";
   return undefined;
+
 }

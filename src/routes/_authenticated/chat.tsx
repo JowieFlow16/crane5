@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ThinkingTrail } from "@/components/ThinkingTrail";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -90,6 +91,7 @@ function ChatPage() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
+  const [thinkingHasAttachments, setThinkingHasAttachments] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -184,6 +186,7 @@ function ChatPage() {
     setMessages(nextMessages);
     setInput("");
     setAttachments([]);
+    setThinkingHasAttachments(sentAttachments.length > 0);
     setThinking(true);
 
     try {
@@ -406,17 +409,15 @@ function ChatPage() {
                   className="flex gap-3"
                 >
                   <OmicronMark className="h-8 w-8 shrink-0" />
-                  <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-sm border border-border bg-card px-4 py-3.5">
-                    {[0, 1, 2].map((d) => (
-                      <span
-                        key={d}
-                        className="h-2 w-2 animate-bounce rounded-full bg-primary"
-                        style={{ animationDelay: `${d * 0.15}s` }}
-                      />
-                    ))}
+                  <div className="rounded-2xl rounded-bl-sm border border-border bg-card px-4 py-3">
+                    <ThinkingTrail
+                      subject={subject}
+                      hasAttachments={thinkingHasAttachments}
+                    />
                   </div>
                 </motion.div>
               )}
+
             </div>
           </div>
         </div>
