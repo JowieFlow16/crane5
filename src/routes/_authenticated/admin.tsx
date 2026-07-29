@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { learnFromLink, refreshLinkSources } from "@/lib/knowledge.functions";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "motion/react";
@@ -15,6 +17,8 @@ import {
   X,
   BadgeCheck,
   School,
+  Link as LinkIcon,
+  RefreshCw,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { db, type TeacherProfile } from "@/lib/db";
@@ -408,5 +412,100 @@ function AdminPage() {
       <AiLimitsAdmin />
 
     </div>
+  );
+}
+
+/** Continuous learning: feed Omicron web links it keeps re-reading. */
+function LinkLearning({ isAdmin }: { isAdmin: boolean }) {
+  const qc = useQueryClient();
+  const learn = useServerFn(learnFromLink);
+  const refresh = useServerFn(refreshLinkSources);
+  const [url, setUrl] = useState("");
+  const [linkSubject, setLinkSubject] = useState("Mathematics");
+  const [linkClass, setLinkClass] = useState("S4");
+  const [busy, setBusy] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  if (!isAdmin) return null;
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!url.trim()) return;
+    setBusy(true);
+    try {
+      const res = await learn({
+        data: {
+          url: url.trim(),
+          subject: linkSubject,
+          classLevel: linkClass,
+          docType: "web link",
+        },
+      });
+      toast.success(`Learned ${res.characters.toLocaleString()} characters from “${res.title}”.`);
+      setUrl("");
+      qc.invalidateQueries({ queryKey: ["documents"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't learn from that link.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const reRead = async () => {
+    setRefreshing(true);
+    try {
+      const res = await refresh({ data: undefined });
+      toast.success(`Re-read ${res.updated} of ${res.checked} link(s).`);
+      qc.invalidateQueries({ queryKey: ["documents"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Refresh failed.");
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  return (
+    <section className="mt-10">
+      <div className="flex items-center gap-2">
+        <LinkIcon className="h-5 w-5 text-primary" />
+        <h2 className="font-display text-xl font-bold">Continuous learning from links</h2>
+      </div>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Paste a web page and Omicron reads it into its knowledge base. Re-read links any time
+        to pick up new content.
+      </p>
+      <form
+        onSubmit={submit}
+        className="mt-4 grid gap-3 rounded-2xl border border-border bg-card p-5 shadow-card sm:grid-cols-[1fr_auto_auto_auto]"
+      >
+        <Input
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="https://www.ncdc.go.ug/…"
+          type="url"
+          required
+        />
+        <Select value={linkSubject} onValueChange={setLinkSubject}>
+          <SelectTrigger className="sm:w-40"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={linkClass} onValueChange={setLinkClass}>
+          <SelectTrigger className="sm:w-24"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {CLASSES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Button type="submit" variant="hero" disabled={busy}>
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <LinkIcon className="h-4 w-4" />}
+          Learn
+        </Button>
+      </form>
+      <Button variant="outline" className="mt-3" onClick={reRead} disabled={refreshing}>
+        {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+        Re-read saved links
+      </Button>
+    </section>
   );
 }
