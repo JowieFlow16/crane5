@@ -37,12 +37,17 @@ function envList(name: string): string[] | undefined {
   return list.length ? list : undefined;
 }
 
-/** Which provider to use. Defaults to OpenRouter when its key is present. */
+/**
+ * Which provider to use. Defaults to the Lovable AI Gateway — it is by far the
+ * fastest and most reliable path (free OpenRouter models queue heavily), and it
+ * stays as the primary unless AI_PROVIDER explicitly says otherwise.
+ */
 export function getProviderId(): ProviderId {
   const configured = process.env.AI_PROVIDER?.trim().toLowerCase() as ProviderId | undefined;
   if (configured) return configured;
-  return process.env.OPENROUTER_API_KEY ? "openrouter" : "lovable";
+  return process.env.LOVABLE_API_KEY ? "lovable" : "openrouter";
 }
+
 
 export function getProviderConfig(id: ProviderId = getProviderId()): ProviderConfig {
   switch (id) {
