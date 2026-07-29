@@ -60,6 +60,8 @@ async function callModel(
         model,
         messages: opts.messages,
         temperature: opts.temperature ?? 0.6,
+        // Skip hidden reasoning passes on models that support it — big latency win.
+        ...(model.startsWith("openai/gpt-5") ? { reasoning_effort: "none" } : {}),
         ...(opts.json ? { response_format: { type: "json_object" } } : {}),
       }),
       signal: controller.signal,
