@@ -16,14 +16,17 @@ export interface ProviderConfig {
 }
 
 /** Reliable free OpenRouter chat models, in priority order. */
+// Verified live against OpenRouter's free tier, ordered by quality + latency.
 const OPENROUTER_FREE_MODELS = [
-  "google/gemma-3-27b-it:free",
-  "deepseek/deepseek-r1:free",
-  "meta-llama/llama-3.3-70b-instruct:free",
-  "mistralai/mistral-small-3.2-24b-instruct:free",
-  "qwen/qwen3-coder:free",
-  "google/gemma-2-9b-it:free",
+  "google/gemma-4-31b-it:free",
+  "openai/gpt-oss-20b:free",
+  "inclusionai/ling-3.0-flash:free",
+  "google/gemma-4-26b-a4b-it:free",
+  "nvidia/nemotron-3-super-120b-a12b:free",
+  "nvidia/nemotron-nano-12b-v2-vl:free",
+  "nvidia/nemotron-nano-9b-v2:free",
 ];
+
 
 function envList(name: string): string[] | undefined {
   const raw = process.env[name];
