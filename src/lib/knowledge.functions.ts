@@ -73,37 +73,22 @@ export const learnFromLink = createServerFn({ method: "POST" })
     const { text, title } = await fetchPage(data.url);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { error } = await supabaseAdmin.from("documents").upsert(
-      {
-        name: (data.name?.trim() || title || data.url).slice(0, 200),
-        subject: data.subject ?? null,
-        class_level: (data.classLevel ?? null) as never,
-        doc_type: data.docType,
-        storage_path: `link/${data.url}`,
-        content_text: text,
-        source_url: data.url,
-        source_type: "link",
-        last_fetched_at: new Date().toISOString(),
-        uploaded_by: context.userId as string,
-      } as never,
-      { onConflict: "storage_path" },
-    );
-    if (error) {
-      // No unique index on storage_path — fall back to a plain insert.
-      const { error: insErr } = await supabaseAdmin.from("documents").insert({
-        name: (data.name?.trim() || title || data.url).slice(0, 200),
-        subject: data.subject ?? null,
-        class_level: (data.classLevel ?? null) as never,
-        doc_type: data.docType,
-        storage_path: `link/${Date.now()}`,
-        content_text: text,
-        source_url: data.url,
-        source_type: "link",
-        last_fetched_at: new Date().toISOString(),
-        uploaded_by: context.userId as string,
-      } as never);
-      if (insErr) throw new Error(insErr.message);
-    }
+    // Re-learning the same link replaces the old copy.
+    await supabaseAdmin.from("documents").delete().eq("source_url", data.url);
+
+    const { error } = await supabaseAdmin.from("documents").insert({
+      name: (data.name?.trim() || title || data.url).slice(0, 200),
+      subject: data.subject ?? null,
+      class_level: (data.classLevel ?? null) as never,
+      doc_type: data.docType,
+      storage_path: `link/${Date.now()}`,
+      content_text: text,
+      source_url: data.url,
+      source_type: "link",
+      last_fetched_at: new Date().toISOString(),
+      uploaded_by: context.userId as string,
+    } as never);
+    if (error) throw new Error(error.message);
 
     return { ok: true, characters: text.length, title: title ?? data.url };
   });
