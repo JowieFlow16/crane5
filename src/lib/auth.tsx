@@ -76,16 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setProfile(resolved);
 
-    let list = ((roleRows ?? []) as { role: AppRole }[]).map((r) => r.role);
-    if (list.length === 0) {
-      const { data: newRole } = await supabase
-        .from("user_roles")
-        .upsert({ user_id: uid, role: "student" } as never, { onConflict: "user_id,role" })
-        .select("role")
-        .maybeSingle();
-      if (newRole) list = [(newRole as { role: AppRole }).role];
-    }
-    setRoles(list);
+    setRoles(((roleRows ?? []) as { role: AppRole }[]).map((r) => r.role));
   };
 
 
