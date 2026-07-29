@@ -252,7 +252,7 @@ function ChatPage() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-4rem)]">
+    <div className="flex h-[calc(100dvh-4rem)]">
       {/* Conversation list */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card/50 md:flex">
         <div className="p-3">
