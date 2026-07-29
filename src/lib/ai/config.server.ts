@@ -15,17 +15,16 @@ export interface ProviderConfig {
   headers?: Record<string, string>;
 }
 
-/** Reliable free OpenRouter chat models, in priority order. */
-// Verified live against OpenRouter's free tier, ordered by quality + latency.
+/** Fast OpenRouter free models, used only as a backup. */
 const OPENROUTER_FREE_MODELS = [
   "google/gemma-4-31b-it:free",
   "openai/gpt-oss-20b:free",
   "inclusionai/ling-3.0-flash:free",
-  "google/gemma-4-26b-a4b-it:free",
-  "nvidia/nemotron-3-super-120b-a12b:free",
-  "nvidia/nemotron-nano-12b-v2-vl:free",
-  "nvidia/nemotron-nano-9b-v2:free",
 ];
+
+/** Fast, high-quality models on the Lovable AI Gateway (primary provider). */
+const LOVABLE_MODELS = ["google/gemini-3.6-flash", "openai/gpt-5.4-mini"];
+
 
 
 function envList(name: string): string[] | undefined {
