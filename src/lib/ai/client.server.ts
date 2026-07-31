@@ -140,37 +140,28 @@ async function runProvider(
     return p;
   };
 
-  const hedge = () => new Promise<"hedge">((r) => setTimeout(() => r("hedge"), HEDGE_AFTER_MS));
+  type Outcome = { kind: "ok"; value: string } | { kind: "fail" } | { kind: "hedge" };
+  const settle = (p: Promise<string>): Promise<Outcome> =>
+    p.then((value) => ({ kind: "ok" as const, value })).catch(() => ({ kind: "fail" as const }));
+  const hedge = (): Promise<Outcome> =>
+    new Promise((r) => setTimeout(() => r({ kind: "hedge" }), HEDGE_AFTER_MS));
 
   start(models[index++]);
 
   while (inFlight.size > 0) {
-    const racers: Promise<string | "hedge">[] = [...inFlight];
+    const racers: Promise<Outcome>[] = [...inFlight].map(settle);
     if (index < models.length) racers.push(hedge());
 
-    try {
-      const winner = await Promise.race(racers.map((p) => p.catch(() => Promise.reject(p))));
-      if (winner === "hedge") {
-        start(models[index++]);
-        continue;
-      }
-      return winner as string;
-    } catch {
-      // A racer rejected (or the race settled on a failure) — wait for the rest,
-      // and make sure the next model gets a chance.
-      const settled = await Promise.allSettled([...inFlight]);
-      const ok = settled.find((s) => s.status === "fulfilled");
-      if (ok) return (ok as PromiseFulfilledResult<string>).value;
-      if (index < models.length) {
-        start(models[index++]);
-        continue;
-      }
-      break;
+    const outcome = await Promise.race(racers);
+    if (outcome.kind === "ok") return outcome.value;
+    if (outcome.kind === "hedge" || index < models.length) {
+      if (index < models.length) start(models[index++]);
     }
   }
 
   return undefined;
 }
+
 
 
 /**
