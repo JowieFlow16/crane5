@@ -130,7 +130,9 @@ async function runProvider(
         inFlight.delete(p);
       });
     inFlight.add(p);
+    p.catch(() => {}); // never surface as an unhandled rejection
     return p;
+
   };
 
   type Outcome = { kind: "ok"; value: string } | { kind: "fail" } | { kind: "hedge" };
