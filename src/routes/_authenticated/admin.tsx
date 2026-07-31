@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { AiLimitsAdmin } from "@/components/AiLimitsAdmin";
+import { AiGatewayAdmin } from "@/components/AiGatewayAdmin";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Admin · Omicron AI" }] }),
@@ -409,6 +410,7 @@ function AdminPage() {
 
       <LinkLearning isAdmin={isAdmin} />
 
+      <AiGatewayAdmin />
       <AiLimitsAdmin />
 
     </div>
