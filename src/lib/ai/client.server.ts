@@ -95,6 +95,14 @@ async function callModel(
   }
 }
 
+/**
+ * Run one provider with "hedging": start the fastest model first and, if it
+ * hasn't answered within HEDGE_AFTER_MS, fire the next model in parallel and
+ * take whichever finishes first. This cuts tail latency dramatically without
+ * changing the response quality of the primary model.
+ */
+const HEDGE_AFTER_MS = 3_500;
+
 async function runProvider(
   id: ProviderId,
   opts: ChatOptions,
@@ -108,29 +116,62 @@ async function runProvider(
   }
 
   const models = opts.model ? [opts.model] : cfg.models;
+  const inFlight = new Set<Promise<string>>();
+  let index = 0;
 
-  for (const model of models) {
-    for (let attempt = 1; attempt <= MAX_ATTEMPTS_PER_MODEL; attempt++) {
-      try {
-        const started = Date.now();
-        const content = await callModel(cfg, key, model, opts);
-        console.log(`[ai] ${cfg.id} · ${model} · ${Date.now() - started}ms · attempt ${attempt}`);
+  const start = (model: string) => {
+    const started = Date.now();
+    const p = callModel(cfg, key, model, opts)
+      .then((content) => {
+        console.log(`[ai] ${cfg.id} · ${model} · ${Date.now() - started}ms`);
         return content;
-      } catch (error) {
-        const status = (error as { status?: number }).status;
+      })
+      .catch((error) => {
         const aborted = error instanceof Error && error.name === "AbortError";
         const message = aborted ? `${cfg.id}/${model} timed out` : String(error);
         errors.push(message);
-        console.warn(`[ai] attempt ${attempt} failed — ${message}`);
+        console.warn(`[ai] ${message}`);
+        throw error;
+      })
+      .finally(() => {
+        inFlight.delete(p);
+      });
+    inFlight.add(p);
+    return p;
+  };
 
-        const retryable = aborted || status === undefined || isTransient(status);
-        if (!retryable) break; // hard error (400/401/403/404) — move to next model
-        if (attempt < MAX_ATTEMPTS_PER_MODEL) await sleep(200 * attempt);
+  const hedge = () => new Promise<"hedge">((r) => setTimeout(() => r("hedge"), HEDGE_AFTER_MS));
+
+  start(models[index++]);
+
+  while (inFlight.size > 0) {
+    const racers: Promise<string | "hedge">[] = [...inFlight];
+    if (index < models.length) racers.push(hedge());
+
+    try {
+      const winner = await Promise.race(racers.map((p) => p.catch(() => Promise.reject(p))));
+      if (winner === "hedge") {
+        start(models[index++]);
+        continue;
       }
+      return winner as string;
+    } catch {
+      // A racer rejected (or the race settled on a failure) — wait for the rest,
+      // and make sure the next model gets a chance.
+      const settled = await Promise.allSettled([...inFlight]);
+      const ok = settled.find((s) => s.status === "fulfilled");
+      if (ok) return (ok as PromiseFulfilledResult<string>).value;
+      if (index < models.length) {
+        start(models[index++]);
+        continue;
+      }
+      break;
     }
   }
+
   return undefined;
 }
+
 
 /**
  * Send a chat request. Tries each configured model in priority order with
