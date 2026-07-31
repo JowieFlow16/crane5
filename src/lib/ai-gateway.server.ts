@@ -40,31 +40,46 @@ function pickImageUrl(data: unknown): string | undefined {
 /** Image generation via OpenRouter (used when the Lovable gateway is unavailable). */
 async function generateImageOpenRouter(prompt: string): Promise<string> {
   const key = process.env.OPENROUTER_API_KEY;
-  if (!key) throw new Error("CREDITS");
+  if (!key) throw new Error("IMAGE_UNAVAILABLE");
 
-  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${key}`,
-      "HTTP-Referer": process.env.OPENROUTER_SITE_URL ?? "https://lovable.dev",
-      "X-Title": process.env.OPENROUTER_APP_NAME ?? "Omicron AI",
-    },
-    body: JSON.stringify({
-      model: process.env.AI_IMAGE_MODEL ?? "google/gemini-2.5-flash-image",
-      messages: [{ role: "user", content: prompt }],
-      modalities: ["image", "text"],
-    }),
-  });
+  const models = [
+    process.env.AI_IMAGE_MODEL,
+    "google/gemini-2.5-flash-image",
+    "google/gemini-2.0-flash-exp:free",
+  ].filter(Boolean) as string[];
 
-  if (res.status === 429) throw new Error("RATE_LIMIT");
-  if (res.status === 402) throw new Error("CREDITS");
-  if (!res.ok) throw new Error(`AI image error ${res.status}: ${await res.text()}`);
+  let lastError = "";
+  for (const model of models) {
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${key}`,
+        "HTTP-Referer": process.env.OPENROUTER_SITE_URL ?? "https://lovable.dev",
+        "X-Title": process.env.OPENROUTER_APP_NAME ?? "Omicron AI",
+      },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: "user", content: prompt }],
+        modalities: ["image", "text"],
+      }),
+    });
 
-  const url = pickImageUrl(await res.json());
-  if (!url) throw new Error("No image returned");
-  return url;
+    if (!res.ok) {
+      lastError = `${model}: ${res.status}`;
+      console.warn("[ai-image] openrouter failed", lastError);
+      continue;
+    }
+
+    const url = pickImageUrl(await res.json());
+    if (url) return url;
+    lastError = `${model}: no image returned`;
+  }
+
+  console.error("[ai-image] all image providers failed:", lastError);
+  throw new Error("IMAGE_UNAVAILABLE");
 }
+
 
 /**
  * Generate an image. Tries the Lovable AI Gateway first and automatically
