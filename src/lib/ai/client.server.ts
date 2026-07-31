@@ -28,17 +28,10 @@ export interface ChatOptions {
   temperature?: number;
 }
 
-// Speed first: fail fast and move to the next model instead of waiting out a
-// slow provider. One retry only for the very first model.
-const MAX_ATTEMPTS_PER_MODEL = 1;
-const REQUEST_TIMEOUT_MS = 18_000;
+// Speed first: fail fast and hedge onto the next model instead of waiting out
+// a slow provider.
+const REQUEST_TIMEOUT_MS = 15_000;
 
-/** Errors that mean: try the same model again, then the next model. */
-function isTransient(status: number) {
-  return status === 429 || status === 408 || status === 500 || status >= 502;
-}
-
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function callModel(
   cfg: ProviderConfig,
