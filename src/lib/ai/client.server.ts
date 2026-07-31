@@ -28,17 +28,10 @@ export interface ChatOptions {
   temperature?: number;
 }
 
-// Speed first: fail fast and move to the next model instead of waiting out a
-// slow provider. One retry only for the very first model.
-const MAX_ATTEMPTS_PER_MODEL = 1;
-const REQUEST_TIMEOUT_MS = 18_000;
+// Speed first: fail fast and hedge onto the next model instead of waiting out
+// a slow provider.
+const REQUEST_TIMEOUT_MS = 15_000;
 
-/** Errors that mean: try the same model again, then the next model. */
-function isTransient(status: number) {
-  return status === 429 || status === 408 || status === 500 || status >= 502;
-}
-
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function callModel(
   cfg: ProviderConfig,
@@ -95,6 +88,14 @@ async function callModel(
   }
 }
 
+/**
+ * Run one provider with "hedging": start the fastest model first and, if it
+ * hasn't answered within HEDGE_AFTER_MS, fire the next model in parallel and
+ * take whichever finishes first. This cuts tail latency dramatically without
+ * changing the response quality of the primary model.
+ */
+const HEDGE_AFTER_MS = 3_500;
+
 async function runProvider(
   id: ProviderId,
   opts: ChatOptions,
@@ -108,29 +109,55 @@ async function runProvider(
   }
 
   const models = opts.model ? [opts.model] : cfg.models;
+  const inFlight = new Set<Promise<string>>();
+  let index = 0;
 
-  for (const model of models) {
-    for (let attempt = 1; attempt <= MAX_ATTEMPTS_PER_MODEL; attempt++) {
-      try {
-        const started = Date.now();
-        const content = await callModel(cfg, key, model, opts);
-        console.log(`[ai] ${cfg.id} · ${model} · ${Date.now() - started}ms · attempt ${attempt}`);
+  const start = (model: string) => {
+    const started = Date.now();
+    const p = callModel(cfg, key, model, opts)
+      .then((content) => {
+        console.log(`[ai] ${cfg.id} · ${model} · ${Date.now() - started}ms`);
         return content;
-      } catch (error) {
-        const status = (error as { status?: number }).status;
+      })
+      .catch((error) => {
         const aborted = error instanceof Error && error.name === "AbortError";
         const message = aborted ? `${cfg.id}/${model} timed out` : String(error);
         errors.push(message);
-        console.warn(`[ai] attempt ${attempt} failed — ${message}`);
+        console.warn(`[ai] ${message}`);
+        throw error;
+      })
+      .finally(() => {
+        inFlight.delete(p);
+      });
+    inFlight.add(p);
+    p.catch(() => {}); // never surface as an unhandled rejection
+    return p;
 
-        const retryable = aborted || status === undefined || isTransient(status);
-        if (!retryable) break; // hard error (400/401/403/404) — move to next model
-        if (attempt < MAX_ATTEMPTS_PER_MODEL) await sleep(200 * attempt);
-      }
+  };
+
+  type Outcome = { kind: "ok"; value: string } | { kind: "fail" } | { kind: "hedge" };
+  const settle = (p: Promise<string>): Promise<Outcome> =>
+    p.then((value) => ({ kind: "ok" as const, value })).catch(() => ({ kind: "fail" as const }));
+  const hedge = (): Promise<Outcome> =>
+    new Promise((r) => setTimeout(() => r({ kind: "hedge" }), HEDGE_AFTER_MS));
+
+  start(models[index++]);
+
+  while (inFlight.size > 0) {
+    const racers: Promise<Outcome>[] = [...inFlight].map(settle);
+    if (index < models.length) racers.push(hedge());
+
+    const outcome = await Promise.race(racers);
+    if (outcome.kind === "ok") return outcome.value;
+    if (outcome.kind === "hedge" || index < models.length) {
+      if (index < models.length) start(models[index++]);
     }
   }
+
   return undefined;
 }
+
+
 
 /**
  * Send a chat request. Tries each configured model in priority order with

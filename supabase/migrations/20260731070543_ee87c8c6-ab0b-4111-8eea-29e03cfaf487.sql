@@ -1,0 +1,2 @@
+DELETE FROM public.messages WHERE chat_id IN (SELECT id FROM public.chats WHERE title ILIKE ANY (ARRAY['%gravity%','%photosynthesis%','%capital city of Uganda%','Yoo, who are you%']));
+DELETE FROM public.chats WHERE title ILIKE ANY (ARRAY['%gravity%','%photosynthesis%','%capital city of Uganda%','Yoo, who are you%']);
