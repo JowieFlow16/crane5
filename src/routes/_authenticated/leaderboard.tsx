@@ -25,7 +25,7 @@ function LeaderboardPage() {
     queryFn: async () => {
       const { data } = await db
         .from("leaderboard")
-        .select("*")
+        .select("user_id, full_name, avatar_url, class_level, xp, level, current_streak")
         .order("xp", { ascending: false })
         .limit(50);
       return (data as LeaderboardRow[]) ?? [];
