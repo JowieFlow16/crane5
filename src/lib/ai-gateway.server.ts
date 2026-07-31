@@ -29,22 +29,29 @@ export function parseJsonResponse<T>(raw: string): T {
   return JSON.parse(cleaned) as T;
 }
 
-/**
- * Generate an image with the Lovable AI Gateway (Gemini image model).
- * Returns a data URL (data:image/png;base64,...) or throws.
- */
-export async function generateImageAI(prompt: string): Promise<string> {
-  const key = process.env.LOVABLE_API_KEY;
-  if (!key) throw new Error("Missing LOVABLE_API_KEY");
+/** Extract a data/image URL from an OpenAI-compatible chat image response. */
+function pickImageUrl(data: unknown): string | undefined {
+  const d = data as {
+    choices?: { message?: { images?: { image_url?: { url?: string } }[] } }[];
+  };
+  return d.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+}
 
-  const res = await fetch(LOVABLE_GATEWAY_URL, {
+/** Image generation via OpenRouter (used when the Lovable gateway is unavailable). */
+async function generateImageOpenRouter(prompt: string): Promise<string> {
+  const key = process.env.OPENROUTER_API_KEY;
+  if (!key) throw new Error("CREDITS");
+
+  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${key}`,
+      "HTTP-Referer": process.env.OPENROUTER_SITE_URL ?? "https://lovable.dev",
+      "X-Title": process.env.OPENROUTER_APP_NAME ?? "Omicron AI",
     },
     body: JSON.stringify({
-      model: IMAGE_MODEL,
+      model: process.env.AI_IMAGE_MODEL ?? "google/gemini-2.5-flash-image",
       messages: [{ role: "user", content: prompt }],
       modalities: ["image", "text"],
     }),
@@ -52,17 +59,44 @@ export async function generateImageAI(prompt: string): Promise<string> {
 
   if (res.status === 429) throw new Error("RATE_LIMIT");
   if (res.status === 402) throw new Error("CREDITS");
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`AI image error ${res.status}: ${text}`);
-  }
+  if (!res.ok) throw new Error(`AI image error ${res.status}: ${await res.text()}`);
 
-  const data = (await res.json()) as {
-    choices?: {
-      message?: { images?: { image_url?: { url?: string } }[] };
-    }[];
-  };
-  const url = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+  const url = pickImageUrl(await res.json());
   if (!url) throw new Error("No image returned");
   return url;
 }
+
+/**
+ * Generate an image. Tries the Lovable AI Gateway first and automatically
+ * falls back to OpenRouter when credits are exhausted or the gateway errors.
+ * Returns a data URL (data:image/png;base64,...) or throws.
+ */
+export async function generateImageAI(prompt: string): Promise<string> {
+  const key = process.env.LOVABLE_API_KEY;
+  if (!key) return generateImageOpenRouter(prompt);
+
+  try {
+    const res = await fetch(LOVABLE_GATEWAY_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${key}`,
+      },
+      body: JSON.stringify({
+        model: IMAGE_MODEL,
+        messages: [{ role: "user", content: prompt }],
+        modalities: ["image", "text"],
+      }),
+    });
+
+    if (!res.ok) throw new Error(`AI image error ${res.status}`);
+
+    const url = pickImageUrl(await res.json());
+    if (!url) throw new Error("No image returned");
+    return url;
+  } catch (err) {
+    console.error("[ai-image] Lovable gateway failed, falling back to OpenRouter:", err);
+    return generateImageOpenRouter(prompt);
+  }
+}
+
