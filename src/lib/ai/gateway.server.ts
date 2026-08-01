@@ -8,7 +8,7 @@ import {
   candidateProviders,
   getGatewayConfig,
   providerBaseUrl,
-  providerKey,
+  providerKeys,
   providerModels,
   type Capability,
   type ProviderDef,
@@ -21,10 +21,15 @@ import {
   isAvailable,
   metrics,
   noteCapability,
+  noteKeyUse,
+  orderKeys,
+  parkKey,
   recordFailure,
   recordSuccess,
   withSlot,
+  type KeyFailureKind,
 } from "./health.server";
+
 
 export type ContentPart =
   | { type: "text"; text: string }
@@ -75,14 +80,47 @@ function log(event: string, fields: Record<string, unknown>) {
   console.log(`[ai-gateway] ${event}`, JSON.stringify(fields));
 }
 
+/**
+ * Classify a per-key failure so the key (not the whole provider) can be
+ * parked. Returns null when the failure is not key-specific.
+ */
+function keyFailureKind(err: unknown): KeyFailureKind | null {
+  const status = (err as { status?: number })?.status;
+  const msg = String((err as Error)?.message ?? err).toLowerCase();
+  if (status === 429 || msg.includes("rate limit") || msg.includes("too many requests")) {
+    return "rate_limit";
+  }
+  if (
+    status === 402 ||
+    msg.includes("insufficient") ||
+    msg.includes("quota") ||
+    msg.includes("credit") ||
+    msg.includes("billing") ||
+    msg.includes("payment required")
+  ) {
+    return "quota";
+  }
+  if (status === 401 || status === 403 || msg.includes("invalid api key") || msg.includes("unauthorized")) {
+    return "invalid";
+  }
+  return null;
+}
+
+function keyCooldownMs(kind: KeyFailureKind): number {
+  const cfg = getGatewayConfig();
+  if (kind === "rate_limit") return cfg.keyRateLimitCooldownMs;
+  if (kind === "quota") return cfg.keyQuotaCooldownMs;
+  return cfg.keyInvalidCooldownMs;
+}
+
 async function request(
   p: ProviderDef,
   path: string,
   body: unknown,
+  key: string,
 ): Promise<Record<string, unknown>> {
   const cfg = getGatewayConfig();
-  const key = providerKey(p);
-  if (!key) throw Object.assign(new Error(`${p.id}: missing credentials`), { status: 401 });
+
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), cfg.requestTimeoutMs);
@@ -175,41 +213,74 @@ export async function execute<T>(opts: ExecuteOptions<T>): Promise<T> {
 
     for (const p of providers) {
       const models = opts.modelOverride ? [opts.modelOverride] : providerModels(p, capability);
-      for (const model of models) {
-        attempts += 1;
-        if (attempts > 1) metrics.retries += 1;
-        const started = Date.now();
-        try {
-          const { path, body } = opts.build(p, model);
-          const data = await request(p, path, body);
-          const value = opts.extract(data, p);
-          if (value === undefined) throw new Error(`${p.id}/${model} returned an empty response`);
+      const allKeys = providerKeys(p);
+      let providerExhausted = false;
 
-          const latency = Date.now() - started;
-          recordSuccess(p.id, latency);
-          metrics.succeeded += 1;
-          metrics.totalLatencyMs += Date.now() - startedAll;
-          metrics.lastProvider = p.id;
-          log("resolved", { capability, provider: p.id, model, latency, attempts });
-          if (opts.cacheKey) cacheSet(opts.cacheKey, value);
-          return value;
-        } catch (err) {
-          const reason = err instanceof Error ? err.message : String(err);
-          recordFailure(p.id, reason);
-          errors.push(reason);
-          log("failed", {
-            capability,
-            provider: p.id,
-            model,
-            attempts,
-            retryable: isRetryable(err),
-            reason: reason.slice(0, 200),
-          });
-          if (!isRetryable(err)) break; // bad request for this provider — switch provider
+      for (const model of models) {
+        if (providerExhausted) break;
+        // Rotate through this provider's keys: a key that is rate limited or
+        // out of credits is parked and the next key serves the request, so one
+        // user's usage never blocks everyone else.
+        const keyOrder = orderKeys(p.id, allKeys.length).slice(0, cfg.maxKeyAttempts);
+        let modelFatal = false;
+
+        for (const keyIndex of keyOrder) {
+          const key = allKeys[keyIndex];
+          if (!key) continue;
+          attempts += 1;
+          if (attempts > 1) metrics.retries += 1;
+          const started = Date.now();
+          try {
+            const { path, body } = opts.build(p, model);
+            noteKeyUse(p.id, keyIndex);
+            const data = await request(p, path, body, key);
+            const value = opts.extract(data, p);
+            if (value === undefined) throw new Error(`${p.id}/${model} returned an empty response`);
+
+            const latency = Date.now() - started;
+            recordSuccess(p.id, latency);
+            metrics.succeeded += 1;
+            metrics.totalLatencyMs += Date.now() - startedAll;
+            metrics.lastProvider = p.id;
+            log("resolved", { capability, provider: p.id, model, keyIndex, latency, attempts });
+            if (opts.cacheKey) cacheSet(opts.cacheKey, value);
+            return value;
+          } catch (err) {
+            const reason = err instanceof Error ? err.message : String(err);
+            const kind = keyFailureKind(err);
+            errors.push(reason);
+            log("failed", {
+              capability,
+              provider: p.id,
+              model,
+              keyIndex,
+              attempts,
+              keyFailure: kind,
+              retryable: isRetryable(err),
+              reason: reason.slice(0, 200),
+            });
+
+            if (kind) {
+              // Key-level problem: park this key and try the next one.
+              parkKey(p.id, keyIndex, kind, keyCooldownMs(kind));
+              continue;
+            }
+
+            recordFailure(p.id, reason);
+            if (!isRetryable(err)) {
+              // Bad request for this provider — no other key or model helps.
+              modelFatal = true;
+              providerExhausted = true;
+            }
+            break;
+          }
         }
+
+        if (modelFatal) break;
       }
       metrics.switches += 1;
     }
+
 
     metrics.failed += 1;
     log("exhausted", { capability, attempts, providers: providers.map((p) => p.id) });
