@@ -202,6 +202,8 @@ export const metrics: GatewayMetrics = {
   failed: 0,
   retries: 0,
   switches: 0,
+  keyRotations: 0,
+
   cacheHits: 0,
   cacheMisses: 0,
   queued: 0,
