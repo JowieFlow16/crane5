@@ -181,10 +181,40 @@ export function providerBaseUrl(p: ProviderDef): string {
   return (process.env[p.baseUrlEnv] ?? p.defaultBaseUrl).replace(/\/$/, "");
 }
 
-export function providerKey(p: ProviderDef): string | undefined {
-  const key = process.env[p.keyEnv];
-  return key && key.trim() ? key.trim() : undefined;
+/**
+ * Every API key configured for a provider, in rotation order.
+ *
+ * A provider can hold several keys so the gateway keeps serving other users
+ * when one key hits its quota or rate limit:
+ *   OPENROUTER_API_KEY="key1,key2"        (comma-separated)
+ *   OPENROUTER_API_KEY_2 ... _5           (numbered extras)
+ *   OPENROUTER_API_KEYS="key6,key7"       (bulk list)
+ */
+export function providerKeys(p: ProviderDef): string[] {
+  const names = [
+    p.keyEnv,
+    `${p.keyEnv}S`,
+    `${p.keyEnv}_2`,
+    `${p.keyEnv}_3`,
+    `${p.keyEnv}_4`,
+    `${p.keyEnv}_5`,
+  ];
+  const out: string[] = [];
+  for (const name of names) {
+    const raw = process.env[name];
+    if (!raw) continue;
+    for (const part of raw.split(",")) {
+      const key = part.trim();
+      if (key && !out.includes(key)) out.push(key);
+    }
+  }
+  return out;
 }
+
+export function providerKey(p: ProviderDef): string | undefined {
+  return providerKeys(p)[0];
+}
+
 
 /** Models for a capability, with per-provider env override (e.g. AI_MODELS_OPENROUTER_TEXT). */
 export function providerModels(p: ProviderDef, cap: Capability): string[] {
