@@ -8,7 +8,7 @@ import {
   candidateProviders,
   getGatewayConfig,
   providerBaseUrl,
-  providerKey,
+  providerKeys,
   providerModels,
   type Capability,
   type ProviderDef,
@@ -21,10 +21,15 @@ import {
   isAvailable,
   metrics,
   noteCapability,
+  noteKeyUse,
+  orderKeys,
+  parkKey,
   recordFailure,
   recordSuccess,
   withSlot,
+  type KeyFailureKind,
 } from "./health.server";
+
 
 export type ContentPart =
   | { type: "text"; text: string }
