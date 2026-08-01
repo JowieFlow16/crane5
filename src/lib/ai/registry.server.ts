@@ -280,6 +280,14 @@ export interface GatewayConfig {
   maxQueue: number;
   cacheTtlMs: number;
   cacheMaxEntries: number;
+  /** Cooldown applied to a single key after a 429 rate limit. */
+  keyRateLimitCooldownMs: number;
+  /** Cooldown applied to a single key once its credits/quota are exhausted. */
+  keyQuotaCooldownMs: number;
+  /** Cooldown applied to a key the provider rejects as invalid. */
+  keyInvalidCooldownMs: number;
+  /** Max keys tried per provider in one request. */
+  maxKeyAttempts: number;
 }
 
 export function getGatewayConfig(): GatewayConfig {
@@ -302,12 +310,16 @@ export function getGatewayConfig(): GatewayConfig {
     maxQueue: envNum("AI_MAX_QUEUE", 100),
     cacheTtlMs: envNum("AI_CACHE_TTL_MS", 30 * 60_000),
     cacheMaxEntries: envNum("AI_CACHE_MAX_ENTRIES", 300),
+    keyRateLimitCooldownMs: envNum("AI_KEY_RATE_LIMIT_COOLDOWN_MS", 60_000),
+    keyQuotaCooldownMs: envNum("AI_KEY_QUOTA_COOLDOWN_MS", 6 * 60 * 60_000),
+    keyInvalidCooldownMs: envNum("AI_KEY_INVALID_COOLDOWN_MS", 24 * 60 * 60_000),
+    maxKeyAttempts: envNum("AI_MAX_KEY_ATTEMPTS", 5),
   };
 }
 
 /**
- * Providers that can serve a capability right now: configured key, not
- * disabled, and at least one candidate model. Ordered by capability
+ * Providers that can serve a capability right now: at least one configured
+ * key, not disabled, and at least one candidate model. Ordered by capability
  * preference first, then global priority.
  */
 export function candidateProviders(cap: Capability): ProviderDef[] {
@@ -319,8 +331,9 @@ export function candidateProviders(cap: Capability): ProviderDef[] {
     if (seen.has(id) || cfg.disabled.includes(id)) continue;
     seen.add(id);
     const p = getProvider(id);
-    if (!p || !providerKey(p) || providerModels(p, cap).length === 0) continue;
+    if (!p || providerKeys(p).length === 0 || providerModels(p, cap).length === 0) continue;
     out.push(p);
   }
   return out;
 }
+
