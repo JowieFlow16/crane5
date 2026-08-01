@@ -185,6 +185,8 @@ export interface GatewayMetrics {
   failed: number;
   retries: number;
   switches: number;
+  keyRotations: number;
+
   cacheHits: number;
   cacheMisses: number;
   queued: number;
