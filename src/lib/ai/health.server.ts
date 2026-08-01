@@ -94,6 +94,87 @@ export function getHealthSnapshot() {
 }
 
 // ---------------------------------------------------------------------------
+// Per-key rotation state
+//
+// Providers can hold several API keys. When one key hits its rate limit or
+// burns through its credits it is parked for a cooldown and the gateway keeps
+// serving every other user on the next key — one user's quota never blocks
+// the rest of the app.
+// ---------------------------------------------------------------------------
+
+export type KeyFailureKind = "rate_limit" | "quota" | "invalid";
+
+interface KeyState {
+  providerId: string;
+  index: number;
+  parkedUntil: number | null;
+  reason: KeyFailureKind | null;
+  uses: number;
+}
+
+const keys = new Map<string, KeyState>();
+const keyId = (providerId: string, index: number) => `${providerId}#${index}`;
+
+function ensureKey(providerId: string, index: number): KeyState {
+  const id = keyId(providerId, index);
+  let s = keys.get(id);
+  if (!s) {
+    s = { providerId, index, parkedUntil: null, reason: null, uses: 0 };
+    keys.set(id, s);
+  }
+  return s;
+}
+
+export function isKeyAvailable(providerId: string, index: number): boolean {
+  const s = keys.get(keyId(providerId, index));
+  if (!s?.parkedUntil) return true;
+  if (Date.now() >= s.parkedUntil) {
+    s.parkedUntil = null;
+    s.reason = null;
+    return true;
+  }
+  return false;
+}
+
+export function noteKeyUse(providerId: string, index: number) {
+  ensureKey(providerId, index).uses += 1;
+}
+
+/** Park a key that is out of quota / rate limited / invalid. */
+export function parkKey(
+  providerId: string,
+  index: number,
+  kind: KeyFailureKind,
+  cooldownMs: number,
+) {
+  const s = ensureKey(providerId, index);
+  s.parkedUntil = Date.now() + cooldownMs;
+  s.reason = kind;
+  metrics.keyRotations += 1;
+}
+
+/** Key indexes to try for a provider, least-recently-loaded first. */
+export function orderKeys(providerId: string, total: number): number[] {
+  const all = Array.from({ length: total }, (_, i) => i);
+  const usable = all.filter((i) => isKeyAvailable(providerId, i));
+  // Spread load across healthy keys so no single key carries every user.
+  const pool = usable.length ? usable : all;
+  return pool.sort((a, b) => ensureKey(providerId, a).uses - ensureKey(providerId, b).uses);
+}
+
+export function getKeySnapshot() {
+  return [...keys.values()].map((s) => ({
+    provider: s.providerId,
+    index: s.index,
+    uses: s.uses,
+    reason: s.reason,
+    available: isKeyAvailable(s.providerId, s.index),
+    parkedUntil: s.parkedUntil,
+  }));
+}
+
+
+// ---------------------------------------------------------------------------
 // Gateway-wide metrics
 // ---------------------------------------------------------------------------
 
