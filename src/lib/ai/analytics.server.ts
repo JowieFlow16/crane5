@@ -4,6 +4,7 @@ import {
   activeRequests,
   cacheSize,
   getHealthSnapshot,
+  getKeySnapshot,
   metrics,
   queueSize,
 } from "./health.server";
@@ -11,7 +12,7 @@ import {
   candidateProviders,
   getGatewayConfig,
   PROVIDERS,
-  providerKey,
+  providerKeys,
   type Capability,
 } from "./registry.server";
 
@@ -26,6 +27,7 @@ export interface GatewayStats {
   avgResponseMs: number;
   retries: number;
   switches: number;
+  keyRotations: number;
   cacheHits: number;
   cacheHitRate: number;
   cacheEntries: number;
@@ -48,6 +50,8 @@ export interface GatewayStats {
     lastFailureAt: number | null;
     lastError: string | null;
     disabledUntil: number | null;
+    keys: number;
+    keysAvailable: number;
   }[];
   config: {
     priority: string[];
@@ -66,6 +70,7 @@ export function buildGatewayStats(): GatewayStats {
   const healthById = new Map(getHealthSnapshot().map((h) => [h.id, h]));
   const total = metrics.succeeded + metrics.failed;
   const cacheTotal = metrics.cacheHits + metrics.cacheMisses;
+  const keyStates = getKeySnapshot();
 
   return {
     currentProvider: metrics.lastProvider,
@@ -80,6 +85,7 @@ export function buildGatewayStats(): GatewayStats {
       : 0,
     retries: metrics.retries,
     switches: metrics.switches,
+    keyRotations: metrics.keyRotations,
     cacheHits: metrics.cacheHits,
     cacheHitRate: cacheTotal ? Math.round((metrics.cacheHits / cacheTotal) * 100) : 0,
     cacheEntries: cacheSize(),
@@ -89,10 +95,12 @@ export function buildGatewayStats(): GatewayStats {
     byCapability: metrics.byCapability,
     providers: PROVIDERS.map((p) => {
       const h = healthById.get(p.id);
+      const keyCount = providerKeys(p).length;
+      const parked = keyStates.filter((k) => k.provider === p.id && !k.available).length;
       return {
         id: p.id,
         label: p.label,
-        configured: Boolean(providerKey(p)),
+        configured: keyCount > 0,
         enabled: !cfg.disabled.includes(p.id),
         score: h?.score ?? 75,
         available: h?.available ?? true,
@@ -104,6 +112,8 @@ export function buildGatewayStats(): GatewayStats {
         lastFailureAt: h?.lastFailureAt ?? null,
         lastError: h?.lastError ?? null,
         disabledUntil: h?.disabledUntil ?? null,
+        keys: keyCount,
+        keysAvailable: Math.max(keyCount - parked, 0),
       };
     }),
     config: {
