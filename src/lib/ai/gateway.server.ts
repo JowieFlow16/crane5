@@ -80,14 +80,47 @@ function log(event: string, fields: Record<string, unknown>) {
   console.log(`[ai-gateway] ${event}`, JSON.stringify(fields));
 }
 
+/**
+ * Classify a per-key failure so the key (not the whole provider) can be
+ * parked. Returns null when the failure is not key-specific.
+ */
+function keyFailureKind(err: unknown): KeyFailureKind | null {
+  const status = (err as { status?: number })?.status;
+  const msg = String((err as Error)?.message ?? err).toLowerCase();
+  if (status === 429 || msg.includes("rate limit") || msg.includes("too many requests")) {
+    return "rate_limit";
+  }
+  if (
+    status === 402 ||
+    msg.includes("insufficient") ||
+    msg.includes("quota") ||
+    msg.includes("credit") ||
+    msg.includes("billing") ||
+    msg.includes("payment required")
+  ) {
+    return "quota";
+  }
+  if (status === 401 || status === 403 || msg.includes("invalid api key") || msg.includes("unauthorized")) {
+    return "invalid";
+  }
+  return null;
+}
+
+function keyCooldownMs(kind: KeyFailureKind): number {
+  const cfg = getGatewayConfig();
+  if (kind === "rate_limit") return cfg.keyRateLimitCooldownMs;
+  if (kind === "quota") return cfg.keyQuotaCooldownMs;
+  return cfg.keyInvalidCooldownMs;
+}
+
 async function request(
   p: ProviderDef,
   path: string,
   body: unknown,
+  key: string,
 ): Promise<Record<string, unknown>> {
   const cfg = getGatewayConfig();
-  const key = providerKey(p);
-  if (!key) throw Object.assign(new Error(`${p.id}: missing credentials`), { status: 401 });
+
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), cfg.requestTimeoutMs);
