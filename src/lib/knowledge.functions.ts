@@ -93,7 +93,49 @@ export const learnFromLink = createServerFn({ method: "POST" })
     return { ok: true, characters: text.length, title: title ?? data.url };
   });
 
+/** Admin: teach Omicron from a video link (captions / transcript). */
+export const learnFromVideo = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        url: z.string().url().max(2000),
+        name: z.string().max(200).optional(),
+        subject: z.string().max(80).optional(),
+        classLevel: z.string().max(10).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId as string);
+    if (!/^https?:\/\//i.test(data.url)) throw new Error("Only http(s) links are supported.");
+
+    const { fetchVideoLesson } = await import("./knowledge-video.server");
+    const lesson = await fetchVideoLesson(data.url);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Re-learning the same video replaces the old copy.
+    await supabaseAdmin.from("documents").delete().eq("source_url", data.url);
+
+    const { error } = await supabaseAdmin.from("documents").insert({
+      name: (data.name?.trim() || lesson.title).slice(0, 200),
+      subject: data.subject ?? null,
+      class_level: (data.classLevel ?? null) as never,
+      doc_type: `${lesson.platform} video`,
+      storage_path: `video/${Date.now()}`,
+      content_text: lesson.text,
+      source_url: data.url,
+      source_type: "video",
+      last_fetched_at: new Date().toISOString(),
+      uploaded_by: context.userId as string,
+    } as never);
+    if (error) throw new Error(error.message);
+
+    return { ok: true, characters: lesson.text.length, title: lesson.title };
+  });
+
 /** Admin: re-read every saved link so the tutor stays up to date. */
+
 export const refreshLinkSources = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -102,17 +144,28 @@ export const refreshLinkSources = createServerFn({ method: "POST" })
 
     const { data: rows } = await supabaseAdmin
       .from("documents")
-      .select("id, source_url")
-      .eq("source_type", "link")
+      .select("id, source_url, source_type")
+      .in("source_type", ["link", "video"])
       .not("source_url", "is", null)
       .order("last_fetched_at", { ascending: true, nullsFirst: true })
       .limit(10);
 
     let updated = 0;
     let failed = 0;
-    for (const row of (rows ?? []) as { id: string; source_url: string }[]) {
+    for (const row of (rows ?? []) as {
+      id: string;
+      source_url: string;
+      source_type: string;
+    }[]) {
       try {
-        const { text } = await fetchPage(row.source_url);
+        let text: string;
+        if (row.source_type === "video") {
+          const { fetchVideoLesson } = await import("./knowledge-video.server");
+          text = (await fetchVideoLesson(row.source_url)).text;
+        } else {
+          text = (await fetchPage(row.source_url)).text;
+        }
+
         const { error } = await supabaseAdmin
           .from("documents")
           .update({ content_text: text, last_fetched_at: new Date().toISOString() } as never)

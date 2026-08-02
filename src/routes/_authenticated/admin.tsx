@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { learnFromLink, refreshLinkSources } from "@/lib/knowledge.functions";
+import { learnFromLink, learnFromVideo, refreshLinkSources } from "@/lib/knowledge.functions";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "motion/react";
@@ -19,6 +19,7 @@ import {
   School,
   Link as LinkIcon,
   RefreshCw,
+  Video,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { db, type TeacherProfile } from "@/lib/db";
@@ -410,6 +411,9 @@ function AdminPage() {
 
       <LinkLearning isAdmin={isAdmin} />
 
+      <VideoLearning isAdmin={isAdmin} />
+
+
       <AiGatewayAdmin />
       <AiLimitsAdmin />
 
@@ -508,6 +512,77 @@ function LinkLearning({ isAdmin }: { isAdmin: boolean }) {
         {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
         Re-read saved links
       </Button>
+    </section>
+  );
+}
+
+/** Continuous learning from video links: Omicron reads their captions. */
+function VideoLearning({ isAdmin }: { isAdmin: boolean }) {
+  const qc = useQueryClient();
+  const learn = useServerFn(learnFromVideo);
+  const [url, setUrl] = useState("");
+  const [subject, setSubject] = useState("Mathematics");
+  const [classLevel, setClassLevel] = useState("S4");
+  const [busy, setBusy] = useState(false);
+
+  if (!isAdmin) return null;
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!url.trim()) return;
+    setBusy(true);
+    try {
+      const res = await learn({
+        data: { url: url.trim(), subject, classLevel },
+      });
+      toast.success(`Learned ${res.characters.toLocaleString()} characters from “${res.title}”.`);
+      setUrl("");
+      qc.invalidateQueries({ queryKey: ["documents"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't learn from that video.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="mt-10">
+      <div className="flex items-center gap-2">
+        <Video className="h-5 w-5 text-primary" />
+        <h2 className="font-display text-xl font-bold">Learning from video links</h2>
+      </div>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Paste a YouTube, Vimeo or other video link. Omicron reads its captions (or description)
+        and adds the lesson to its knowledge base. Videos with subtitles work best.
+      </p>
+      <form
+        onSubmit={submit}
+        className="mt-4 grid gap-3 rounded-2xl border border-border bg-card p-5 shadow-card sm:grid-cols-[1fr_auto_auto_auto]"
+      >
+        <Input
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="https://www.youtube.com/watch?v=…"
+          type="url"
+          required
+        />
+        <Select value={subject} onValueChange={setSubject}>
+          <SelectTrigger className="sm:w-40"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={classLevel} onValueChange={setClassLevel}>
+          <SelectTrigger className="sm:w-24"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {CLASSES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Button type="submit" variant="hero" disabled={busy}>
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
+          Learn video
+        </Button>
+      </form>
     </section>
   );
 }
