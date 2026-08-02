@@ -410,6 +410,9 @@ function AdminPage() {
 
       <LinkLearning isAdmin={isAdmin} />
 
+      <VideoLearning isAdmin={isAdmin} />
+
+
       <AiGatewayAdmin />
       <AiLimitsAdmin />
 
