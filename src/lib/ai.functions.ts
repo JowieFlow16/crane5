@@ -46,27 +46,17 @@ export const chatTutor = createServerFn({ method: "POST" })
         | { type: "image_url"; image_url: { url: string } }
         | { type: "file"; file: { filename: string; file_data: string } };
 
-      // ---- RAG: pull relevant curriculum documents (privileged server-side read) ----
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      let curriculumContext = "";
-      let query = supabaseAdmin
-        .from("documents")
-        .select("name, subject, content_text")
-        .not("content_text", "is", null)
-        .limit(4);
-      if (data.subject) query = query.ilike("subject", `%${data.subject}%`);
-      const { data: docs } = await query;
+      // ---- RAG: pull relevant learned material (documents, links, videos) ----
+      const { retrieveKnowledge } = await import("./knowledge-context.server");
+      const lastUser = [...data.messages].reverse().find((m) => m.role === "user");
+      const { docs, context: curriculumContext } = await retrieveKnowledge({
+        query: typeof lastUser?.content === "string" ? lastUser.content : "",
+        subject: data.subject,
+        classLevel: data.classLevel,
+        limit: 4,
+        charsPerDoc: 2500,
+      });
 
-      if (docs && docs.length > 0) {
-        curriculumContext =
-          "\n\n=== CURRICULUM REFERENCE MATERIAL (ground your answer in this) ===\n" +
-          docs
-            .map(
-              (d) =>
-                `# ${d.name}${d.subject ? ` (${d.subject})` : ""}\n${(d.content_text ?? "").slice(0, 2500)}`,
-            )
-            .join("\n\n");
-      }
 
       const hasAttachments = (data.attachments?.length ?? 0) > 0;
       const system =
