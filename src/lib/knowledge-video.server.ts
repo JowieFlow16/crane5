@@ -140,23 +140,54 @@ async function youtubeMeta(videoId: string) {
   }
 }
 
+/** YouTube's own player API — reliable for title/description and often captions. */
+async function youtubePlayer(videoId: string) {
+  try {
+    const res = await fetch(
+      "https://www.youtube.com/youtubei/v1/player?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8&prettyPrint=false",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "User-Agent": UA },
+        body: JSON.stringify({
+          videoId,
+          contentCheckOk: true,
+          racyCheckOk: true,
+          context: { client: { clientName: "WEB", clientVersion: "2.20240401.00.00", hl: "en" } },
+        }),
+        signal: AbortSignal.timeout(20_000),
+      },
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as {
+      videoDetails?: { title?: string; author?: string; shortDescription?: string };
+      captions?: { playerCaptionsTracklistRenderer?: { captionTracks?: CaptionTrack[] } };
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function trackToText(track: CaptionTrack | undefined): Promise<string> {
+  if (!track?.baseUrl) return "";
+  const url = decodeEntities(track.baseUrl);
+  const body = (await get(`${url}&fmt=json3`, "application/json")) ?? (await get(url, "text/xml"));
+  return body ? captionsToText(body) : "";
+}
+
 async function youtubeLesson(videoId: string): Promise<VideoLesson> {
   const meta = await youtubeMeta(videoId);
+  const player = await youtubePlayer(videoId);
   const watch = await get(`https://www.youtube.com/watch?v=${videoId}&hl=en`);
 
   let transcript = "";
-  if (watch) {
-    const track = pickTrack(extractCaptionTracks(watch));
-    if (track?.baseUrl) {
-      const url = decodeEntities(track.baseUrl);
-      const body =
-        (await get(`${url}&fmt=json3`, "application/json")) ?? (await get(url, "text/xml"));
-      if (body) transcript = captionsToText(body);
-    }
+  if (watch) transcript = await trackToText(pickTrack(extractCaptionTracks(watch)));
+  if (!transcript) {
+    const tracks = player?.captions?.playerCaptionsTracklistRenderer?.captionTracks ?? [];
+    transcript = await trackToText(pickTrack(tracks));
   }
 
-  let description = "";
-  if (watch) {
+  let description = tidy(player?.videoDetails?.shortDescription ?? "");
+  if (!description && watch) {
     const m = watch.match(/"shortDescription":"((?:[^"\\]|\\.)*)"/);
     if (m) {
       try {
@@ -167,14 +198,17 @@ async function youtubeLesson(videoId: string): Promise<VideoLesson> {
     }
   }
 
-  const title = meta?.title ?? `YouTube video ${videoId}`;
+  const title = meta?.title ?? player?.videoDetails?.title ?? `YouTube video ${videoId}`;
   const header = [
     `Video: ${title}`,
-    meta?.author_name ? `Channel: ${meta.author_name}` : null,
+    meta?.author_name ?? player?.videoDetails?.author
+      ? `Channel: ${meta?.author_name ?? player?.videoDetails?.author}`
+      : null,
     `Source: https://www.youtube.com/watch?v=${videoId}`,
   ]
     .filter(Boolean)
     .join("\n");
+
 
   const body = transcript
     ? `Transcript:\n${transcript}`
