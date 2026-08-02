@@ -144,17 +144,28 @@ export const refreshLinkSources = createServerFn({ method: "POST" })
 
     const { data: rows } = await supabaseAdmin
       .from("documents")
-      .select("id, source_url")
-      .eq("source_type", "link")
+      .select("id, source_url, source_type")
+      .in("source_type", ["link", "video"])
       .not("source_url", "is", null)
       .order("last_fetched_at", { ascending: true, nullsFirst: true })
       .limit(10);
 
     let updated = 0;
     let failed = 0;
-    for (const row of (rows ?? []) as { id: string; source_url: string }[]) {
+    for (const row of (rows ?? []) as {
+      id: string;
+      source_url: string;
+      source_type: string;
+    }[]) {
       try {
-        const { text } = await fetchPage(row.source_url);
+        let text: string;
+        if (row.source_type === "video") {
+          const { fetchVideoLesson } = await import("./knowledge-video.server");
+          text = (await fetchVideoLesson(row.source_url)).text;
+        } else {
+          text = (await fetchPage(row.source_url)).text;
+        }
+
         const { error } = await supabaseAdmin
           .from("documents")
           .update({ content_text: text, last_fetched_at: new Date().toISOString() } as never)
