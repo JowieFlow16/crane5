@@ -46,27 +46,17 @@ export const chatTutor = createServerFn({ method: "POST" })
         | { type: "image_url"; image_url: { url: string } }
         | { type: "file"; file: { filename: string; file_data: string } };
 
-      // ---- RAG: pull relevant curriculum documents (privileged server-side read) ----
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      let curriculumContext = "";
-      let query = supabaseAdmin
-        .from("documents")
-        .select("name, subject, content_text")
-        .not("content_text", "is", null)
-        .limit(4);
-      if (data.subject) query = query.ilike("subject", `%${data.subject}%`);
-      const { data: docs } = await query;
+      // ---- RAG: pull relevant learned material (documents, links, videos) ----
+      const { retrieveKnowledge } = await import("./knowledge-context.server");
+      const lastUser = [...data.messages].reverse().find((m) => m.role === "user");
+      const { docs, context: curriculumContext } = await retrieveKnowledge({
+        query: typeof lastUser?.content === "string" ? lastUser.content : "",
+        subject: data.subject,
+        classLevel: data.classLevel,
+        limit: 4,
+        charsPerDoc: 2500,
+      });
 
-      if (docs && docs.length > 0) {
-        curriculumContext =
-          "\n\n=== CURRICULUM REFERENCE MATERIAL (ground your answer in this) ===\n" +
-          docs
-            .map(
-              (d) =>
-                `# ${d.name}${d.subject ? ` (${d.subject})` : ""}\n${(d.content_text ?? "").slice(0, 2500)}`,
-            )
-            .join("\n\n");
-      }
 
       const hasAttachments = (data.attachments?.length ?? 0) > 0;
       const system =
@@ -160,19 +150,14 @@ export const generateQuiz = createServerFn({ method: "POST" })
     return withAiQuota(context.userId as string, "request", async () => {
       const { callAI, parseJsonResponse } = await import("./ai-gateway.server");
 
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { data: docs } = await supabaseAdmin
-        .from("documents")
-        .select("name, content_text")
-        .ilike("subject", `%${data.subject}%`)
-        .not("content_text", "is", null)
-        .limit(3);
+      const { retrieveKnowledge } = await import("./knowledge-context.server");
+      const { context: ref } = await retrieveKnowledge({
+        query: `${data.subject} ${data.topic ?? ""}`,
+        subject: data.subject,
+        limit: 3,
+        charsPerDoc: 2000,
+      });
 
-      const ref =
-        docs && docs.length
-          ? "\n\nGround questions in this curriculum material:\n" +
-            docs.map((d) => (d.content_text ?? "").slice(0, 2000)).join("\n---\n")
-          : "";
 
       const typeInstruction =
         data.quizType === "MCQ"
@@ -231,19 +216,14 @@ export const generateRevision = createServerFn({ method: "POST" })
     return withAiQuota(context.userId as string, "request", async () => {
       const { callAI, parseJsonResponse } = await import("./ai-gateway.server");
 
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { data: docs } = await supabaseAdmin
-        .from("documents")
-        .select("content_text")
-        .ilike("subject", `%${data.subject}%`)
-        .not("content_text", "is", null)
-        .limit(3);
+      const { retrieveKnowledge } = await import("./knowledge-context.server");
+      const { context: ref } = await retrieveKnowledge({
+        query: `${data.subject} ${data.topic}`,
+        subject: data.subject,
+        limit: 3,
+        charsPerDoc: 2200,
+      });
 
-      const ref =
-        docs && docs.length
-          ? "\n\nUse this curriculum material:\n" +
-            docs.map((d) => (d.content_text ?? "").slice(0, 2200)).join("\n---\n")
-          : "";
 
       const raw = await callAI({
         json: true,
