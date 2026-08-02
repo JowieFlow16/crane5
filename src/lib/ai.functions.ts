@@ -150,19 +150,14 @@ export const generateQuiz = createServerFn({ method: "POST" })
     return withAiQuota(context.userId as string, "request", async () => {
       const { callAI, parseJsonResponse } = await import("./ai-gateway.server");
 
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { data: docs } = await supabaseAdmin
-        .from("documents")
-        .select("name, content_text")
-        .ilike("subject", `%${data.subject}%`)
-        .not("content_text", "is", null)
-        .limit(3);
+      const { retrieveKnowledge } = await import("./knowledge-context.server");
+      const { context: ref } = await retrieveKnowledge({
+        query: `${data.subject} ${data.topic ?? ""}`,
+        subject: data.subject,
+        limit: 3,
+        charsPerDoc: 2000,
+      });
 
-      const ref =
-        docs && docs.length
-          ? "\n\nGround questions in this curriculum material:\n" +
-            docs.map((d) => (d.content_text ?? "").slice(0, 2000)).join("\n---\n")
-          : "";
 
       const typeInstruction =
         data.quizType === "MCQ"
