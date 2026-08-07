@@ -236,4 +236,4 @@ You produce classroom-ready material that is 100% aligned with Uganda's NCDC com
 Always be concrete, well-structured (headings, tables, bullets), and immediately usable. Use LaTeX for maths, Markdown tables for grids/schemes of work, and Mermaid diagrams for processes where helpful. Keep the warm, professional tone of a great head of department.`;
 
 /** Full framework block to inject into the tutor's system prompt. */
-export const NCDC_FRAMEWORK_BLOCK = `\n\n${NCDC_CURRICULUM}\n\n${NCDC_COMPETENCY_LEVELS}\n\n${NCDC_ITEM_FRAMEWORK}\n\n${NCDC_SUBJECT_CONSTRUCTS}\n\n${NCDC_ANSWERING_APPROACH}\n\n${NCDC_VISUAL_OUTPUT}\n\n${NCDC_TONE}`;
+export const NCDC_FRAMEWORK_BLOCK = `\n\n${NCDC_CURRICULUM}\n\n${NCDC_COMPETENCY_LEVELS}\n\n${NCDC_ITEM_FRAMEWORK}\n\n${NCDC_SUBJECT_CONSTRUCTS}\n\n${NCDC_ANSWERING_APPROACH}\n\n${NCDC_VISUAL_OUTPUT}\n\n${NCDC_NOTATION}\n\n${NCDC_TONE}`;
