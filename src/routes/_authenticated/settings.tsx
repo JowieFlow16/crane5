@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/settings")({
-  head: () => ({ meta: [{ title: "Settings · Omicron AI" }] }),
+  head: () => ({ meta: [{ title: "Settings · Crane5 AI" }] }),
   component: SettingsPage,
 });
 

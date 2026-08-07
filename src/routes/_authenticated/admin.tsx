@@ -40,7 +40,7 @@ import { AiLimitsAdmin } from "@/components/AiLimitsAdmin";
 import { AiGatewayAdmin } from "@/components/AiGatewayAdmin";
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "Admin · Omicron AI" }] }),
+  head: () => ({ meta: [{ title: "Admin · Crane5 AI" }] }),
   component: AdminPage,
 });
 
@@ -421,7 +421,7 @@ function AdminPage() {
   );
 }
 
-/** Continuous learning: feed Omicron web links it keeps re-reading. */
+/** Continuous learning: feed Crane5 web links it keeps re-reading. */
 function LinkLearning({ isAdmin }: { isAdmin: boolean }) {
   const qc = useQueryClient();
   const learn = useServerFn(learnFromLink);
@@ -477,7 +477,7 @@ function LinkLearning({ isAdmin }: { isAdmin: boolean }) {
         <h2 className="font-display text-xl font-bold">Continuous learning from links</h2>
       </div>
       <p className="mt-1 text-sm text-muted-foreground">
-        Paste a web page and Omicron reads it into its knowledge base. Re-read links any time
+        Paste a web page and Crane5 reads it into its knowledge base. Re-read links any time
         to pick up new content.
       </p>
       <form
@@ -516,7 +516,7 @@ function LinkLearning({ isAdmin }: { isAdmin: boolean }) {
   );
 }
 
-/** Continuous learning from video links: Omicron reads their captions. */
+/** Continuous learning from video links: Crane5 reads their captions. */
 function VideoLearning({ isAdmin }: { isAdmin: boolean }) {
   const qc = useQueryClient();
   const learn = useServerFn(learnFromVideo);
@@ -552,7 +552,7 @@ function VideoLearning({ isAdmin }: { isAdmin: boolean }) {
         <h2 className="font-display text-xl font-bold">Learning from video links</h2>
       </div>
       <p className="mt-1 text-sm text-muted-foreground">
-        Paste a YouTube, Vimeo or other video link. Omicron reads its captions (or description)
+        Paste a YouTube, Vimeo or other video link. Crane5 reads its captions (or description)
         and adds the lesson to its knowledge base. Videos with subtitles work best.
       </p>
       <form

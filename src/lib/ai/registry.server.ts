@@ -40,7 +40,7 @@ export interface ProviderDef {
   imageApi?: "chat" | "images";
 }
 
-const OPENAI_STYLE_HEADERS = (title = "Omicron AI") => () => ({
+const OPENAI_STYLE_HEADERS = (title = "Crane5 AI") => () => ({
   "HTTP-Referer": process.env.OPENROUTER_SITE_URL ?? "https://lovable.dev",
   "X-Title": process.env.OPENROUTER_APP_NAME ?? title,
 });

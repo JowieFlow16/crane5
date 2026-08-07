@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/teachers")({
   head: () => ({
     meta: [
-      { title: "Find a Teacher · Omicron AI" },
+      { title: "Find a Teacher · Crane5 AI" },
       {
         name: "description",
         content: "Connect with verified Ugandan teachers for one-on-one help across every NCDC subject.",

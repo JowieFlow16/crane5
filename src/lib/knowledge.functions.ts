@@ -42,7 +42,7 @@ const MAX_TEXT = 60_000;
 
 async function fetchPage(url: string) {
   const res = await fetch(url, {
-    headers: { "User-Agent": "OmicronAI-Learner/1.0", Accept: "text/html,text/plain,*/*" },
+    headers: { "User-Agent": "Crane5AI-Learner/1.0", Accept: "text/html,text/plain,*/*" },
     signal: AbortSignal.timeout(20_000),
   });
   if (!res.ok) throw new Error(`Couldn't read that link (HTTP ${res.status}).`);
@@ -52,7 +52,7 @@ async function fetchPage(url: string) {
   return { text, title: titleOf(html) };
 }
 
-/** Admin: teach Omicron from a web link. */
+/** Admin: teach Crane5 from a web link. */
 export const learnFromLink = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
@@ -93,7 +93,7 @@ export const learnFromLink = createServerFn({ method: "POST" })
     return { ok: true, characters: text.length, title: title ?? data.url };
   });
 
-/** Admin: teach Omicron from a video link (captions / transcript). */
+/** Admin: teach Crane5 from a video link (captions / transcript). */
 export const learnFromVideo = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>

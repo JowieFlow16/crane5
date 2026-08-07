@@ -22,13 +22,13 @@ import heroImg from "@/assets/hero.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Omicron AI — AI Tutor for Ugandan NCDC Students" },
+      { title: "Crane5 AI — AI Tutor for Ugandan NCDC Students" },
       {
         name: "description",
         content:
-          "Master the Ugandan NCDC curriculum with Omicron AI — your personal AI tutor for chat help, instant quizzes, smart revision notes and progress tracking. Free to start.",
+          "Master the Ugandan NCDC curriculum with Crane5 AI — your personal AI tutor for chat help, instant quizzes, smart revision notes and progress tracking. Free to start.",
       },
-      { property: "og:title", content: "Omicron AI — Learn smarter, the Ugandan way" },
+      { property: "og:title", content: "Crane5 AI — Learn smarter, the Ugandan way" },
       {
         property: "og:description",
         content:
@@ -111,7 +111,7 @@ function Landing() {
               Your personal <span className="text-gradient">AI tutor</span> for every subject.
             </h1>
             <p className="mt-5 max-w-md text-lg text-muted-foreground">
-              Omicron AI helps Ugandan students from S1 to S6 understand tough topics,
+              Crane5 AI helps Ugandan students from S1 to S6 understand tough topics,
               practice with quizzes and revise smarter — anytime, on any device.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -141,7 +141,7 @@ function Landing() {
             <div className="absolute -inset-4 rounded-[2rem] bg-gradient-primary opacity-20 blur-2xl" />
             <img
               src={heroImg}
-              alt="Ugandan students learning with Omicron AI"
+              alt="Ugandan students learning with Crane5 AI"
               width={1280}
               height={960}
               className="relative w-full rounded-3xl border border-border shadow-elegant"
@@ -204,7 +204,7 @@ function Landing() {
               Ready to study smarter?
             </h2>
             <p className="mt-3 text-lg text-primary-foreground/85">
-              Join Omicron AI today and turn confusion into confidence.
+              Join Crane5 AI today and turn confusion into confidence.
             </p>
             <Button asChild size="xl" className="mt-8 bg-background text-foreground hover:bg-background/90">
               <Link to="/auth" search={{ mode: "register" }}>
@@ -221,7 +221,7 @@ function Landing() {
             <div className="min-w-0 lg:col-span-2">
               <Logo />
               <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
-                Omicron AI is an AI-powered learning companion built around the Ugandan NCDC
+                Crane5 AI is an AI-powered learning companion built around the Ugandan NCDC
                 curriculum — tutoring, quizzes, revision and progress tracking in one place.
               </p>
               <p className="mt-4 text-sm text-muted-foreground">
@@ -284,7 +284,7 @@ function Landing() {
 
           <div className="mt-10 grid gap-4 border-t border-border pt-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
             <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} Altrastate Technologies Ltd. Omicron AI and the Omicron
+              © {new Date().getFullYear()} Altrastate Technologies Ltd. Crane5 AI and the Crane5
               AI logo are trademarks of Altrastate Technologies Ltd. All rights reserved.
             </p>
             <div className="sm:justify-self-end">

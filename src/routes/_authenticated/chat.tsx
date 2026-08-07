@@ -21,7 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useStats } from "@/lib/useStats";
 import { chatTutor } from "@/lib/ai.functions";
-import { OmicronMark } from "@/components/Logo";
+import { Crane5Mark } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -41,7 +41,7 @@ import { aiErrorMessage } from "@/lib/ai-errors";
 
 export const Route = createFileRoute("/_authenticated/chat")({
   validateSearch: z.object({ subject: z.string().optional() }),
-  head: () => ({ meta: [{ title: "AI Tutor · Omicron AI" }] }),
+  head: () => ({ meta: [{ title: "AI Tutor · Crane5 AI" }] }),
   component: ChatPage,
 });
 
@@ -245,7 +245,7 @@ function ChatPage() {
       qc.invalidateQueries({ queryKey: ["chats", user.id] });
       void award(5);
     } catch (err) {
-      toast.error(aiErrorMessage(err, "Omicron couldn't respond. Please try again."));
+      toast.error(aiErrorMessage(err, "Crane5 couldn't respond. Please try again."));
       setMessages((m) => m.slice(0, -1));
       setInput(text);
       if (sentAttachments.length) setAttachments(sentAttachments);
@@ -284,9 +284,9 @@ function ChatPage() {
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
           <div className="flex items-center gap-2">
-            <OmicronMark className="h-8 w-8" />
+            <Crane5Mark className="h-8 w-8" />
             <div>
-              <p className="text-sm font-semibold leading-tight">Omicron AI Tutor</p>
+              <p className="text-sm font-semibold leading-tight">Crane5 AI Tutor</p>
               <p className="text-xs text-muted-foreground">NCDC-aligned · always learning</p>
             </div>
           </div>
@@ -313,7 +313,7 @@ function ChatPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="mt-10 text-center"
               >
-                <OmicronMark className="mx-auto h-14 w-14" />
+                <Crane5Mark className="mx-auto h-14 w-14" />
                 <h2 className="mt-4 font-display text-xl font-bold">
                   How can I help you study today?
                 </h2>
@@ -345,7 +345,7 @@ function ChatPage() {
                     transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                     className={cn("flex gap-3", m.role === "user" && "justify-end")}
                   >
-                    {m.role === "assistant" && <OmicronMark className="h-8 w-8 shrink-0" />}
+                    {m.role === "assistant" && <Crane5Mark className="h-8 w-8 shrink-0" />}
                     <div
                       className={cn(
                         "max-w-[85%] rounded-2xl px-4 py-3 text-sm",
@@ -408,7 +408,7 @@ function ChatPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="flex gap-3"
                 >
-                  <OmicronMark className="h-8 w-8 shrink-0" />
+                  <Crane5Mark className="h-8 w-8 shrink-0" />
                   <div className="rounded-2xl rounded-bl-sm border border-border bg-card px-4 py-3">
                     <ThinkingTrail
                       subject={subject}
@@ -506,7 +506,7 @@ function ChatPage() {
             </div>
           </div>
           <p className="mx-auto mt-2 max-w-2xl text-center text-xs text-muted-foreground">
-            Omicron AI can make mistakes. Attach images or PDFs (max 8 MB each). Always check important facts.
+            Crane5 AI can make mistakes. Attach images or PDFs (max 8 MB each). Always check important facts.
           </p>
         </div>
 

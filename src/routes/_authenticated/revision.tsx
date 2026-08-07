@@ -21,7 +21,7 @@ import { toast } from "sonner";
 import { aiErrorMessage } from "@/lib/ai-errors";
 
 export const Route = createFileRoute("/_authenticated/revision")({
-  head: () => ({ meta: [{ title: "Revision · Omicron AI" }] }),
+  head: () => ({ meta: [{ title: "Revision · Crane5 AI" }] }),
   component: RevisionPage,
 });
 

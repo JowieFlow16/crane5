@@ -80,14 +80,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Omicron AI — AI Tutor for Ugandan NCDC Students" },
+      { title: "Crane5 AI — AI Tutor for Ugandan NCDC Students" },
       {
         name: "description",
         content:
-          "Omicron AI is an AI-powered tutoring platform for Ugandan secondary students following the NCDC curriculum. Chat, quizzes, revision notes and progress tracking.",
+          "Crane5 AI is an AI-powered tutoring platform for Ugandan secondary students following the NCDC curriculum. Chat, quizzes, revision notes and progress tracking.",
       },
-      { name: "author", content: "Omicron AI" },
-      { property: "og:title", content: "Omicron AI — AI Tutor for Ugandan NCDC Students" },
+      { name: "author", content: "Crane5 AI" },
+      { property: "og:title", content: "Crane5 AI — AI Tutor for Ugandan NCDC Students" },
       {
         property: "og:description",
         content:
@@ -95,11 +95,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@OmicronAI" },
-      { name: "twitter:title", content: "Omicron AI — AI Tutor for Ugandan NCDC Students" },
-      { name: "description", content: "Omicron AI Tutor is an AI-powered platform providing personalized tutoring and educational resources for Ugandan students." },
-      { property: "og:description", content: "Omicron AI Tutor is an AI-powered platform providing personalized tutoring and educational resources for Ugandan students." },
-      { name: "twitter:description", content: "Omicron AI Tutor is an AI-powered platform providing personalized tutoring and educational resources for Ugandan students." },
+      { name: "twitter:site", content: "@Crane5AI" },
+      { name: "twitter:title", content: "Crane5 AI — AI Tutor for Ugandan NCDC Students" },
+      { name: "description", content: "Crane5 AI Tutor is an AI-powered platform providing personalized tutoring and educational resources for Ugandan students." },
+      { property: "og:description", content: "Crane5 AI Tutor is an AI-powered platform providing personalized tutoring and educational resources for Ugandan students." },
+      { name: "twitter:description", content: "Crane5 AI Tutor is an AI-powered platform providing personalized tutoring and educational resources for Ugandan students." },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/YpxJWwFZeNUa4YMQhjdwGF4LGQY2/social-images/social-1781971103767-banner.webp" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/YpxJWwFZeNUa4YMQhjdwGF4LGQY2/social-images/social-1781971103767-banner.webp" },
     ],

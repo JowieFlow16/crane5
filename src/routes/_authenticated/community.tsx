@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/community")({
   head: () => ({
     meta: [
-      { title: "Community · Omicron AI" },
+      { title: "Community · Crane5 AI" },
       {
         name: "description",
         content:
@@ -192,7 +192,7 @@ function Composer({
   const shareProgress = () => {
     setKind("progress");
     setContent(
-      `Just hit **Level ${level}** with **${xp} XP** and a **${streak}-day streak** 🔥 on Omicron AI! Let's keep grinding 💪`,
+      `Just hit **Level ${level}** with **${xp} XP** and a **${streak}-day streak** 🔥 on Crane5 AI! Let's keep grinding 💪`,
     );
   };
 
