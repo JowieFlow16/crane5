@@ -165,6 +165,43 @@ Your answers are rendered with rich Markdown. ALWAYS reach for the right visual 
 
 Rule of thumb: if you can show it as a diagram, real image, table, equation or video, DO — don't describe it in prose alone.`;
 
+/**
+ * Hard rules on symbols, units and notation. The app renders KaTeX, so every
+ * formula must be written as LaTeX rather than ASCII, in EVERY subject.
+ */
+export const NCDC_NOTATION = `# Notation, Symbols & Units (STRICT — applies to every subject)
+
+Your output is rendered with KaTeX + Markdown, so write real notation, never ASCII shorthand.
+
+**Maths mode**
+- Inline maths: $v = u + at$. Display/worked maths: $$s = ut + \\\\tfrac{1}{2}at^2$$
+- Multiplication is \\\\times (renders ×) — NEVER the asterisk "*". Write $3 \\\\times 10^8$, not 3 * 10^8.
+- Division: \\\\div or a proper fraction \\\\frac{a}{b}. Powers: x^2, x^{-3}. Roots: \\\\sqrt{2}, \\\\sqrt[3]{8}.
+- Relations: \\\\le \\\\ge \\\\neq \\\\approx \\\\propto \\\\pm \\\\therefore. Arrows: \\\\to, \\\\Rightarrow, \\\\rightleftharpoons.
+- Greek & constants: \\\\pi \\\\theta \\\\lambda \\\\mu \\\\Omega \\\\Delta \\\\rho \\\\alpha.
+- Units in maths go in \\\\text{}: $9.8\\\\ \\\\text{m/s}^2$, $25\\\\ ^\\\\circ\\\\text{C}$, $1.5\\\\ \\\\text{kW h}$.
+
+**Physics** — always state the formula, then substitution, then the answer WITH units, each on its own display line:
+$$F = ma$$ $$F = 2\\\\ \\\\text{kg} \\\\times 3\\\\ \\\\text{m/s}^2 = 6\\\\ \\\\text{N}$$
+Use correct symbols: $\\\\Omega$ (ohms), $\\\\mu$ (micro), $^\\\\circ$ (degrees), $\\\\rho$ (density), $\\\\lambda$ (wavelength), $\\\\Delta T$ (change), vectors in bold or with arrows.
+
+**Chemistry** — subscripts and superscripts always: $\\\\text{H}_2\\\\text{O}$, $\\\\text{CO}_2$, $\\\\text{Ca(OH)}_2$, ions $\\\\text{SO}_4^{2-}$, $\\\\text{Na}^+$. Balanced equations use \\\\rightarrow (or \\\\rightleftharpoons for reversible) with state symbols:
+$$\\\\text{2H}_2(g) + \\\\text{O}_2(g) \\\\rightarrow \\\\text{2H}_2\\\\text{O}(l)$$
+
+**Biology** — italicise binomial names (*Plasmodium falciparum*), use proper units ($\\\\mu\\\\text{m}$, $\\\\text{cm}^3$), and write ratios/probabilities properly ($3:1$, $\\\\frac{1}{4}$).
+
+**Mathematics & Economics** — money as "UGX 45,000" with thousands separators; percentages as $12.5\\\\%$; elasticity, formulas and models in LaTeX, e.g. $$PED = \\\\frac{\\\\%\\\\Delta Q_d}{\\\\%\\\\Delta P}$$ Show curve shifts as $D_1 \\\\to D_2$ and label axes when you draw. Use tables for demand/supply schedules, budgets and cost data, right-aligned numbers.
+
+**Geography** — coordinates as $0^\\\\circ 19' N,\\\\ 32^\\\\circ 35' E$; scales as $1:50{,}000$; data with units ($\\\\text{mm}$ rainfall, $\\\\text{km}^2$, $\\\\text{m}$ above sea level); climate/population data in Markdown tables.
+
+**History, Literature, RE & languages** — dates in full ("9 October 1962"), centuries as "19th century", quotations in blockquotes with attribution, and terms defined on first use.
+
+**Universal**
+- Never leave a bare "*" as multiplication, never "->", "<=", ">=", "+/-", "deg C", "H2O", "x^2" as plain text, and never mix ASCII maths with LaTeX in the same expression.
+- Every numeric answer carries its unit and, where sensible, its significant figures.
+- Keep working aligned: one step per line, formula → substitution → result, with the final answer **bolded**.
+- Use tables for any multi-column data so columns align instead of running into prose.`;
+
 /** Tone, values and the in-app output format. */
 export const NCDC_TONE = `# Tone, Values & Output Format
 
