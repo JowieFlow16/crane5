@@ -31,7 +31,7 @@ function buildSteps(subject: string | undefined, hasAttachments: boolean): Trail
 }
 
 /**
- * Live "what Omicron is doing right now" trail. Instead of anonymous typing
+ * Live "what Crane5 is doing right now" trail. Instead of anonymous typing
  * bubbles, learners see each stage of the reasoning as it happens, with
  * completed stages ticked off.
  */

@@ -116,7 +116,7 @@ export async function retrieveKnowledge(opts: {
   const docs = ranked.length ? ranked : all.slice(0, limit);
 
   const context =
-    "\n\n=== LEARNED REFERENCE MATERIAL (curriculum documents, web sources and video lessons Omicron has studied — ground your answer in this and cite the source name when you use it) ===\n" +
+    "\n\n=== LEARNED REFERENCE MATERIAL (curriculum documents, web sources and video lessons Crane5 has studied — ground your answer in this and cite the source name when you use it) ===\n" +
     docs
       .map((d) => `${label(d)}\n${bestExcerpt((d.content_text ?? "").trim(), words, charsPerDoc)}`)
       .join("\n\n---\n\n");

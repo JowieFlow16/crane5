@@ -66,7 +66,7 @@ export function Illustrator({ prompt, subject, className }: IllustratorProps) {
               <span className="line-clamp-1">AI illustration · {prompt}</span>
               <a
                 href={url}
-                download="omicron-illustration.png"
+                download="crane5-illustration.png"
                 className="inline-flex items-center gap-1 font-medium text-primary hover:opacity-80"
               >
                 <Download className="h-3 w-3" /> Save

@@ -30,7 +30,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/messages")({
   validateSearch: z.object({ c: z.string().optional() }),
-  head: () => ({ meta: [{ title: "Messages · Omicron AI" }] }),
+  head: () => ({ meta: [{ title: "Messages · Crane5 AI" }] }),
   component: MessagesPage,
 });
 

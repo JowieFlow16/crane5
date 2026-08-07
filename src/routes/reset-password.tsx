@@ -10,7 +10,7 @@ import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/reset-password")({
   ssr: false,
-  head: () => ({ meta: [{ title: "Reset password · Omicron AI" }] }),
+  head: () => ({ meta: [{ title: "Reset password · Crane5 AI" }] }),
   component: ResetPassword,
 });
 

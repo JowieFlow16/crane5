@@ -7,7 +7,7 @@ import { db, type LeaderboardRow } from "@/lib/db";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/leaderboard")({
-  head: () => ({ meta: [{ title: "Leaderboard · Omicron AI" }] }),
+  head: () => ({ meta: [{ title: "Leaderboard · Crane5 AI" }] }),
   component: LeaderboardPage,
 });
 
@@ -39,7 +39,7 @@ function LeaderboardPage() {
         <h1 className="font-display text-2xl font-bold">Leaderboard</h1>
       </div>
       <p className="mt-1 text-muted-foreground">
-        The hardest-working learners on Omicron AI this season. Earn XP to climb! 🚀
+        The hardest-working learners on Crane5 AI this season. Earn XP to climb! 🚀
       </p>
 
       <div className="mt-6 space-y-2">

@@ -36,7 +36,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => ({ meta: [{ title: "Dashboard · Omicron AI" }] }),
+  head: () => ({ meta: [{ title: "Dashboard · Crane5 AI" }] }),
   component: Dashboard,
 });
 
@@ -128,7 +128,7 @@ function Dashboard() {
           <div className="mt-5 flex flex-wrap gap-3">
             <Button asChild size="lg" className="bg-background text-foreground hover:bg-background/90">
               <Link to="/chat">
-                <MessageCircle className="h-4 w-4" /> Ask Omicron AI
+                <MessageCircle className="h-4 w-4" /> Ask Crane5 AI
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20">

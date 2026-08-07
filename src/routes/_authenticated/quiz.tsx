@@ -30,7 +30,7 @@ import { toast } from "sonner";
 import { aiErrorMessage } from "@/lib/ai-errors";
 
 export const Route = createFileRoute("/_authenticated/quiz")({
-  head: () => ({ meta: [{ title: "Quizzes · Omicron AI" }] }),
+  head: () => ({ meta: [{ title: "Quizzes · Crane5 AI" }] }),
   component: QuizPage,
 });
 const DIFFICULTIES = ["Easy", "Medium", "Hard"] as const;
@@ -142,7 +142,7 @@ function QuizPage() {
           >
             <h1 className="font-display text-2xl font-bold">Generate a quiz</h1>
             <p className="mt-1 text-muted-foreground">
-              Pick your subject and settings — Omicron AI builds it instantly.
+              Pick your subject and settings — Crane5 AI builds it instantly.
             </p>
 
             <div className="mt-6 space-y-5 rounded-2xl border border-border bg-card p-6 shadow-card">

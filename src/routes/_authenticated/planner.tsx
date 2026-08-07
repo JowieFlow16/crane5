@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/planner")({
-  head: () => ({ meta: [{ title: "Study Planner · Omicron AI" }] }),
+  head: () => ({ meta: [{ title: "Study Planner · Crane5 AI" }] }),
   component: PlannerPage,
 });
 

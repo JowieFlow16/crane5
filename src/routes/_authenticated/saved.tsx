@@ -8,7 +8,7 @@ import { Markdown } from "@/components/Markdown";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/saved")({
-  head: () => ({ meta: [{ title: "Library · Omicron AI" }] }),
+  head: () => ({ meta: [{ title: "Library · Crane5 AI" }] }),
   component: SavedPage,
 });
 

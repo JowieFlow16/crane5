@@ -36,7 +36,7 @@ function friendlyMessage(info: QuotaInfo) {
     month: "short",
   });
   const what = info.kind === "image" ? "image generations" : "AI requests";
-  return `QUOTA_EXCEEDED: You've used all ${info.limit} of your daily ${what} on the ${info.plan} plan. Your allowance resets at ${time} (EAT). Everything else in Omicron AI keeps working in the meantime.`;
+  return `QUOTA_EXCEEDED: You've used all ${info.limit} of your daily ${what} on the ${info.plan} plan. Your allowance resets at ${time} (EAT). Everything else in Crane5 AI keeps working in the meantime.`;
 }
 
 /**

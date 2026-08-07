@@ -35,7 +35,7 @@ import { aiErrorMessage } from "@/lib/ai-errors";
 
 
 export const Route = createFileRoute("/_authenticated/flashcards")({
-  head: () => ({ meta: [{ title: "Flashcards · Omicron AI" }] }),
+  head: () => ({ meta: [{ title: "Flashcards · Crane5 AI" }] }),
   component: FlashcardsPage,
 });
 

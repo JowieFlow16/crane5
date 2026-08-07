@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-export function OmicronMark({ className }: { className?: string }) {
+export function Crane5Mark({ className }: { className?: string }) {
   return (
     <span
       className={cn(
@@ -35,11 +35,11 @@ export function Logo({
 }) {
   return (
     <div className={cn("flex min-w-0 items-center gap-2.5", className)}>
-      <OmicronMark className="h-9 w-9 shrink-0" />
+      <Crane5Mark className="h-9 w-9 shrink-0" />
       {showText && (
         <span className="flex min-w-0 flex-col leading-none">
           <span className="truncate font-display text-lg font-bold tracking-tight">
-            Omicron <span className="text-gradient">AI</span>
+            Crane5 <span className="text-gradient">AI</span>
           </span>
           {byline && (
             <span className="mt-1 truncate text-[0.6rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">

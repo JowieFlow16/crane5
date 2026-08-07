@@ -27,8 +27,8 @@ export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Sign in · Omicron AI" },
-      { name: "description", content: "Sign in or create your Omicron AI account to start learning." },
+      { title: "Sign in · Crane5 AI" },
+      { name: "description", content: "Sign in or create your Crane5 AI account to start learning." },
     ],
   }),
   component: AuthPage,
@@ -75,7 +75,7 @@ function AuthPage() {
           password,
         });
         if (signInError) throw signInError;
-        toast.success("Welcome to Omicron AI!");
+        toast.success("Welcome to Crane5 AI!");
         navigate({ to: "/dashboard" });
       } else {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {

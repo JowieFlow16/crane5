@@ -218,7 +218,7 @@ async function youtubeLesson(videoId: string): Promise<VideoLesson> {
 
   if (!body) {
     throw new Error(
-      "That video has no captions or description Omicron can read. Try a video with subtitles turned on.",
+      "That video has no captions or description Crane5 can read. Try a video with subtitles turned on.",
     );
   }
 
@@ -269,7 +269,7 @@ async function genericVideoLesson(url: string, platform: string): Promise<VideoL
   };
 }
 
-/** Read a video link into plain text Omicron can learn from. */
+/** Read a video link into plain text Crane5 can learn from. */
 export async function fetchVideoLesson(url: string): Promise<VideoLesson> {
   const parsed = parseVideoUrl(url);
   if (!parsed) throw new Error("That doesn't look like a supported video link.");

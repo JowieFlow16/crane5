@@ -43,7 +43,7 @@ import { Markdown } from "@/components/Markdown";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/teach")({
-  head: () => ({ meta: [{ title: "Teacher Center · Omicron AI" }] }),
+  head: () => ({ meta: [{ title: "Teacher Center · Crane5 AI" }] }),
   component: TeachPage,
 });
 
@@ -84,7 +84,7 @@ function TeachPage() {
       <p className="mt-1 text-muted-foreground">
         {approved
           ? "Your AI teaching copilot + student requests, all in one place."
-          : "Join Omicron as a verified teacher and help students across Uganda."}
+          : "Join Crane5 as a verified teacher and help students across Uganda."}
       </p>
 
       {/* Status banner */}
