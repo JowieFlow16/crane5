@@ -36,8 +36,47 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:image", content: heroImg },
       { name: "twitter:image", content: heroImg },
+      { property: "og:url", content: "https://crane5.lovable.app/" },
+    ],
+    links: [{ rel: "canonical", href: "https://crane5.lovable.app/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Altrastate Technologies Ltd",
+          alternateName: "Altrastate",
+          url: "https://altrastate.com",
+          email: "altrastate@gmail.com",
+          telephone: "+256765179900",
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: "Kampala",
+            addressCountry: "UG",
+          },
+          contactPoint: {
+            "@type": "ContactPoint",
+            contactType: "customer support",
+            email: "altrastate@gmail.com",
+            telephone: "+256765179900",
+            areaServed: "UG",
+            availableLanguage: "en",
+          },
+          makesOffer: {
+            "@type": "Offer",
+            itemOffered: {
+              "@type": "SoftwareApplication",
+              name: "Crane5 AI",
+              applicationCategory: "EducationalApplication",
+              url: "https://crane5.lovable.app/",
+            },
+          },
+        }),
+      },
     ],
   }),
+
   component: Landing,
 });
 
@@ -270,14 +309,29 @@ function Landing() {
             </div>
 
             <div className="min-w-0">
-              <h3 className="text-sm font-semibold">Company</h3>
+              <h3 className="text-sm font-semibold">Contact Altrastate</h3>
               <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
                 <li>
                   <a
-                    href="mailto:hello@altrastate.com"
+                    href="https://altrastate.com"
+                    target="_blank"
+                    rel="noreferrer noopener"
                     className="break-all transition-colors hover:text-foreground"
                   >
-                    hello@altrastate.com
+                    altrastate.com
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="mailto:altrastate@gmail.com"
+                    className="break-all transition-colors hover:text-foreground"
+                  >
+                    altrastate@gmail.com
+                  </a>
+                </li>
+                <li>
+                  <a href="tel:+256765179900" className="transition-colors hover:text-foreground">
+                    +256 765 179 900
                   </a>
                 </li>
                 <li>Support: Mon–Sat, 8am–8pm EAT</li>
