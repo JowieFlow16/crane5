@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   NCDC_PERSONA,
+  NCDC_NOTATION,
   NCDC_FRAMEWORK_BLOCK,
   NCDC_ITEM_FRAMEWORK,
   NCDC_SUBJECT_CONSTRUCTS,
@@ -169,7 +170,7 @@ export const generateQuiz = createServerFn({ method: "POST" })
         messages: [
           {
             role: "system",
-            content: `${NCDC_PERSONA}\n\nYou are setting assessment ITEMS exactly the way NCDC sets them.${NCDC_COMPETENCY_LEVELS}${NCDC_ITEM_FRAMEWORK}${NCDC_SUBJECT_CONSTRUCTS}${NCDC_VISUAL_OUTPUT}`,
+            content: `${NCDC_PERSONA}\n\nYou are setting assessment ITEMS exactly the way NCDC sets them.${NCDC_COMPETENCY_LEVELS}${NCDC_ITEM_FRAMEWORK}${NCDC_SUBJECT_CONSTRUCTS}${NCDC_VISUAL_OUTPUT}${NCDC_NOTATION}`,
           },
           {
             role: "user",
@@ -225,7 +226,7 @@ export const generateRevision = createServerFn({ method: "POST" })
         messages: [
           {
             role: "system",
-            content: `${NCDC_PERSONA}${NCDC_COMPETENCY_LEVELS}${NCDC_ITEM_FRAMEWORK}${NCDC_ANSWERING_APPROACH}${NCDC_VISUAL_OUTPUT}`,
+            content: `${NCDC_PERSONA}${NCDC_COMPETENCY_LEVELS}${NCDC_ITEM_FRAMEWORK}${NCDC_ANSWERING_APPROACH}${NCDC_VISUAL_OUTPUT}${NCDC_NOTATION}`,
           },
           {
             role: "user",
@@ -280,7 +281,7 @@ export const generateFlashcards = createServerFn({ method: "POST" })
         messages: [
           {
             role: "system",
-            content: `${NCDC_PERSONA}${NCDC_ANSWERING_APPROACH}`,
+            content: `${NCDC_PERSONA}${NCDC_ANSWERING_APPROACH}${NCDC_NOTATION}`,
           },
           {
             role: "user",
@@ -447,6 +448,7 @@ export const generateExam = createServerFn({ method: "POST" })
       const { callAI } = await import("./ai-gateway.server");
       const {
         NCDC_TEACHER_PERSONA,
+        NCDC_NOTATION,
         NCDC_COMPETENCY_LEVELS,
         NCDC_ITEM_FRAMEWORK,
         NCDC_SUBJECT_CONSTRUCTS,
@@ -456,7 +458,7 @@ export const generateExam = createServerFn({ method: "POST" })
         messages: [
           {
             role: "system",
-            content: `${NCDC_TEACHER_PERSONA}${NCDC_COMPETENCY_LEVELS}${NCDC_ITEM_FRAMEWORK}${NCDC_SUBJECT_CONSTRUCTS}`,
+            content: `${NCDC_TEACHER_PERSONA}${NCDC_COMPETENCY_LEVELS}${NCDC_ITEM_FRAMEWORK}${NCDC_SUBJECT_CONSTRUCTS}${NCDC_NOTATION}`,
           },
           {
             role: "user",
@@ -494,11 +496,11 @@ export const draftReply = createServerFn({ method: "POST" })
     const { withAiQuota } = await import("./ai-usage.server");
     return withAiQuota(context.userId as string, "request", async () => {
       const { callAI } = await import("./ai-gateway.server");
-      const { NCDC_TEACHER_PERSONA } = await import("./ncdc-framework");
+      const { NCDC_TEACHER_PERSONA, NCDC_NOTATION } = await import("./ncdc-framework");
       const content = await callAI({
         temperature: 0.6,
         messages: [
-          { role: "system", content: NCDC_TEACHER_PERSONA },
+          { role: "system", content: NCDC_TEACHER_PERSONA + NCDC_NOTATION },
           {
             role: "user",
             content: `A student sent this message${data.subject ? ` about ${data.subject}` : ""}:
@@ -527,11 +529,11 @@ export const classInsights = createServerFn({ method: "POST" })
     const { withAiQuota } = await import("./ai-usage.server");
     return withAiQuota(context.userId as string, "request", async () => {
       const { callAI } = await import("./ai-gateway.server");
-      const { NCDC_TEACHER_PERSONA } = await import("./ncdc-framework");
+      const { NCDC_TEACHER_PERSONA, NCDC_NOTATION } = await import("./ncdc-framework");
       const content = await callAI({
         temperature: 0.5,
         messages: [
-          { role: "system", content: NCDC_TEACHER_PERSONA },
+          { role: "system", content: NCDC_TEACHER_PERSONA + NCDC_NOTATION },
           {
             role: "user",
             content: `Here are recent questions/messages students sent me${
