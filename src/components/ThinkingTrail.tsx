@@ -104,9 +104,7 @@ export function ThinkingTrail({
                         : "text-muted-foreground"
                     }
                     style={
-                      isCurrent
-                        ? { animation: "omicron-shimmer 1.6s linear infinite" }
-                        : undefined
+                      isCurrent ? { animation: "omicron-shimmer 1.6s linear infinite" } : undefined
                     }
                   >
                     {s.label}

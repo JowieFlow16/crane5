@@ -49,7 +49,10 @@ export function AiGatewayAdmin() {
             <Stat label="Retries" value={data.retries} />
             <Stat label="Provider switches" value={data.switches} />
             <Stat label="Images" value={data.byCapability.image ?? 0} />
-            <Stat label="Video / audio" value={(data.byCapability.video ?? 0) + (data.byCapability.audio ?? 0)} />
+            <Stat
+              label="Video / audio"
+              value={(data.byCapability.video ?? 0) + (data.byCapability.audio ?? 0)}
+            />
           </div>
 
           <div className="mt-4">
@@ -78,9 +81,7 @@ export function AiGatewayAdmin() {
                     }`}
                   />
                   {p.label}
-                  {!p.configured && (
-                    <span className="text-muted-foreground">(no key)</span>
-                  )}
+                  {!p.configured && <span className="text-muted-foreground">(no key)</span>}
                 </span>
                 <span className="flex flex-wrap items-center gap-3 text-muted-foreground">
                   <span className="flex items-center gap-1">

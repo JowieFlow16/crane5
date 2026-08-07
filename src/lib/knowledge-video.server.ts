@@ -201,14 +201,13 @@ async function youtubeLesson(videoId: string): Promise<VideoLesson> {
   const title = meta?.title ?? player?.videoDetails?.title ?? `YouTube video ${videoId}`;
   const header = [
     `Video: ${title}`,
-    meta?.author_name ?? player?.videoDetails?.author
+    (meta?.author_name ?? player?.videoDetails?.author)
       ? `Channel: ${meta?.author_name ?? player?.videoDetails?.author}`
       : null,
     `Source: https://www.youtube.com/watch?v=${videoId}`,
   ]
     .filter(Boolean)
     .join("\n");
-
 
   const body = transcript
     ? `Transcript:\n${transcript}`

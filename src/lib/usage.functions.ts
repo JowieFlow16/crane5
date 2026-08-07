@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- untyped table access for late-migration tables
 type Sb = { from: (t: string) => any };
 
 async function assertAdmin(supabase: unknown, userId: string) {
@@ -136,7 +136,10 @@ export const listAiUsage = createServerFn({ method: "GET" })
     const ids = usage.map((u) => u.user_id);
     const [{ data: profs }, { data: plans }] = await Promise.all([
       supabaseAdmin.from("profiles").select("id, full_name, email").in("id", ids),
-      supabaseAdmin.from("user_ai_plans" as never).select("user_id, plan_id, unlimited").in("user_id", ids),
+      supabaseAdmin
+        .from("user_ai_plans" as never)
+        .select("user_id, plan_id, unlimited")
+        .in("user_id", ids),
     ]);
     const planRows = (plans ?? []) as unknown as {
       user_id: string;

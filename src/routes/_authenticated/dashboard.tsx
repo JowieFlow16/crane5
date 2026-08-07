@@ -78,9 +78,7 @@ function Dashboard() {
       const totalScore = res.reduce((a, r) => a + r.score, 0);
       const totalPossible = res.reduce((a, r) => a + r.total, 0);
       const avg = totalPossible ? Math.round((totalScore / totalPossible) * 100) : 0;
-      const weak = Array.from(
-        new Set(res.flatMap((r) => r.weak_areas ?? [])),
-      ).slice(0, 4);
+      const weak = Array.from(new Set(res.flatMap((r) => r.weak_areas ?? []))).slice(0, 4);
       return {
         chatCount: chats.count ?? 0,
         quizzesTaken: res.length,
@@ -126,12 +124,21 @@ function Dashboard() {
             Ready to learn something new today? Ask your AI tutor, take a quiz, or revise a topic.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
-            <Button asChild size="lg" className="bg-background text-foreground hover:bg-background/90">
+            <Button
+              asChild
+              size="lg"
+              className="bg-background text-foreground hover:bg-background/90"
+            >
               <Link to="/chat">
                 <MessageCircle className="h-4 w-4" /> Ask Crane5 AI
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20">
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20"
+            >
               <Link to="/quiz">
                 <ListChecks className="h-4 w-4" /> Take a quiz
               </Link>

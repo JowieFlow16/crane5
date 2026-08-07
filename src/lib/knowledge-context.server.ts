@@ -13,16 +13,57 @@ export interface KnowledgeDoc {
 }
 
 const STOP = new Set([
-  "the","a","an","and","or","of","to","in","is","are","was","were","be","it","this","that","for",
-  "on","with","as","at","by","from","how","what","why","when","which","who","do","does","did","i",
-  "you","me","my","we","us","can","please","explain","tell","about","help","using","use",
+  "the",
+  "a",
+  "an",
+  "and",
+  "or",
+  "of",
+  "to",
+  "in",
+  "is",
+  "are",
+  "was",
+  "were",
+  "be",
+  "it",
+  "this",
+  "that",
+  "for",
+  "on",
+  "with",
+  "as",
+  "at",
+  "by",
+  "from",
+  "how",
+  "what",
+  "why",
+  "when",
+  "which",
+  "who",
+  "do",
+  "does",
+  "did",
+  "i",
+  "you",
+  "me",
+  "my",
+  "we",
+  "us",
+  "can",
+  "please",
+  "explain",
+  "tell",
+  "about",
+  "help",
+  "using",
+  "use",
 ]);
 
 function keywords(text: string): string[] {
   return [
-    ...new Set(
-      (text.toLowerCase().match(/[a-z0-9']{3,}/g) ?? []).filter((w) => !STOP.has(w)),
-    ),
+    ...new Set((text.toLowerCase().match(/[a-z0-9']{3,}/g) ?? []).filter((w) => !STOP.has(w))),
   ].slice(0, 25);
 }
 
@@ -44,7 +85,11 @@ function bestExcerpt(text: string, words: string[], chars: number): string {
     }
   }
   const prefix = bestStart > 0 ? "…" : "";
-  return prefix + text.slice(bestStart, bestStart + window) + (bestStart + window < text.length ? "…" : "");
+  return (
+    prefix +
+    text.slice(bestStart, bestStart + window) +
+    (bestStart + window < text.length ? "…" : "")
+  );
 }
 
 function scoreDoc(doc: KnowledgeDoc, words: string[], subject?: string, classLevel?: string) {

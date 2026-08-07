@@ -30,7 +30,6 @@ import {
   type KeyFailureKind,
 } from "./health.server";
 
-
 export type ContentPart =
   | { type: "text"; text: string }
   | { type: "image_url"; image_url: { url: string } }
@@ -100,7 +99,12 @@ function keyFailureKind(err: unknown): KeyFailureKind | null {
   ) {
     return "quota";
   }
-  if (status === 401 || status === 403 || msg.includes("invalid api key") || msg.includes("unauthorized")) {
+  if (
+    status === 401 ||
+    status === 403 ||
+    msg.includes("invalid api key") ||
+    msg.includes("unauthorized")
+  ) {
     return "invalid";
   }
   return null;
@@ -120,7 +124,6 @@ async function request(
   key: string,
 ): Promise<Record<string, unknown>> {
   const cfg = getGatewayConfig();
-
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), cfg.requestTimeoutMs);
@@ -281,7 +284,6 @@ export async function execute<T>(opts: ExecuteOptions<T>): Promise<T> {
       metrics.switches += 1;
     }
 
-
     metrics.failed += 1;
     log("exhausted", { capability, attempts, providers: providers.map((p) => p.id) });
     if (errors.some((e) => e.includes(" 429"))) throw new Error("RATE_LIMIT");
@@ -301,8 +303,7 @@ function hasNonText(messages: ChatMessage[]) {
 }
 
 export async function chat(opts: ChatOptions): Promise<string> {
-  const capability: Capability =
-    opts.capability ?? (hasNonText(opts.messages) ? "vision" : "text");
+  const capability: Capability = opts.capability ?? (hasNonText(opts.messages) ? "vision" : "text");
 
   return execute<string>({
     capability,
@@ -349,7 +350,11 @@ export async function generateImage(prompt: string, cacheKey?: string): Promise<
         ? { path: "/images/generations", body: { model, prompt, n: 1 } }
         : {
             path: "/chat/completions",
-            body: { model, messages: [{ role: "user", content: prompt }], modalities: ["image", "text"] },
+            body: {
+              model,
+              messages: [{ role: "user", content: prompt }],
+              modalities: ["image", "text"],
+            },
           },
     extract: (data) => pickImage(data),
   });

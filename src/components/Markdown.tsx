@@ -72,10 +72,7 @@ const components: Components = {
     if (safe) {
       const yt = youtubeId(safe);
       if (yt) {
-        const label =
-          typeof children === "string" && children.trim()
-            ? children
-            : "Video lesson";
+        const label = typeof children === "string" && children.trim() ? children : "Video lesson";
         return <VideoCard id={yt} label={label} />;
       }
     }
@@ -84,9 +81,7 @@ const components: Components = {
       <a
         {...props}
         href={safe}
-        {...(isExternal
-          ? { target: "_blank", rel: "noopener noreferrer" }
-          : {})}
+        {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
         className="inline-flex items-center gap-1 font-medium text-primary underline underline-offset-2 hover:opacity-80"
       >
         {children}
@@ -111,24 +106,16 @@ const components: Components = {
         </pre>
       );
     }
-    return (
-      <code className="rounded bg-muted px-1.5 py-0.5 text-[0.8em]">
-        {children}
-      </code>
-    );
+    return <code className="rounded bg-muted px-1.5 py-0.5 text-[0.8em]">{children}</code>;
   },
   table: ({ children }) => (
     <div className="my-3 overflow-x-auto rounded-xl border border-border">
-      <table className="w-full border-collapse text-left text-sm">
-        {children}
-      </table>
+      <table className="w-full border-collapse text-left text-sm">{children}</table>
     </div>
   ),
   thead: ({ children }) => <thead className="bg-muted">{children}</thead>,
   th: ({ children }) => (
-    <th className="border-b border-border px-3 py-2 font-semibold">
-      {children}
-    </th>
+    <th className="border-b border-border px-3 py-2 font-semibold">{children}</th>
   ),
   td: ({ children }) => (
     <td className="border-b border-border/60 px-3 py-2 align-top">{children}</td>
@@ -163,16 +150,9 @@ const components: Components = {
       </figure>
     );
   },
-
 };
 
-export function Markdown({
-  children,
-  className,
-}: {
-  children: string;
-  className?: string;
-}) {
+export function Markdown({ children, className }: { children: string; className?: string }) {
   return (
     <div className={cn("prose-chat space-y-2", className)}>
       <ReactMarkdown

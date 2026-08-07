@@ -3,12 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Gauge, Loader2, Save, UserCog } from "lucide-react";
 import { toast } from "sonner";
-import {
-  listAiPlans,
-  listAiUsage,
-  setUserAiPlan,
-  updateAiPlan,
-} from "@/lib/usage.functions";
+import { listAiPlans, listAiUsage, setUserAiPlan, updateAiPlan } from "@/lib/usage.functions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -37,8 +32,12 @@ export function AiLimitsAdmin() {
   const [unlimited, setUnlimited] = useState(false);
   const [assigning, setAssigning] = useState(false);
 
-  const valueFor = (p: { id: string; daily_requests: number; daily_images: number; unlimited: boolean }) =>
-    draft[p.id] ?? { r: p.daily_requests, i: p.daily_images, u: p.unlimited };
+  const valueFor = (p: {
+    id: string;
+    daily_requests: number;
+    daily_images: number;
+    unlimited: boolean;
+  }) => draft[p.id] ?? { r: p.daily_requests, i: p.daily_images, u: p.unlimited };
 
   const save = async (id: string) => {
     const v = draft[id];

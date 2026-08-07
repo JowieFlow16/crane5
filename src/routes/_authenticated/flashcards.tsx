@@ -33,7 +33,6 @@ import { Markdown } from "@/components/Markdown";
 import { toast } from "sonner";
 import { aiErrorMessage } from "@/lib/ai-errors";
 
-
 export const Route = createFileRoute("/_authenticated/flashcards")({
   head: () => ({ meta: [{ title: "Flashcards · Crane5 AI" }] }),
   component: FlashcardsPage,
@@ -162,7 +161,8 @@ function FlashcardsPage() {
             <div className="rounded-2xl border border-dashed border-border p-10 text-center">
               <GraduationCap className="mx-auto h-10 w-10 text-muted-foreground/50" />
               <p className="mt-3 text-sm text-muted-foreground">
-                Nothing due right now — you're all caught up! 🎉 Create a new set or come back later.
+                Nothing due right now — you're all caught up! 🎉 Create a new set or come back
+                later.
               </p>
             </div>
           ) : !current ? (
@@ -206,10 +206,18 @@ function FlashcardsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="mt-4 grid grid-cols-4 gap-2"
                 >
-                  <Button variant="outline" onClick={() => grade("again")}>Again</Button>
-                  <Button variant="outline" onClick={() => grade("hard")}>Hard</Button>
-                  <Button variant="outline" onClick={() => grade("good")}>Good</Button>
-                  <Button variant="hero" onClick={() => grade("easy")}>Easy</Button>
+                  <Button variant="outline" onClick={() => grade("again")}>
+                    Again
+                  </Button>
+                  <Button variant="outline" onClick={() => grade("hard")}>
+                    Hard
+                  </Button>
+                  <Button variant="outline" onClick={() => grade("good")}>
+                    Good
+                  </Button>
+                  <Button variant="hero" onClick={() => grade("easy")}>
+                    Easy
+                  </Button>
                 </motion.div>
               )}
             </div>
@@ -223,9 +231,15 @@ function FlashcardsPage() {
               <div className="space-y-1.5">
                 <Label>Subject</Label>
                 <Select value={subject} onValueChange={setSubject}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
-                    {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    {SUBJECTS.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -251,7 +265,11 @@ function FlashcardsPage() {
               </div>
             </div>
             <Button onClick={generate} disabled={busy} variant="hero" className="w-full">
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+              {busy ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
               {busy ? "Generating…" : "Generate flashcards"}
             </Button>
           </div>
@@ -269,8 +287,12 @@ function FlashcardsPage() {
               <div key={c.id} className="rounded-xl border border-border bg-card p-4 shadow-card">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium"><Markdown>{c.front}</Markdown></div>
-                    <div className="mt-1 text-sm text-muted-foreground"><Markdown>{c.back}</Markdown></div>
+                    <div className="text-sm font-medium">
+                      <Markdown>{c.front}</Markdown>
+                    </div>
+                    <div className="mt-1 text-sm text-muted-foreground">
+                      <Markdown>{c.back}</Markdown>
+                    </div>
                   </div>
                   <button
                     onClick={() => remove(c.id)}
@@ -281,7 +303,8 @@ function FlashcardsPage() {
                   </button>
                 </div>
                 <p className="mt-2 text-[0.7rem] text-muted-foreground">
-                  {c.subject}{c.topic ? ` · ${c.topic}` : ""} · due {c.due_date}
+                  {c.subject}
+                  {c.topic ? ` · ${c.topic}` : ""} · due {c.due_date}
                 </p>
               </div>
             ))

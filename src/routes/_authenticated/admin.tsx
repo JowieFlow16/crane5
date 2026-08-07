@@ -45,8 +45,6 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
 });
 
-
-
 const cnStatus = (status: string) =>
   status === "approved"
     ? "rounded-full bg-success/15 px-2 py-0.5 text-[0.7rem] font-medium capitalize text-success"
@@ -189,8 +187,8 @@ function AdminPage() {
         <ShieldAlert className="mx-auto h-12 w-12 text-muted-foreground/50" />
         <h1 className="mt-4 font-display text-xl font-bold">Admins only</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          You don't have access to the admin area. Contact your administrator if you
-          believe this is a mistake.
+          You don't have access to the admin area. Contact your administrator if you believe this is
+          a mistake.
         </p>
       </div>
     );
@@ -235,7 +233,11 @@ function AdminPage() {
                 className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-card sm:flex-row sm:items-center"
               >
                 {t.avatar_url ? (
-                  <img src={t.avatar_url} alt="" className="h-12 w-12 shrink-0 rounded-xl object-cover" />
+                  <img
+                    src={t.avatar_url}
+                    alt=""
+                    className="h-12 w-12 shrink-0 rounded-xl object-cover"
+                  />
                 ) : (
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-primary text-lg font-bold text-primary-foreground">
                     {(t.full_name ?? "T").charAt(0).toUpperCase()}
@@ -245,13 +247,11 @@ function AdminPage() {
                   <div className="flex items-center gap-1.5">
                     <span className="truncate font-medium">{t.full_name ?? "Teacher"}</span>
                     {t.status === "approved" && <BadgeCheck className="h-4 w-4 text-primary" />}
-                    <span
-                      className={cnStatus(t.status)}
-                    >
-                      {t.status}
-                    </span>
+                    <span className={cnStatus(t.status)}>{t.status}</span>
                   </div>
-                  {t.headline && <p className="truncate text-sm text-muted-foreground">{t.headline}</p>}
+                  {t.headline && (
+                    <p className="truncate text-sm text-muted-foreground">{t.headline}</p>
+                  )}
                   <div className="mt-0.5 flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground">
                     {t.school && (
                       <span className="inline-flex items-center gap-1">
@@ -289,7 +289,6 @@ function AdminPage() {
         <h2 className="font-display text-xl font-bold">Knowledge base documents</h2>
       </div>
 
-
       <div className="mt-6 grid gap-6 lg:grid-cols-5">
         {/* Upload form */}
         <motion.form
@@ -301,24 +300,41 @@ function AdminPage() {
           <h2 className="font-display font-semibold">Add document</h2>
           <div className="space-y-1.5">
             <Label>Title</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="S4 Algebra notes" required />
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="S4 Algebra notes"
+              required
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Subject</Label>
               <Select value={subject} onValueChange={setSubject}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  {SUBJECTS.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
               <Label>Class</Label>
               <Select value={classLevel} onValueChange={setClassLevel}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  {CLASSES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  {CLASSES.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -326,9 +342,15 @@ function AdminPage() {
           <div className="space-y-1.5">
             <Label>Type</Label>
             <Select value={docType} onValueChange={setDocType}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                {DOC_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                {DOC_TYPES.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {t}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -364,10 +386,16 @@ function AdminPage() {
               />
             </div>
             <Select value={filterSubject} onValueChange={setFilterSubject}>
-              <SelectTrigger className="sm:w-40"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="sm:w-40">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All subjects</SelectItem>
-                {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                {SUBJECTS.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -414,10 +442,8 @@ function AdminPage() {
 
       <VideoLearning isAdmin={isAdmin} />
 
-
       <AiGatewayAdmin />
       <AiLimitsAdmin />
-
     </div>
   );
 }
@@ -478,8 +504,8 @@ function LinkLearning({ isAdmin }: { isAdmin: boolean }) {
         <h2 className="font-display text-xl font-bold">Continuous learning from links</h2>
       </div>
       <p className="mt-1 text-sm text-muted-foreground">
-        Paste a web page and Crane5 reads it into its knowledge base. Re-read links any time
-        to pick up new content.
+        Paste a web page and Crane5 reads it into its knowledge base. Re-read links any time to pick
+        up new content.
       </p>
       <form
         onSubmit={submit}
@@ -493,15 +519,27 @@ function LinkLearning({ isAdmin }: { isAdmin: boolean }) {
           required
         />
         <Select value={linkSubject} onValueChange={setLinkSubject}>
-          <SelectTrigger className="sm:w-40"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="sm:w-40">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
-            {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            {SUBJECTS.map((s) => (
+              <SelectItem key={s} value={s}>
+                {s}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Select value={linkClass} onValueChange={setLinkClass}>
-          <SelectTrigger className="sm:w-24"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="sm:w-24">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
-            {CLASSES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            {CLASSES.map((c) => (
+              <SelectItem key={c} value={c}>
+                {c}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Button type="submit" variant="hero" disabled={busy}>
@@ -510,7 +548,11 @@ function LinkLearning({ isAdmin }: { isAdmin: boolean }) {
         </Button>
       </form>
       <Button variant="outline" className="mt-3" onClick={reRead} disabled={refreshing}>
-        {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+        {refreshing ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <RefreshCw className="h-4 w-4" />
+        )}
         Re-read saved links
       </Button>
     </section>
@@ -553,8 +595,8 @@ function VideoLearning({ isAdmin }: { isAdmin: boolean }) {
         <h2 className="font-display text-xl font-bold">Learning from video links</h2>
       </div>
       <p className="mt-1 text-sm text-muted-foreground">
-        Paste a YouTube, Vimeo or other video link. Crane5 reads its captions (or description)
-        and adds the lesson to its knowledge base. Videos with subtitles work best.
+        Paste a YouTube, Vimeo or other video link. Crane5 reads its captions (or description) and
+        adds the lesson to its knowledge base. Videos with subtitles work best.
       </p>
       <form
         onSubmit={submit}
@@ -568,15 +610,27 @@ function VideoLearning({ isAdmin }: { isAdmin: boolean }) {
           required
         />
         <Select value={subject} onValueChange={setSubject}>
-          <SelectTrigger className="sm:w-40"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="sm:w-40">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
-            {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            {SUBJECTS.map((s) => (
+              <SelectItem key={s} value={s}>
+                {s}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Select value={classLevel} onValueChange={setClassLevel}>
-          <SelectTrigger className="sm:w-24"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="sm:w-24">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
-            {CLASSES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            {CLASSES.map((c) => (
+              <SelectItem key={c} value={c}>
+                {c}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Button type="submit" variant="hero" disabled={busy}>

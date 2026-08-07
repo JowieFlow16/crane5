@@ -28,7 +28,10 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in · Crane5 AI" },
-      { name: "description", content: "Sign in or create your Crane5 AI account to start learning." },
+      {
+        name: "description",
+        content: "Sign in or create your Crane5 AI account to start learning.",
+      },
     ],
   }),
   component: AuthPage,
@@ -40,9 +43,7 @@ function AuthPage() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const search = useSearch({ from: "/auth" });
-  const [mode, setMode] = useState<"login" | "register" | "reset">(
-    search.mode ?? "login",
-  );
+  const [mode, setMode] = useState<"login" | "register" | "reset">(search.mode ?? "login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -92,7 +93,6 @@ function AuthPage() {
     }
   };
 
-
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       {/* Brand panel */}
@@ -111,8 +111,8 @@ function AuthPage() {
             Learn smarter, the Ugandan way.
           </h2>
           <p className="mt-4 text-lg text-primary-foreground/85">
-            Your personal AI tutor for the NCDC curriculum — chat, quizzes, revision
-            notes and progress, all in one place.
+            Your personal AI tutor for the NCDC curriculum — chat, quizzes, revision notes and
+            progress, all in one place.
           </p>
         </motion.div>
         <p className="relative text-sm text-primary-foreground/70">
@@ -147,7 +147,6 @@ function AuthPage() {
           </p>
 
           <div className="mt-6" />
-
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === "register" && (

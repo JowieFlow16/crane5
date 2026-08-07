@@ -23,11 +23,7 @@ import { aiErrorMessage } from "@/lib/ai-errors";
 import { db, type TeacherProfile, type Conversation, type DirectMessage } from "@/lib/db";
 import { useAuth } from "@/lib/auth";
 import { SUBJECTS } from "@/lib/subjects";
-import {
-  generateLessonPlan,
-  generateExam,
-  classInsights,
-} from "@/lib/ai.functions";
+import { generateLessonPlan, generateExam, classInsights } from "@/lib/ai.functions";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -113,7 +109,11 @@ function TeachPage() {
         />
       )}
 
-      {approved ? <TeacherDashboard tp={tp ?? null} /> : <ApplicationForm tp={tp ?? null} profile={profile} />}
+      {approved ? (
+        <TeacherDashboard tp={tp ?? null} />
+      ) : (
+        <ApplicationForm tp={tp ?? null} profile={profile} />
+      )}
     </div>
   );
 }
@@ -232,15 +232,23 @@ function ApplicationForm({
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label>School</Label>
-          <Input value={school} onChange={(e) => setSchool(e.target.value)} placeholder="e.g. Namilyango College" />
+          <Input
+            value={school}
+            onChange={(e) => setSchool(e.target.value)}
+            placeholder="e.g. Namilyango College"
+          />
         </div>
         <div className="space-y-1.5">
           <Label>Years of experience</Label>
           <Select value={experience} onValueChange={setExperience}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               {Array.from({ length: 41 }, (_, i) => String(i)).map((n) => (
-                <SelectItem key={n} value={n}>{n}</SelectItem>
+                <SelectItem key={n} value={n}>
+                  {n}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -385,7 +393,11 @@ function OutputCard({ content }: { content: string }) {
           onClick={copy}
           className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted"
         >
-          {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
+          {copied ? (
+            <Check className="h-3.5 w-3.5 text-success" />
+          ) : (
+            <Copy className="h-3.5 w-3.5" />
+          )}
           {copied ? "Copied" : "Copy"}
         </button>
       </div>
@@ -426,9 +438,15 @@ function SubjectSelect({
   const list = subjects.length ? subjects : SUBJECTS;
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger><SelectValue /></SelectTrigger>
+      <SelectTrigger>
+        <SelectValue />
+      </SelectTrigger>
       <SelectContent>
-        {list.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+        {list.map((s) => (
+          <SelectItem key={s} value={s}>
+            {s}
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   );
@@ -460,7 +478,10 @@ function LessonPlanTool({ teacherSubjects }: { teacherSubjects: string[] }) {
 
   return (
     <>
-      <ToolShell title="AI Lesson Plan Generator" desc="Get a full NCDC competency-based lesson plan in seconds.">
+      <ToolShell
+        title="AI Lesson Plan Generator"
+        desc="Get a full NCDC competency-based lesson plan in seconds."
+      >
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label>Subject</Label>
@@ -469,16 +490,26 @@ function LessonPlanTool({ teacherSubjects }: { teacherSubjects: string[] }) {
           <div className="space-y-1.5">
             <Label>Class</Label>
             <Select value={classLevel} onValueChange={setClassLevel}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                {CLASS_LEVELS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                {CLASS_LEVELS.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
         </div>
         <div className="space-y-1.5">
           <Label>Topic</Label>
-          <Input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="e.g. Simultaneous equations" />
+          <Input
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            placeholder="e.g. Simultaneous equations"
+          />
         </div>
         <div className="space-y-1.5">
           <Label>Lesson duration</Label>
@@ -486,7 +517,12 @@ function LessonPlanTool({ teacherSubjects }: { teacherSubjects: string[] }) {
         </div>
         <div className="space-y-1.5">
           <Label>Extra notes (optional)</Label>
-          <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Focus areas, class context…" />
+          <Textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={2}
+            placeholder="Focus areas, class context…"
+          />
         </div>
         <Button onClick={go} variant="hero" disabled={busy}>
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
@@ -525,7 +561,10 @@ function ExamTool({ teacherSubjects }: { teacherSubjects: string[] }) {
 
   return (
     <>
-      <ToolShell title="AI Exam & Item Builder" desc="Generate NCDC scenario-based items with a full marking guide.">
+      <ToolShell
+        title="AI Exam & Item Builder"
+        desc="Generate NCDC scenario-based items with a full marking guide."
+      >
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label>Subject</Label>
@@ -534,34 +573,56 @@ function ExamTool({ teacherSubjects }: { teacherSubjects: string[] }) {
           <div className="space-y-1.5">
             <Label>Class</Label>
             <Select value={classLevel} onValueChange={setClassLevel}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                {CLASS_LEVELS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                {CLASS_LEVELS.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
             <Label>Number of items</Label>
             <Select value={count} onValueChange={setCount}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                {["3", "4", "5", "6", "8", "10", "12"].map((n) => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+                {["3", "4", "5", "6", "8", "10", "12"].map((n) => (
+                  <SelectItem key={n} value={n}>
+                    {n}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
             <Label>Difficulty</Label>
             <Select value={difficulty} onValueChange={(v) => setDifficulty(v as typeof difficulty)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                {["Easy", "Medium", "Hard", "Mixed"].map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                {["Easy", "Medium", "Hard", "Mixed"].map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {d}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
         </div>
         <div className="space-y-1.5">
           <Label>Topic (optional)</Label>
-          <Input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="Leave blank for a broad paper" />
+          <Input
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            placeholder="Leave blank for a broad paper"
+          />
         </div>
         <Button onClick={go} variant="hero" disabled={busy}>
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
@@ -628,8 +689,8 @@ function InsightsTool({ subjects, userId }: { subjects: string[]; userId?: strin
         desc="Turn the questions students ask you into a plan for what to reteach."
       >
         <p className="text-sm text-muted-foreground">
-          We'll analyse recent questions students sent you. No messages yet? Paste some below
-          (one per line) to try it.
+          We'll analyse recent questions students sent you. No messages yet? Paste some below (one
+          per line) to try it.
         </p>
         <Textarea
           value={manual}

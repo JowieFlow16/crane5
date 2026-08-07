@@ -165,7 +165,6 @@ Your answers are rendered with rich Markdown. ALWAYS reach for the right visual 
 
 Rule of thumb: if you can show it as a diagram, real image, table, equation or video, DO — don't describe it in prose alone.`;
 
-
 /** Tone, values and the in-app output format. */
 export const NCDC_TONE = `# Tone, Values & Output Format
 

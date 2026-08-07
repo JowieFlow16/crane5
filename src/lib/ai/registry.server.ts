@@ -40,10 +40,12 @@ export interface ProviderDef {
   imageApi?: "chat" | "images";
 }
 
-const OPENAI_STYLE_HEADERS = (title = "Crane5 AI") => () => ({
-  "HTTP-Referer": process.env.OPENROUTER_SITE_URL ?? "https://lovable.dev",
-  "X-Title": process.env.OPENROUTER_APP_NAME ?? title,
-});
+const OPENAI_STYLE_HEADERS =
+  (title = "Crane5 AI") =>
+  () => ({
+    "HTTP-Referer": process.env.OPENROUTER_SITE_URL ?? "https://lovable.dev",
+    "X-Title": process.env.OPENROUTER_APP_NAME ?? title,
+  });
 
 /**
  * Every provider speaks the OpenAI-compatible API surface
@@ -59,11 +61,8 @@ export const PROVIDERS: ProviderDef[] = [
     headers: OPENAI_STYLE_HEADERS(),
     imageApi: "chat",
     models: {
-      text: [
-        "google/gemma-4-31b-it:free",
-        "openai/gpt-oss-20b:free",
-        "inclusionai/ling-3.0-flash:free",
-      ],
+      text: ["google/gemma-4-31b-it:free", "openai/gpt-oss-20b:free"],
+
       code: ["openai/gpt-oss-20b:free", "google/gemma-4-31b-it:free"],
       vision: ["google/gemma-4-31b-it:free"],
       image: ["google/gemini-2.5-flash-image", "google/gemini-2.0-flash-exp:free"],
@@ -92,7 +91,7 @@ export const PROVIDERS: ProviderDef[] = [
     defaultBaseUrl: "https://api.aimlapi.com/v1",
     imageApi: "images",
     models: {
-      text: ["gpt-4o-mini", "google/gemini-2.0-flash"],
+      text: ["gpt-4o-mini"],
       code: ["gpt-4o-mini"],
       vision: ["gpt-4o-mini"],
       image: ["flux/schnell", "dall-e-3"],
@@ -215,7 +214,6 @@ export function providerKey(p: ProviderDef): string | undefined {
   return providerKeys(p)[0];
 }
 
-
 /** Models for a capability, with per-provider env override (e.g. AI_MODELS_OPENROUTER_TEXT). */
 export function providerModels(p: ProviderDef, cap: Capability): string[] {
   const envName = `AI_MODELS_${p.id.toUpperCase()}_${cap.toUpperCase()}`;
@@ -243,7 +241,11 @@ function envNum(name: string, fallback: number): number {
 // Gateway configuration (all env-overridable)
 // ---------------------------------------------------------------------------
 
+// Lovable AI leads: it is always funded and needs no user-supplied key, so the
+// tutor never goes dark. The bring-your-own-key providers sit behind it as
+// extra capacity and failover.
 const DEFAULT_PRIORITY = [
+  "lovable",
   "openrouter",
   "requesty",
   "aimlapi",
@@ -251,21 +253,21 @@ const DEFAULT_PRIORITY = [
   "haimaker",
   "allmodels",
   "autorouter",
-  "lovable",
 ];
 
 /** Capability-specific preferred provider order (provider specialisation). */
 const DEFAULT_PREFERENCES: Partial<Record<Capability, string[]>> = {
-  text: ["openrouter", "requesty", "ofox"],
-  code: ["openrouter", "aimlapi", "requesty"],
-  vision: ["openrouter", "requesty", "lovable"],
-  image: ["aimlapi", "haimaker", "lovable", "openrouter"],
+  text: ["lovable", "openrouter", "requesty", "ofox"],
+  code: ["lovable", "openrouter", "aimlapi", "requesty"],
+  vision: ["lovable", "openrouter", "requesty"],
+  image: ["lovable", "aimlapi", "haimaker", "openrouter"],
   video: ["aimlapi"],
   audio: ["aimlapi"],
   tts: ["aimlapi"],
   stt: ["aimlapi"],
-  embedding: ["openrouter", "aimlapi", "lovable"],
+  embedding: ["lovable", "openrouter", "aimlapi"],
 };
+
 
 export interface GatewayConfig {
   priority: string[];
@@ -303,7 +305,10 @@ export function getGatewayConfig(): GatewayConfig {
     preferences,
     requestTimeoutMs: envNum("AI_TIMEOUT_MS", 15_000),
     hedgeAfterMs: envNum("AI_HEDGE_AFTER_MS", 3_500),
-    maxProviderAttempts: envNum("AI_MAX_PROVIDER_ATTEMPTS", 4),
+    // Try every registered provider before giving up, so a run of broke or
+    // rate-limited keys can never hide a healthy provider further down the list.
+    maxProviderAttempts: envNum("AI_MAX_PROVIDER_ATTEMPTS", PROVIDERS.length),
+
     cooldownMs: envNum("AI_COOLDOWN_MS", 60_000),
     failureThreshold: envNum("AI_FAILURE_THRESHOLD", 3),
     maxConcurrency: envNum("AI_MAX_CONCURRENCY", 8),
@@ -336,4 +341,3 @@ export function candidateProviders(cap: Capability): ProviderDef[] {
   }
   return out;
 }
-

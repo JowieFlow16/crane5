@@ -111,8 +111,8 @@ function Landing() {
               Your personal <span className="text-gradient">AI tutor</span> for every subject.
             </h1>
             <p className="mt-5 max-w-md text-lg text-muted-foreground">
-              Crane5 AI helps Ugandan students from S1 to S6 understand tough topics,
-              practice with quizzes and revise smarter — anytime, on any device.
+              Crane5 AI helps Ugandan students from S1 to S6 understand tough topics, practice with
+              quizzes and revise smarter — anytime, on any device.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild variant="hero" size="xl">
@@ -206,7 +206,11 @@ function Landing() {
             <p className="mt-3 text-lg text-primary-foreground/85">
               Join Crane5 AI today and turn confusion into confidence.
             </p>
-            <Button asChild size="xl" className="mt-8 bg-background text-foreground hover:bg-background/90">
+            <Button
+              asChild
+              size="xl"
+              className="mt-8 bg-background text-foreground hover:bg-background/90"
+            >
               <Link to="/auth" search={{ mode: "register" }}>
                 Create your free account <ArrowRight className="h-5 w-5" />
               </Link>
@@ -284,8 +288,8 @@ function Landing() {
 
           <div className="mt-10 grid gap-4 border-t border-border pt-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
             <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} Altrastate Technologies Ltd. Crane5 AI and the Crane5
-              AI logo are trademarks of Altrastate Technologies Ltd. All rights reserved.
+              © {new Date().getFullYear()} Altrastate Technologies Ltd. Crane5 AI and the Crane5 AI
+              logo are trademarks of Altrastate Technologies Ltd. All rights reserved.
             </p>
             <div className="sm:justify-self-end">
               <PoweredByAltrastate />
@@ -293,8 +297,6 @@ function Landing() {
           </div>
         </div>
       </footer>
-
-
     </div>
   );
 }

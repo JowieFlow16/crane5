@@ -71,7 +71,6 @@ function readAsDataUrl(file: File): Promise<string> {
   });
 }
 
-
 const STARTERS = [
   "Explain Newton's second law with a Ugandan example",
   "Help me factorise quadratic equations step by step",
@@ -139,7 +138,6 @@ function ChatPage() {
 
   const removeAttachment = (idx: number) =>
     setAttachments((prev) => prev.filter((_, i) => i !== idx));
-
 
   const { data: chats } = useQuery({
     queryKey: ["chats", user?.id],
@@ -358,13 +356,8 @@ function ChatPage() {
                         <>
                           <Markdown>{m.content}</Markdown>
                           <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-border/60 pt-2">
-                            <SaveButton
-                              content={m.content}
-                              kind="answer"
-                              subject={subject}
-                            />
+                            <SaveButton content={m.content} kind="answer" subject={subject} />
                             <Illustrator prompt={m.content} subject={subject} />
-
                           </div>
                         </>
                       ) : (
@@ -394,9 +387,6 @@ function ChatPage() {
                           {m.content && <span className="whitespace-pre-wrap">{m.content}</span>}
                         </div>
                       )}
-
-
-
                     </div>
                   </motion.div>
                 ))}
@@ -410,14 +400,10 @@ function ChatPage() {
                 >
                   <Crane5Mark className="h-8 w-8 shrink-0" />
                   <div className="rounded-2xl rounded-bl-sm border border-border bg-card px-4 py-3">
-                    <ThinkingTrail
-                      subject={subject}
-                      hasAttachments={thinkingHasAttachments}
-                    />
+                    <ThinkingTrail subject={subject} hasAttachments={thinkingHasAttachments} />
                   </div>
                 </motion.div>
               )}
-
             </div>
           </div>
         </div>
@@ -483,9 +469,7 @@ function ChatPage() {
                   }
                 }}
                 placeholder={
-                  attachments.length
-                    ? "Ask about your attachment…"
-                    : `Ask about ${subject}…`
+                  attachments.length ? "Ask about your attachment…" : `Ask about ${subject}…`
                 }
                 rows={1}
                 className="max-h-40 min-h-[44px] resize-none rounded-2xl"
@@ -506,10 +490,10 @@ function ChatPage() {
             </div>
           </div>
           <p className="mx-auto mt-2 max-w-2xl text-center text-xs text-muted-foreground">
-            Crane5 AI can make mistakes. Attach images or PDFs (max 8 MB each). Always check important facts.
+            Crane5 AI can make mistakes. Attach images or PDFs (max 8 MB each). Always check
+            important facts.
           </p>
         </div>
-
       </div>
     </div>
   );

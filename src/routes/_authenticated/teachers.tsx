@@ -2,15 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
-import {
-  GraduationCap,
-  Search,
-  School,
-  BadgeCheck,
-  Sparkles,
-  Users,
-  Star,
-} from "lucide-react";
+import { GraduationCap, Search, School, BadgeCheck, Sparkles, Users, Star } from "lucide-react";
 import { db, type TeacherProfile } from "@/lib/db";
 import { useAuth } from "@/lib/auth";
 import { SUBJECTS } from "@/lib/subjects";
@@ -25,16 +17,30 @@ export const Route = createFileRoute("/_authenticated/teachers")({
       { title: "Find a Teacher · Crane5 AI" },
       {
         name: "description",
-        content: "Connect with verified Ugandan teachers for one-on-one help across every NCDC subject.",
+        content:
+          "Connect with verified Ugandan teachers for one-on-one help across every NCDC subject.",
       },
     ],
   }),
   component: TeachersPage,
 });
 
-function Avatar({ url, name, size = 56 }: { url?: string | null; name?: string | null; size?: number }) {
+function Avatar({
+  url,
+  name,
+  size = 56,
+}: {
+  url?: string | null;
+  name?: string | null;
+  size?: number;
+}) {
   return url ? (
-    <img src={url} alt="" style={{ width: size, height: size }} className="shrink-0 rounded-2xl object-cover" />
+    <img
+      src={url}
+      alt=""
+      style={{ width: size, height: size }}
+      className="shrink-0 rounded-2xl object-cover"
+    />
   ) : (
     <div
       style={{ width: size, height: size }}
@@ -112,7 +118,9 @@ function TeachersPage() {
             onClick={() => setSubject(null)}
             className={cn(
               "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-              !subject ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-muted",
+              !subject
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border text-muted-foreground hover:bg-muted",
             )}
           >
             All subjects
@@ -123,7 +131,9 @@ function TeachersPage() {
               onClick={() => setSubject(s === subject ? null : s)}
               className={cn(
                 "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-                s === subject ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-muted",
+                s === subject
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border text-muted-foreground hover:bg-muted",
               )}
             >
               {s}
@@ -137,7 +147,10 @@ function TeachersPage() {
         {isLoading ? (
           <div className="grid gap-4 sm:grid-cols-2">
             {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="h-40 animate-pulse rounded-2xl border border-border bg-muted/40" />
+              <div
+                key={i}
+                className="h-40 animate-pulse rounded-2xl border border-border bg-muted/40"
+              />
             ))}
           </div>
         ) : filtered.length === 0 ? (
@@ -158,17 +171,23 @@ function TeachersPage() {
                   <Avatar url={t.avatar_url} name={t.full_name} />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      <span className="truncate font-display font-semibold">{t.full_name ?? "Teacher"}</span>
+                      <span className="truncate font-display font-semibold">
+                        {t.full_name ?? "Teacher"}
+                      </span>
                       <BadgeCheck className="h-4 w-4 shrink-0 text-primary" />
                     </div>
-                    {t.headline && <p className="truncate text-sm text-muted-foreground">{t.headline}</p>}
+                    {t.headline && (
+                      <p className="truncate text-sm text-muted-foreground">{t.headline}</p>
+                    )}
                     <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
                       {t.school && (
                         <span className="inline-flex items-center gap-1">
                           <School className="h-3.5 w-3.5" /> {t.school}
                         </span>
                       )}
-                      <span>{t.experience_years} yr{t.experience_years === 1 ? "" : "s"} exp</span>
+                      <span>
+                        {t.experience_years} yr{t.experience_years === 1 ? "" : "s"} exp
+                      </span>
                       {t.students_helped > 0 && (
                         <span className="inline-flex items-center gap-1">
                           <Star className="h-3.5 w-3.5 text-amber-500" /> {t.students_helped} helped

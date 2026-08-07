@@ -1,7 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "motion/react";
-import { Bookmark, Trash2, MessageSquareText, NotebookPen, ListChecks, FileText } from "lucide-react";
+import {
+  Bookmark,
+  Trash2,
+  MessageSquareText,
+  NotebookPen,
+  ListChecks,
+  FileText,
+} from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { db, type Bookmark as BookmarkRow } from "@/lib/db";
 import { Markdown } from "@/components/Markdown";

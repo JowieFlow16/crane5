@@ -5,11 +5,14 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export const getGatewayStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data: isAdmin } = await context.supabase.rpc("has_role" as never, {
-      _user_id: context.userId,
-      _role: "admin",
-    } as never);
-    if (!isAdmin) throw new Error("Forbidden");
+    const { data: roles } = await context.supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "admin")
+      .limit(1);
+    if (!roles || roles.length === 0) throw new Error("Forbidden");
+
 
     const { buildGatewayStats } = await import("./ai/analytics.server");
     return buildGatewayStats();

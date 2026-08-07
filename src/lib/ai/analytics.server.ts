@@ -80,9 +80,7 @@ export function buildGatewayStats(): GatewayStats {
     failed: metrics.failed,
     successRate: total ? Math.round((metrics.succeeded / total) * 100) : 100,
     failureRate: total ? Math.round((metrics.failed / total) * 100) : 0,
-    avgResponseMs: metrics.succeeded
-      ? Math.round(metrics.totalLatencyMs / metrics.succeeded)
-      : 0,
+    avgResponseMs: metrics.succeeded ? Math.round(metrics.totalLatencyMs / metrics.succeeded) : 0,
     retries: metrics.retries,
     switches: metrics.switches,
     keyRotations: metrics.keyRotations,
