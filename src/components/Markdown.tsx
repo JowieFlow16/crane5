@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -5,6 +6,7 @@ import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 import { Play, ExternalLink } from "lucide-react";
 import { Mermaid } from "@/components/Mermaid";
+import { normalizeNotation } from "@/lib/notation";
 import { cn } from "@/lib/utils";
 
 /**
@@ -153,6 +155,10 @@ const components: Components = {
 };
 
 export function Markdown({ children, className }: { children: string; className?: string }) {
+  // Normalise notation first so formulas, operators and units always render as
+  // real symbols (× ÷ → ≤ ° ± H₂O, KaTeX math) regardless of how the model
+  // wrote them.
+  const normalized = useMemo(() => normalizeNotation(children), [children]);
   return (
     <div className={cn("prose-chat space-y-2", className)}>
       <ReactMarkdown
@@ -160,7 +166,7 @@ export function Markdown({ children, className }: { children: string; className?
         rehypePlugins={[rehypeKatex]}
         components={components}
       >
-        {children}
+        {normalized}
       </ReactMarkdown>
     </div>
   );
