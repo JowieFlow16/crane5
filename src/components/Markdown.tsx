@@ -153,6 +153,10 @@ const components: Components = {
 };
 
 export function Markdown({ children, className }: { children: string; className?: string }) {
+  // Normalise notation first so formulas, operators and units always render as
+  // real symbols (× ÷ → ≤ ° ± H₂O, KaTeX math) regardless of how the model
+  // wrote them.
+  const normalized = useMemo(() => normalizeNotation(children), [children]);
   return (
     <div className={cn("prose-chat space-y-2", className)}>
       <ReactMarkdown
@@ -160,8 +164,9 @@ export function Markdown({ children, className }: { children: string; className?
         rehypePlugins={[rehypeKatex]}
         components={components}
       >
-        {children}
+        {normalized}
       </ReactMarkdown>
     </div>
   );
 }
+
