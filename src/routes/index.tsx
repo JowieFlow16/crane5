@@ -36,8 +36,47 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:image", content: heroImg },
       { name: "twitter:image", content: heroImg },
+      { property: "og:url", content: "https://crane5.lovable.app/" },
+    ],
+    links: [{ rel: "canonical", href: "https://crane5.lovable.app/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Altrastate Technologies Ltd",
+          alternateName: "Altrastate",
+          url: "https://altrastate.com",
+          email: "altrastate@gmail.com",
+          telephone: "+256765179900",
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: "Kampala",
+            addressCountry: "UG",
+          },
+          contactPoint: {
+            "@type": "ContactPoint",
+            contactType: "customer support",
+            email: "altrastate@gmail.com",
+            telephone: "+256765179900",
+            areaServed: "UG",
+            availableLanguage: "en",
+          },
+          makesOffer: {
+            "@type": "Offer",
+            itemOffered: {
+              "@type": "SoftwareApplication",
+              name: "Crane5 AI",
+              applicationCategory: "EducationalApplication",
+              url: "https://crane5.lovable.app/",
+            },
+          },
+        }),
+      },
     ],
   }),
+
   component: Landing,
 });
 
