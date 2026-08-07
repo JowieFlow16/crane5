@@ -34,14 +34,16 @@ const SUP_MAP: Record<string, string> = {
 
 /** Unify LaTeX delimiters so KaTeX (remark-math) recognises them. */
 function unifyMathDelimiters(text: string): string {
-  return text
-    .replace(/\\\[\s*([\s\S]*?)\s*\\\]/g, (_m, inner: string) => `$$${inner}$$`)
-    .replace(/\\\(\s*([\s\S]*?)\s*\\\)/g, (_m, inner: string) => `$${inner}$`)
-    // Some models emit \begin{equation}…\end{equation} without $$ wrappers.
-    .replace(
-      /\\begin\{(equation|align)\*?\}([\s\S]*?)\\end\{\1\*?\}/g,
-      (_m, _env, inner: string) => `$$${inner.trim()}$$`,
-    );
+  return (
+    text
+      .replace(/\\\[\s*([\s\S]*?)\s*\\\]/g, (_m, inner: string) => `$$${inner}$$`)
+      .replace(/\\\(\s*([\s\S]*?)\s*\\\)/g, (_m, inner: string) => `$${inner}$`)
+      // Some models emit \begin{equation}…\end{equation} without $$ wrappers.
+      .replace(
+        /\\begin\{(equation|align)\*?\}([\s\S]*?)\\end\{\1\*?\}/g,
+        (_m, _env, inner: string) => `$$${inner.trim()}$$`,
+      )
+  );
 }
 
 /** Fixes applied INSIDE math ($…$ / $$…$$) segments. */
@@ -178,6 +180,7 @@ export function normalizeNotation(input: string): string {
   text = segments.join("");
 
   // 3. Restore protected blocks.
+  // eslint-disable-next-line no-control-regex
   text = text.replace(/\u0000(\d+)\u0000/g, (_m, i: string) => protectedBlocks[Number(i)] ?? "");
 
   // 4. Tidy alignment: no trailing spaces, max one blank line, tables spaced.
