@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -5,6 +6,7 @@ import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 import { Play, ExternalLink } from "lucide-react";
 import { Mermaid } from "@/components/Mermaid";
+import { normalizeNotation } from "@/lib/notation";
 import { cn } from "@/lib/utils";
 
 /**
