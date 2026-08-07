@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const OFFICIAL_ADMIN_EMAIL = "admin@omicron-ug.com";
+const OFFICIAL_ADMIN_EMAIL = "admin@crane5.com";
 
 /**
  * Makes sure a signed-in account has a profile row and at least the student
