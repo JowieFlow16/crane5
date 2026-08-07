@@ -67,9 +67,15 @@ function RevisionPage() {
         <div className="space-y-1.5 sm:w-44">
           <Label>Subject</Label>
           <Select value={subject} onValueChange={setSubject}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
-              {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              {SUBJECTS.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -105,11 +111,7 @@ function RevisionPage() {
       )}
 
       {data && (
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-6"
-        >
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mt-6">
           <div className="rounded-2xl border border-border bg-gradient-primary p-5 text-primary-foreground shadow-card">
             <div className="flex items-center gap-2 text-sm font-semibold">
               <FileText className="h-4 w-4" /> Summary
@@ -129,7 +131,10 @@ function RevisionPage() {
 
             <TabsContent value="notes" className="mt-4 space-y-3">
               {data.notes.map((n, i) => (
-                <div key={i} className="rounded-xl border border-border bg-card p-4 text-sm shadow-card">
+                <div
+                  key={i}
+                  className="rounded-xl border border-border bg-card p-4 text-sm shadow-card"
+                >
                   <Markdown>{n}</Markdown>
                 </div>
               ))}
@@ -137,7 +142,10 @@ function RevisionPage() {
 
             <TabsContent value="concepts" className="mt-4 space-y-2">
               {data.keyConcepts.map((c, i) => (
-                <div key={i} className="flex gap-3 rounded-xl border border-border bg-card p-4 text-sm shadow-card">
+                <div
+                  key={i}
+                  className="flex gap-3 rounded-xl border border-border bg-card p-4 text-sm shadow-card"
+                >
                   <KeyRound className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
                   <div className="min-w-0 flex-1">
                     <Markdown>{c}</Markdown>
@@ -148,7 +156,10 @@ function RevisionPage() {
 
             <TabsContent value="questions" className="mt-4 space-y-2">
               {data.likelyQuestions.map((q, i) => (
-                <div key={i} className="flex gap-3 rounded-xl border border-border bg-card p-4 text-sm shadow-card">
+                <div
+                  key={i}
+                  className="flex gap-3 rounded-xl border border-border bg-card p-4 text-sm shadow-card"
+                >
                   <HelpCircle className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                   <div className="min-w-0 flex-1">
                     <Markdown>{q}</Markdown>
@@ -160,7 +171,10 @@ function RevisionPage() {
             <TabsContent value="references" className="mt-4 space-y-2">
               {data.references && data.references.length > 0 ? (
                 data.references.map((r, i) => (
-                  <div key={i} className="flex gap-3 rounded-xl border border-border bg-card p-4 text-sm shadow-card">
+                  <div
+                    key={i}
+                    className="flex gap-3 rounded-xl border border-border bg-card p-4 text-sm shadow-card"
+                  >
                     <Link2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
                     <div className="min-w-0 flex-1">
                       <Markdown>{r}</Markdown>
@@ -177,6 +191,5 @@ function RevisionPage() {
         </motion.div>
       )}
     </div>
-    
   );
 }

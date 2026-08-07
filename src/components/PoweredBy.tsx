@@ -14,10 +14,7 @@ export function PoweredByAltrastate({
 }) {
   return (
     <span
-      className={cn(
-        "inline-flex items-center gap-1.5 text-xs text-muted-foreground",
-        className,
-      )}
+      className={cn("inline-flex items-center gap-1.5 text-xs text-muted-foreground", className)}
     >
       <span>Powered by</span>
       <img

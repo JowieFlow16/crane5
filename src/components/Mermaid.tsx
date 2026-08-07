@@ -67,7 +67,6 @@ export function Mermaid({ chart }: { chart: string }) {
   return (
     <div
       className="mermaid-diagram my-3 flex justify-center overflow-x-auto rounded-xl border border-border bg-card p-3"
-      // eslint-disable-next-line react/no-danger
       dangerouslySetInnerHTML={{ __html: svg }}
     />
   );

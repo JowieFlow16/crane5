@@ -81,14 +81,14 @@ function SettingsPage() {
       if (!url) throw new Error("no url");
       const { error: profErr } = await supabase
         .from("profiles")
-        .upsert({ id: user.id, email: profile?.email ?? user.email ?? null, avatar_url: url } as never, {
-          onConflict: "id",
-        });
+        .upsert(
+          { id: user.id, email: profile?.email ?? user.email ?? null, avatar_url: url } as never,
+          {
+            onConflict: "id",
+          },
+        );
       if (profErr) throw profErr;
-      await supabase
-        .from("leaderboard")
-        .update({ avatar_url: url })
-        .eq("user_id", user.id);
+      await supabase.from("leaderboard").update({ avatar_url: url }).eq("user_id", user.id);
       await refreshProfile();
       toast.success("Profile picture updated! 📸");
     } catch (err) {
@@ -179,7 +179,11 @@ function SettingsPage() {
               className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md transition-transform hover:scale-105"
               aria-label="Change picture"
             >
-              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+              {uploading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Camera className="h-4 w-4" />
+              )}
             </button>
             <input
               ref={fileRef}
@@ -208,15 +212,25 @@ function SettingsPage() {
             <div className="space-y-1.5">
               <Label>Class</Label>
               <Select value={classLevel} onValueChange={setClassLevel}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  {CLASSES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  {CLASSES.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
               <Label>School</Label>
-              <Input value={school} onChange={(e) => setSchool(e.target.value)} placeholder="e.g. Kampala SS" />
+              <Input
+                value={school}
+                onChange={(e) => setSchool(e.target.value)}
+                placeholder="e.g. Kampala SS"
+              />
             </div>
           </div>
           <div className="space-y-1.5">
@@ -287,8 +301,11 @@ function SettingsPage() {
 
       <AiUsageCard className="mt-5" />
 
-
-      <Button onClick={handleSignOut} variant="outline" className="mt-5 w-full text-destructive hover:bg-destructive/10">
+      <Button
+        onClick={handleSignOut}
+        variant="outline"
+        className="mt-5 w-full text-destructive hover:bg-destructive/10"
+      >
         <LogOut className="h-4 w-4" /> Sign out
       </Button>
     </div>

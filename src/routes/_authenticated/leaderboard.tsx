@@ -85,7 +85,8 @@ function LeaderboardPage() {
                     {r.full_name ?? "Student"} {me && <span className="text-primary">(You)</span>}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Level {r.level}{r.class_level ? ` · ${r.class_level}` : ""}
+                    Level {r.level}
+                    {r.class_level ? ` · ${r.class_level}` : ""}
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-3 text-sm">

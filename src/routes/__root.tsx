@@ -97,11 +97,31 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Crane5AI" },
       { name: "twitter:title", content: "Crane5 AI — AI Tutor for Ugandan NCDC Students" },
-      { name: "description", content: "Crane5 AI Tutor is an AI-powered platform providing personalized tutoring and educational resources for Ugandan students." },
-      { property: "og:description", content: "Crane5 AI Tutor is an AI-powered platform providing personalized tutoring and educational resources for Ugandan students." },
-      { name: "twitter:description", content: "Crane5 AI Tutor is an AI-powered platform providing personalized tutoring and educational resources for Ugandan students." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/YpxJWwFZeNUa4YMQhjdwGF4LGQY2/social-images/social-1781971103767-banner.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/YpxJWwFZeNUa4YMQhjdwGF4LGQY2/social-images/social-1781971103767-banner.webp" },
+      {
+        name: "description",
+        content:
+          "Crane5 AI Tutor is an AI-powered platform providing personalized tutoring and educational resources for Ugandan students.",
+      },
+      {
+        property: "og:description",
+        content:
+          "Crane5 AI Tutor is an AI-powered platform providing personalized tutoring and educational resources for Ugandan students.",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "Crane5 AI Tutor is an AI-powered platform providing personalized tutoring and educational resources for Ugandan students.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/YpxJWwFZeNUa4YMQhjdwGF4LGQY2/social-images/social-1781971103767-banner.webp",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/YpxJWwFZeNUa4YMQhjdwGF4LGQY2/social-images/social-1781971103767-banner.webp",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

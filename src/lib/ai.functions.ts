@@ -57,7 +57,6 @@ export const chatTutor = createServerFn({ method: "POST" })
         charsPerDoc: 2500,
       });
 
-
       const hasAttachments = (data.attachments?.length ?? 0) > 0;
       const system =
         NCDC_PERSONA +
@@ -114,7 +113,6 @@ export const chatTutor = createServerFn({ method: "POST" })
           usedSources: [],
         };
       }
-
     });
   });
 
@@ -158,7 +156,6 @@ export const generateQuiz = createServerFn({ method: "POST" })
         charsPerDoc: 2000,
       });
 
-
       const typeInstruction =
         data.quizType === "MCQ"
           ? 'All questions must be "mcq" with 4 plausible options.'
@@ -199,7 +196,6 @@ export const generateQuiz = createServerFn({ method: "POST" })
     });
   });
 
-
 // ---- Revision generator ----
 export const generateRevision = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -223,7 +219,6 @@ export const generateRevision = createServerFn({ method: "POST" })
         limit: 3,
         charsPerDoc: 2200,
       });
-
 
       const raw = await callAI({
         json: true,
@@ -331,9 +326,7 @@ export const generateImage = createServerFn({ method: "POST" })
 // ============================================================================
 export const getOrCreateConversation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ otherUserId: z.string().uuid() }).parse(input),
-  )
+  .inputValidator((input: unknown) => z.object({ otherUserId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const me = context.userId as string;
     const other = data.otherUserId;
@@ -558,5 +551,3 @@ export const classInsights = createServerFn({ method: "POST" })
       return { content };
     });
   });
-
-

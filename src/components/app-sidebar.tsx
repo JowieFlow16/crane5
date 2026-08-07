@@ -134,7 +134,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-
         {isAdmin && (
           <SidebarGroup>
             <SidebarGroupLabel>Manage</SidebarGroupLabel>

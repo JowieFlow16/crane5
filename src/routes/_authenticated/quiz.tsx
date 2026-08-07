@@ -2,14 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import {
-  Loader2,
-  CheckCircle2,
-  XCircle,
-  Trophy,
-  RotateCcw,
-  Sparkles,
-} from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, Trophy, RotateCcw, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { generateQuiz, type QuizQuestion } from "@/lib/ai.functions";
@@ -39,7 +32,10 @@ const TYPES = ["MCQ", "Short Answer", "Mixed"] as const;
 type Stage = "setup" | "taking" | "results";
 
 function normalize(s: string) {
-  return s.toLowerCase().replace(/[^a-z0-9 ]/g, "").trim();
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, "")
+    .trim();
 }
 
 function isCorrect(q: QuizQuestion, given: string) {
@@ -150,9 +146,15 @@ function QuizPage() {
                 <div className="space-y-1.5">
                   <Label>Subject</Label>
                   <Select value={subject} onValueChange={setSubject}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
-                      {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      {SUBJECTS.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {s}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -166,19 +168,34 @@ function QuizPage() {
                 </div>
                 <div className="space-y-1.5">
                   <Label>Difficulty</Label>
-                  <Select value={difficulty} onValueChange={(v) => setDifficulty(v as typeof difficulty)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                  <Select
+                    value={difficulty}
+                    onValueChange={(v) => setDifficulty(v as typeof difficulty)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
-                      {DIFFICULTIES.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                      {DIFFICULTIES.map((d) => (
+                        <SelectItem key={d} value={d}>
+                          {d}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-1.5">
                   <Label>Type</Label>
                   <Select value={quizType} onValueChange={(v) => setQuizType(v as typeof quizType)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
-                      {TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                      {TYPES.map((t) => (
+                        <SelectItem key={t} value={t}>
+                          {t}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -194,8 +211,18 @@ function QuizPage() {
                   />
                 </div>
               </div>
-              <Button onClick={generate} disabled={busy} variant="hero" size="lg" className="w-full">
-                {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5" />}
+              <Button
+                onClick={generate}
+                disabled={busy}
+                variant="hero"
+                size="lg"
+                className="w-full"
+              >
+                {busy ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Sparkles className="h-5 w-5" />
+                )}
                 {busy ? "Generating…" : "Generate quiz"}
               </Button>
             </div>
@@ -273,11 +300,7 @@ function QuizPage() {
         )}
 
         {stage === "results" && (
-          <motion.div
-            key="results"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
+          <motion.div key="results" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -325,9 +348,7 @@ function QuizPage() {
                         <Markdown>{q.explanation}</Markdown>
                       </div>
                       {q.competency && (
-                        <p className="text-xs text-muted-foreground">
-                          🎯 {q.competency}
-                        </p>
+                        <p className="text-xs text-muted-foreground">🎯 {q.competency}</p>
                       )}
                     </div>
                   </div>

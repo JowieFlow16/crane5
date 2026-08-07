@@ -26,10 +26,7 @@ export function Slideshow({
   const [paused, setPaused] = useState(false);
   const count = slides.length;
 
-  const go = useCallback(
-    (dir: number) => setIndex((i) => (i + dir + count) % count),
-    [count],
-  );
+  const go = useCallback((dir: number) => setIndex((i) => (i + dir + count) % count), [count]);
 
   useEffect(() => {
     if (!autoPlay || paused || count <= 1) return;

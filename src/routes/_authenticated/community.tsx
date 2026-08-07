@@ -40,10 +40,30 @@ export const Route = createFileRoute("/_authenticated/community")({
 });
 
 const KINDS: { value: PostKind; label: string; emoji: string; ring: string }[] = [
-  { value: "update", label: "Update", emoji: "💬", ring: "border-primary/40 bg-primary/10 text-primary" },
-  { value: "progress", label: "Progress", emoji: "📈", ring: "border-success/40 bg-success/10 text-success" },
-  { value: "win", label: "Win", emoji: "🏆", ring: "border-amber-500/40 bg-amber-500/10 text-amber-600" },
-  { value: "question", label: "Question", emoji: "❓", ring: "border-blue-500/40 bg-blue-500/10 text-blue-600" },
+  {
+    value: "update",
+    label: "Update",
+    emoji: "💬",
+    ring: "border-primary/40 bg-primary/10 text-primary",
+  },
+  {
+    value: "progress",
+    label: "Progress",
+    emoji: "📈",
+    ring: "border-success/40 bg-success/10 text-success",
+  },
+  {
+    value: "win",
+    label: "Win",
+    emoji: "🏆",
+    ring: "border-amber-500/40 bg-amber-500/10 text-amber-600",
+  },
+  {
+    value: "question",
+    label: "Question",
+    emoji: "❓",
+    ring: "border-blue-500/40 bg-blue-500/10 text-blue-600",
+  },
 ];
 
 function kindMeta(k: PostKind) {
@@ -67,7 +87,15 @@ function initials(name: string | null | undefined) {
   return (name ?? "S").charAt(0).toUpperCase();
 }
 
-function Avatar({ url, name, size = 40 }: { url?: string | null; name?: string | null; size?: number }) {
+function Avatar({
+  url,
+  name,
+  size = 40,
+}: {
+  url?: string | null;
+  name?: string | null;
+  size?: number;
+}) {
   return url ? (
     <img
       src={url}
@@ -113,11 +141,17 @@ function CommunityPage() {
       .on("postgres_changes", { event: "*", schema: "public", table: "post_likes" }, () =>
         qc.invalidateQueries({ queryKey: ["community-feed"] }),
       )
-      .on("postgres_changes", { event: "*", schema: "public", table: "post_comments" }, (payload) => {
-        qc.invalidateQueries({ queryKey: ["community-feed"] });
-        const pid = (payload.new as { post_id?: string })?.post_id ?? (payload.old as { post_id?: string })?.post_id;
-        if (pid) qc.invalidateQueries({ queryKey: ["comments", pid] });
-      })
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "post_comments" },
+        (payload) => {
+          qc.invalidateQueries({ queryKey: ["community-feed"] });
+          const pid =
+            (payload.new as { post_id?: string })?.post_id ??
+            (payload.old as { post_id?: string })?.post_id;
+          if (pid) qc.invalidateQueries({ queryKey: ["comments", pid] });
+        },
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -254,7 +288,11 @@ function Composer({
 
           {image && (
             <div className="relative mt-3 w-fit">
-              <img src={image} alt="attachment" className="max-h-56 rounded-xl border border-border" />
+              <img
+                src={image}
+                alt="attachment"
+                className="max-h-56 rounded-xl border border-border"
+              />
               <button
                 onClick={() => setImage(null)}
                 className="absolute right-2 top-2 rounded-full bg-background/80 p-1 shadow"
@@ -292,7 +330,11 @@ function Composer({
               disabled={imaging}
               className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/70 disabled:opacity-60"
             >
-              {imaging ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImagePlus className="h-3.5 w-3.5 text-primary" />}
+              {imaging ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <ImagePlus className="h-3.5 w-3.5 text-primary" />
+              )}
               AI image
             </button>
             <button
@@ -300,7 +342,11 @@ function Composer({
               disabled={posting || !content.trim()}
               className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-gradient-primary px-4 py-1.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
             >
-              {posting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              {posting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
               Post
             </button>
           </div>
@@ -348,7 +394,9 @@ function PostCard({
   };
 
   const remove = async () => {
-    qc.setQueryData<Post[]>(["community-feed"], (old) => (old ?? []).filter((p) => p.id !== post.id));
+    qc.setQueryData<Post[]>(["community-feed"], (old) =>
+      (old ?? []).filter((p) => p.id !== post.id),
+    );
     await db.from("posts").delete().eq("id", post.id);
     toast.success("Post deleted");
   };

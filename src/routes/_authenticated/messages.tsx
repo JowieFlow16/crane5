@@ -16,12 +16,7 @@ import {
 import { toast } from "sonner";
 import { aiErrorMessage } from "@/lib/ai-errors";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  db,
-  otherParty,
-  type Conversation,
-  type DirectMessage,
-} from "@/lib/db";
+import { db, otherParty, type Conversation, type DirectMessage } from "@/lib/db";
 import { useAuth } from "@/lib/auth";
 import { draftReply } from "@/lib/ai.functions";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,9 +41,22 @@ function timeAgo(iso: string) {
   return new Date(iso).toLocaleDateString();
 }
 
-function Avatar({ url, name, size = 44 }: { url?: string | null; name?: string | null; size?: number }) {
+function Avatar({
+  url,
+  name,
+  size = 44,
+}: {
+  url?: string | null;
+  name?: string | null;
+  size?: number;
+}) {
   return url ? (
-    <img src={url} alt="" style={{ width: size, height: size }} className="shrink-0 rounded-full object-cover" />
+    <img
+      src={url}
+      alt=""
+      style={{ width: size, height: size }}
+      className="shrink-0 rounded-full object-cover"
+    />
   ) : (
     <div
       style={{ width: size, height: size }}
@@ -86,13 +94,17 @@ function MessagesPage() {
       .on("postgres_changes", { event: "*", schema: "public", table: "conversations" }, () =>
         qc.invalidateQueries({ queryKey: ["conversations", user.id] }),
       )
-      .on("postgres_changes", { event: "*", schema: "public", table: "direct_messages" }, (payload) => {
-        const cid =
-          (payload.new as { conversation_id?: string })?.conversation_id ??
-          (payload.old as { conversation_id?: string })?.conversation_id;
-        if (cid) qc.invalidateQueries({ queryKey: ["dm-thread", cid] });
-        qc.invalidateQueries({ queryKey: ["conversations", user.id] });
-      })
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "direct_messages" },
+        (payload) => {
+          const cid =
+            (payload.new as { conversation_id?: string })?.conversation_id ??
+            (payload.old as { conversation_id?: string })?.conversation_id;
+          if (cid) qc.invalidateQueries({ queryKey: ["dm-thread", cid] });
+          qc.invalidateQueries({ queryKey: ["conversations", user.id] });
+        },
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -293,7 +305,11 @@ function Thread({
   return (
     <>
       <header className="flex items-center gap-3 border-b border-border bg-card px-4 py-3 sm:rounded-tr-2xl">
-        <button onClick={onBack} className="rounded-md p-1 hover:bg-muted sm:hidden" aria-label="Back">
+        <button
+          onClick={onBack}
+          className="rounded-md p-1 hover:bg-muted sm:hidden"
+          aria-label="Back"
+        >
           <ArrowLeft className="h-5 w-5" />
         </button>
         <Avatar url={other.avatar} name={other.name} size={38} />
@@ -352,7 +368,11 @@ function Thread({
             disabled={drafting}
             className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/20 disabled:opacity-60"
           >
-            {drafting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+            {drafting ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="h-3.5 w-3.5" />
+            )}
             Draft reply with AI
           </button>
         )}

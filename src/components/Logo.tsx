@@ -11,7 +11,6 @@ export function Crane5Mark({ className }: { className?: string }) {
   );
 }
 
-
 export function Logo({
   className,
   showText = true,

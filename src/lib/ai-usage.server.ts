@@ -44,16 +44,16 @@ function friendlyMessage(info: QuotaInfo) {
  * user's own daily allowance is spent. Returns a finish() callback that records
  * whether the request ultimately succeeded.
  */
-export async function reserveAiQuota(
-  userId: string,
-  kind: "request" | "image" = "request",
-) {
+export async function reserveAiQuota(userId: string, kind: "request" | "image" = "request") {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-  const { data, error } = await supabaseAdmin.rpc("consume_ai_quota" as never, {
-    p_user_id: userId,
-    p_kind: kind,
-  } as never);
+  const { data, error } = await supabaseAdmin.rpc(
+    "consume_ai_quota" as never,
+    {
+      p_user_id: userId,
+      p_kind: kind,
+    } as never,
+  );
 
   if (error) {
     // Never hard-fail the product on a metering hiccup.
@@ -69,10 +69,13 @@ export async function reserveAiQuota(
   return {
     info,
     finish: async (success: boolean) => {
-      const { error: e } = await supabaseAdmin.rpc("record_ai_result" as never, {
-        p_user_id: userId,
-        p_success: success,
-      } as never);
+      const { error: e } = await supabaseAdmin.rpc(
+        "record_ai_result" as never,
+        {
+          p_user_id: userId,
+          p_success: success,
+        } as never,
+      );
       if (e) console.error("[ai-usage] record_ai_result failed:", e.message);
     },
   };
@@ -97,9 +100,12 @@ export async function withAiQuota<T>(
 
 export async function getAiUsageSnapshot(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin.rpc("ai_usage_snapshot" as never, {
-    p_user_id: userId,
-  } as never);
+  const { data, error } = await supabaseAdmin.rpc(
+    "ai_usage_snapshot" as never,
+    {
+      p_user_id: userId,
+    } as never,
+  );
   if (error) throw new Error(error.message);
   return data as unknown as {
     plan: string;

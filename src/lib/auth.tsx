@@ -1,14 +1,7 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { provisionAccount } from "@/lib/account.functions";
-
 
 export type AppRole = "student" | "teacher" | "parent" | "admin";
 
@@ -23,7 +16,6 @@ export interface Profile {
   learning_goal: string | null;
   favorite_subjects: string[] | null;
 }
-
 
 interface AuthContextValue {
   user: User | null;
@@ -60,7 +52,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       supabase.from("user_roles").select("role").eq("user_id", uid),
     ]);
 
-
     let resolved = (prof as Profile | null) ?? null;
 
     // Self-heal: some accounts have no profile row yet (e.g. created before the
@@ -89,7 +80,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setRoles(((roleRows ?? []) as { role: AppRole }[]).map((r) => r.role));
   };
-
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {

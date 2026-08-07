@@ -106,15 +106,26 @@ function PlannerPage() {
           <div className="space-y-1.5">
             <Label>Subject</Label>
             <Select value={subject} onValueChange={setSubject}>
-              <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-36">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                {SUBJECTS.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
             <Label>Due</Label>
-            <Input type="date" value={due} onChange={(e) => setDue(e.target.value)} className="w-40" />
+            <Input
+              type="date"
+              value={due}
+              onChange={(e) => setDue(e.target.value)}
+              className="w-40"
+            />
           </div>
         </div>
         <Button onClick={add} variant="hero" className="w-full sm:w-auto">
@@ -177,7 +188,8 @@ function TaskRow({
           {t.title}
         </p>
         <p className="text-xs text-muted-foreground">
-          {t.subject}{t.due_date ? ` · due ${t.due_date}` : ""}
+          {t.subject}
+          {t.due_date ? ` · due ${t.due_date}` : ""}
         </p>
       </div>
       <button
