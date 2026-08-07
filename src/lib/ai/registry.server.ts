@@ -268,7 +268,6 @@ const DEFAULT_PREFERENCES: Partial<Record<Capability, string[]>> = {
   embedding: ["lovable", "openrouter", "aimlapi"],
 };
 
-
 export interface GatewayConfig {
   priority: string[];
   disabled: string[];

@@ -13,7 +13,6 @@ export const getGatewayStats = createServerFn({ method: "GET" })
       .limit(1);
     if (!roles || roles.length === 0) throw new Error("Forbidden");
 
-
     const { buildGatewayStats } = await import("./ai/analytics.server");
     return buildGatewayStats();
   });
