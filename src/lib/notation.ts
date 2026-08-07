@@ -67,16 +67,16 @@ function fixMath(math: string): string {
 /** Subscript chemical formulas: H2O → H₂O, CO2 → CO₂, Ca(OH)2 → Ca(OH)₂. */
 function subscriptChemistry(text: string): string {
   return text.replace(
-    /\b((?:[A-Z][a-z]?\d*|\((?:[A-Z][a-z]?\d*)+\))+)\b/g,
-    (match: string): string => {
+    /\b(\d*)((?:[A-Z][a-z]?\d*|\((?:[A-Z][a-z]?\d*)+\))+)\b/g,
+    (_full: string, coefficient: string, match: string): string => {
+      const keep = (value: string) => `${coefficient}${value}`;
       // Only touch things that look like a formula: has a digit and >1 element
       // or a bracket group, and is not an ordinary word or a unit.
-      if (!/\d/.test(match)) return match;
+      if (!/\d/.test(match)) return keep(match);
       if (/^[A-Z][a-z]?\d+$/.test(match) && !/^(H|O|N|C|S|P|Cl|Br|I|F)\d+$/.test(match)) {
-        return match;
+        return keep(match);
       }
-      if (/^\d/.test(match)) return match;
-      return match.replace(/\d/g, (d) => SUB_DIGITS[Number(d)]);
+      return keep(match.replace(/\d/g, (d) => SUB_DIGITS[Number(d)]));
     },
   );
 }
@@ -89,6 +89,9 @@ function fixProse(text: string): string {
   // or a bullet, so "2 * 3" → "2 × 3" but "**bold**" and "* item" survive.
   out = out.replace(/(?<=\d)\s*\*\s*(?=\d)/g, " × ");
   out = out.replace(/(?<=\d)\s*x\s*(?=\d)/g, " × ");
+  // Single-letter variables: F = m*a → F = m × a
+  out = out.replace(/(?<=\b[A-Za-z])\s*\*\s*(?=[A-Za-z]\b)/g, " × ");
+  out = out.replace(/\bsqrt\s*\(([^()]*)\)/g, "√($1)").replace(/√\((\d+(?:\.\d+)?)\)/g, "√$1");
   out = out.replace(/(?<=\d)\s*\*\s*10\^(-?\d+)/g, (_m, e: string) => ` × 10${toSup(e)}`);
 
   // Division and comparison
