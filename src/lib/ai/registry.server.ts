@@ -61,7 +61,7 @@ export const PROVIDERS: ProviderDef[] = [
     headers: OPENAI_STYLE_HEADERS(),
     imageApi: "chat",
     models: {
-      text: ["google/gemma-4-31b-it:free", "openai/gpt-oss-20b:free"],
+      text: ["openai/gpt-oss-20b:free", "google/gemma-4-31b-it:free"],
 
       code: ["openai/gpt-oss-20b:free", "google/gemma-4-31b-it:free"],
       vision: ["google/gemma-4-31b-it:free"],
