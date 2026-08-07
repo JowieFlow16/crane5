@@ -1,0 +1,23 @@
+INSERT INTO public.subjects (name, slug, icon, color, description) VALUES
+('Mathematics','mathematics','Calculator','primary','Numbers, algebra, geometry, statistics and problem solving.'),
+('Physics','physics','Atom','primary','Motion, forces, energy, electricity, waves and modern physics.'),
+('Chemistry','chemistry','FlaskConical','primary','Matter, reactions, organic and inorganic chemistry.'),
+('Biology','biology','Leaf','primary','Living things, cells, ecology, genetics and human biology.'),
+('English Language','english-language','BookOpen','primary','Grammar, comprehension, composition and communication skills.'),
+('Literature in English','literature-in-english','BookText','primary','Poetry, prose, drama and literary appreciation.'),
+('Geography','geography','Globe','primary','Physical, human and economic geography with map work.'),
+('History & Political Education','history-political-education','Landmark','primary','Uganda, Africa and world history plus civics.'),
+('Christian Religious Education','christian-religious-education','Church','primary','Bible study, Christian values and moral reasoning.'),
+('Islamic Religious Education','islamic-religious-education','Moon','primary','Qur''an, Hadith, Islamic values and practice.'),
+('Kiswahili','kiswahili','Languages','primary','Kiswahili grammar, comprehension and composition.'),
+('Luganda','luganda','Languages','primary','Luganda grammar, comprehension and composition.'),
+('Entrepreneurship','entrepreneurship','Briefcase','primary','Business ideas, records, marketing and enterprise skills.'),
+('Agriculture','agriculture','Sprout','primary','Crop and animal production, soils and farm management.'),
+('Information & Communication Technology','information-communication-technology','Laptop','primary','Computers, software, networks and digital skills.'),
+('Physical Education','physical-education','Dumbbell','primary','Sports, fitness, health and human movement.'),
+('Art & Design','art-design','Palette','primary','Drawing, design, colour and creative expression.'),
+('Performing Arts','performing-arts','Music','primary','Music, dance and drama performance skills.'),
+('Nutrition & Food Technology','nutrition-food-technology','Utensils','primary','Food, nutrients, diet planning and food preparation.'),
+('Technology & Design','technology-design','Wrench','primary','Materials, tools, technical drawing and making.'),
+('General Science','general-science','Atom','primary','Integrated science for lower secondary learners.')
+ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name, icon = EXCLUDED.icon, color = EXCLUDED.color, description = EXCLUDED.description;
