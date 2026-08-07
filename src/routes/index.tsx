@@ -330,10 +330,7 @@ function Landing() {
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="tel:+256765179900"
-                    className="transition-colors hover:text-foreground"
-                  >
+                  <a href="tel:+256765179900" className="transition-colors hover:text-foreground">
                     +256 765 179 900
                   </a>
                 </li>
@@ -341,7 +338,6 @@ function Landing() {
                 <li>Kampala, Uganda</li>
               </ul>
             </div>
-
           </div>
 
           <div className="mt-10 grid gap-4 border-t border-border pt-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
