@@ -270,20 +270,39 @@ function Landing() {
             </div>
 
             <div className="min-w-0">
-              <h3 className="text-sm font-semibold">Company</h3>
+              <h3 className="text-sm font-semibold">Contact Altrastate</h3>
               <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
                 <li>
                   <a
-                    href="mailto:hello@altrastate.com"
+                    href="https://altrastate.com"
+                    target="_blank"
+                    rel="noreferrer noopener"
                     className="break-all transition-colors hover:text-foreground"
                   >
-                    hello@altrastate.com
+                    altrastate.com
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="mailto:altrastate@gmail.com"
+                    className="break-all transition-colors hover:text-foreground"
+                  >
+                    altrastate@gmail.com
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="tel:+256765179900"
+                    className="transition-colors hover:text-foreground"
+                  >
+                    +256 765 179 900
                   </a>
                 </li>
                 <li>Support: Mon–Sat, 8am–8pm EAT</li>
                 <li>Kampala, Uganda</li>
               </ul>
             </div>
+
           </div>
 
           <div className="mt-10 grid gap-4 border-t border-border pt-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
