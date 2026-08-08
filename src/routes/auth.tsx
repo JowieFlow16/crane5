@@ -21,7 +21,15 @@ import { Loader2 } from "lucide-react";
 
 const searchSchema = z.object({
   mode: z.enum(["login", "register", "reset"]).optional(),
+  next: z.string().optional(),
 });
+
+/** Only allow same-origin relative paths as a post-login redirect target. */
+function safeNext(next?: string): string | null {
+  if (!next || !next.startsWith("/") || next.startsWith("//")) return null;
+  return next;
+}
+
 
 export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
