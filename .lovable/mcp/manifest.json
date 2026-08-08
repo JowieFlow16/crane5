@@ -1,0 +1,202 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.1",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://bpxmjioiqsxreuuxnfin.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "crane5",
+      "version": "0.1.0",
+      "title": "Crane5"
+    },
+    "tools": [
+      {
+        "name": "list_subjects",
+        "title": "List subjects and topics",
+        "description": "List the NCDC subjects available in Crane5, optionally with their topics for a class level.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "includeTopics": {
+              "description": "Include the topics for each subject.",
+              "type": "boolean"
+            },
+            "classLevel": {
+              "description": "Filter topics by class level, e.g. S1, S2, S3, S4, S5, S6.",
+              "type": "string"
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_my_progress",
+        "title": "Get my learning progress",
+        "description": "Get the signed-in learner's XP, level, streaks, per-subject mastery and recent quiz scores.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_study_tasks",
+        "title": "List study tasks",
+        "description": "List the signed-in learner's study planner tasks.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "includeDone": {
+              "description": "Include tasks already marked done.",
+              "type": "boolean"
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_study_task",
+        "title": "Create a study task",
+        "description": "Add a task to the signed-in learner's Crane5 study planner.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "description": "What the learner should study."
+            },
+            "subject": {
+              "description": "Subject name, e.g. Physics.",
+              "type": "string"
+            },
+            "dueDate": {
+              "description": "Due date as YYYY-MM-DD.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "title"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "complete_study_task",
+        "title": "Complete a study task",
+        "description": "Mark one of the signed-in learner's study planner tasks as done (or not done).",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "taskId": {
+              "type": "string",
+              "description": "The id of the study task."
+            },
+            "done": {
+              "description": "Set false to reopen the task. Defaults to true.",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "taskId"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_saved_notes",
+        "title": "List saved notes",
+        "description": "List the signed-in learner's saved Crane5 notes and bookmarks, newest first, optionally filtered by subject.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "subject": {
+              "description": "Filter by subject name.",
+              "type": "string"
+            },
+            "limit": {
+              "description": "How many notes to return (default 20, max 100).",
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "save_note",
+        "title": "Save a note",
+        "description": "Save a study note to the signed-in learner's Crane5 saved items.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "title": {
+              "description": "Short title for the note.",
+              "type": "string"
+            },
+            "content": {
+              "type": "string",
+              "description": "The note body, markdown allowed."
+            },
+            "subject": {
+              "description": "Subject name, e.g. Biology.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "content"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
