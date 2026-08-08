@@ -57,10 +57,22 @@ function AuthPage() {
   const [fullName, setFullName] = useState("");
   const [classLevel, setClassLevel] = useState("S4");
   const [busy, setBusy] = useState(false);
+  const next = safeNext(search.next);
+
+  const goAfterAuth = () => {
+    if (next) {
+      window.location.href = next;
+      return;
+    }
+    navigate({ to: "/dashboard" });
+  };
 
   useEffect(() => {
-    if (!loading && user) navigate({ to: "/dashboard" });
-  }, [user, loading, navigate]);
+    if (!loading && user) {
+      if (next) window.location.href = next;
+      else navigate({ to: "/dashboard" });
+    }
+  }, [user, loading, navigate, next]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,12 +82,15 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Welcome back!");
-        navigate({ to: "/dashboard" });
+        goAfterAuth();
       } else if (mode === "register") {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { full_name: fullName, class_level: classLevel } },
+          options: {
+            data: { full_name: fullName, class_level: classLevel },
+            emailRedirectTo: window.location.origin + (next ?? "/dashboard"),
+          },
         });
         if (error) throw error;
         // No email verification — sign the new learner straight in.
@@ -85,7 +100,8 @@ function AuthPage() {
         });
         if (signInError) throw signInError;
         toast.success("Welcome to Crane5 AI!");
-        navigate({ to: "/dashboard" });
+        goAfterAuth();
+
       } else {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: window.location.origin + "/reset-password",
