@@ -132,6 +132,51 @@ function LeaderboardPage() {
         </Button>
       </div>
 
+      {/* Rules & credit maths */}
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
+          <div className="flex items-center gap-2">
+            <ListChecks className="h-4 w-4 text-primary" />
+            <h2 className="font-display text-sm font-bold">How ranking works</h2>
+          </div>
+          <ul className="mt-2 space-y-1.5 text-xs text-muted-foreground">
+            <li>• Ranked by total XP — highest first.</li>
+            <li>• Ties break on longest current streak, then who reached it first.</li>
+            <li>• Earn XP from tutor sessions, quizzes, flashcards and tournaments.</li>
+            <li>• Only the top 10 students are shown; the board updates as you study.</li>
+            <li>• Every 500 XP raises your level.</li>
+          </ul>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
+          <div className="flex items-center gap-2">
+            <Calculator className="h-4 w-4 text-primary" />
+            <h2 className="font-display text-sm font-bold">How daily credits are calculated</h2>
+          </div>
+          <ul className="mt-2 space-y-1.5 text-xs text-muted-foreground">
+            <li>
+              • <span className="text-foreground">Base allowance</span> — your plan's daily
+              requests, reset every midnight (Kampala time).
+            </li>
+            <li>
+              • <span className="text-foreground">+10 credits</span> — collected once a day while
+              you sit in the top 5.
+            </li>
+            <li>
+              • <span className="text-foreground">+5 credits</span> — for every 3 friends you share
+              Crane5 with, repeatable each day.
+            </li>
+            <li>
+              • <span className="text-foreground">Tournament prizes</span> — winners are paid once
+              per tournament when it closes.
+            </li>
+            <li>
+              • Total for today = base + top-5 bonus + share bonuses + prizes. Unused credits do not
+              roll over.
+            </li>
+          </ul>
+        </div>
+      </div>
+
       {/* Podium */}
       {list.length >= 3 && (
         <div className="mt-6 grid grid-cols-3 items-end gap-3">
