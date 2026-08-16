@@ -34,6 +34,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { TournamentPromo } from "@/components/TournamentPromo";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard · Crane5 AI" }] }),
@@ -108,6 +109,7 @@ function Dashboard() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+      <TournamentPromo className="mb-5" />
       {/* Welcome */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
