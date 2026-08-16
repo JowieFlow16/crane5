@@ -301,10 +301,34 @@ export async function execute<T>(opts: ExecuteOptions<T>): Promise<T> {
             metrics.succeeded += 1;
             metrics.totalLatencyMs += Date.now() - startedAll;
             metrics.lastProvider = p.id;
-            log("resolved", { capability, provider: p.id, model, keyIndex, latency, attempts });
-            opts.onResolved?.(data, { provider: p.id, model, latencyMs: latency });
-            if (opts.cacheKey) cacheSet(opts.cacheKey, value);
+            log("resolved", {
+              capability,
+              correlationId,
+              provider: p.id,
+              model,
+              keyIndex,
+              latency,
+              queueMs,
+              attempts,
+            });
+            opts.onResolved?.(data, {
+              provider: p.id,
+              model,
+              latencyMs: latency,
+              queueMs,
+              retries: Math.max(0, attempts - 1),
+              correlationId,
+              cacheHit: false,
+            });
+            if (opts.cacheKey) {
+              cacheSet(opts.cacheKey, value);
+              durableCacheSet(opts.cacheKey, value, getGatewayConfig().cacheTtlMs, {
+                capability,
+                ...(opts.cacheMeta ?? {}),
+              });
+            }
             return value;
+
           } catch (err) {
             const reason = err instanceof Error ? err.message : String(err);
             const kind = keyFailureKind(err);
