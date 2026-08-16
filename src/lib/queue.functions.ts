@@ -47,7 +47,7 @@ export const getAiJob = createServerFn({ method: "POST" })
       kind: job.kind,
       status: job.status,
       attempts: job.attempts,
-      result: job.result,
+      result: (job.result ?? null) as Record<string, string> | null,
       errorMessage: job.errorMessage,
     };
   });
