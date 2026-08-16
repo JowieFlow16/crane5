@@ -217,6 +217,7 @@ function MessagesPage() {
           <Thread
             conversation={active}
             myId={user.id}
+            blocked={blockedIds.has(otherParty(active, user.id).id)}
             onBack={() => navigate({ search: {} })}
           />
         ) : (
