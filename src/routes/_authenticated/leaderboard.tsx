@@ -2,7 +2,17 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion } from "motion/react";
-import { Trophy, Flame, Crown, Medal, Gift, Sparkles, Loader2 } from "lucide-react";
+import {
+  Trophy,
+  Flame,
+  Crown,
+  Medal,
+  Gift,
+  Sparkles,
+  Loader2,
+  ListChecks,
+  Calculator,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
