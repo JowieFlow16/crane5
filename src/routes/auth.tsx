@@ -17,7 +17,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft, ArrowRight, Check, School, BookOpen, Compass } from "lucide-react";
+import { SUBJECTS } from "@/lib/subjects";
+import { cn } from "@/lib/utils";
 
 const searchSchema = z.object({
   mode: z.enum(["login", "register", "reset"]).optional(),
@@ -47,6 +49,18 @@ export const Route = createFileRoute("/auth")({
 
 const CLASS_LEVELS = ["S1", "S2", "S3", "S4", "S5", "S6"];
 
+const HEARD_OPTIONS = [
+  { value: "ai", label: "From an AI assistant" },
+  { value: "google", label: "Google / search" },
+  { value: "friend", label: "A friend" },
+  { value: "teacher", label: "My teacher" },
+  { value: "school", label: "My school" },
+  { value: "social", label: "Social media" },
+  { value: "other", label: "Somewhere else" },
+];
+
+const STEP_LABELS = ["Your details", "Your school", "Your subjects", "How you found us"];
+
 function AuthPage() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
@@ -56,6 +70,10 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [classLevel, setClassLevel] = useState("S4");
+  const [school, setSchool] = useState("");
+  const [subjects, setSubjects] = useState<string[]>([]);
+  const [heard, setHeard] = useState("");
+  const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
   const next = safeNext(search.next);
 
@@ -88,7 +106,13 @@ function AuthPage() {
           email,
           password,
           options: {
-            data: { full_name: fullName, class_level: classLevel },
+            data: {
+              full_name: fullName,
+              class_level: classLevel,
+              school,
+              favorite_subjects: subjects,
+              referral_source: heard,
+            },
             emailRedirectTo: window.location.origin + (next ?? "/dashboard"),
           },
         });
@@ -99,6 +123,24 @@ function AuthPage() {
           password,
         });
         if (signInError) throw signInError;
+
+        // Persist the onboarding answers on the learner's profile.
+        const { data: authed } = await supabase.auth.getUser();
+        if (authed.user) {
+          await supabase.from("profiles").upsert(
+            {
+              id: authed.user.id,
+              email: authed.user.email ?? email,
+              full_name: fullName,
+              class_level: classLevel as never,
+              school: school.trim() || null,
+              favorite_subjects: subjects,
+              referral_source: heard || null,
+              onboarded: true,
+            } as never,
+            { onConflict: "id" },
+          );
+        }
         toast.success("Welcome to Crane5 AI!");
         goAfterAuth();
 
