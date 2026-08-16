@@ -332,9 +332,44 @@ function Thread({
           <div className="flex items-center gap-1.5">
             <p className="truncate font-medium">{other.name}</p>
           </div>
-          <p className="text-xs text-muted-foreground">Student</p>
+          <p className="text-xs text-muted-foreground">{blocked ? "Blocked" : "Student"}</p>
         </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className="ml-auto rounded-md p-1.5 hover:bg-muted"
+            aria-label="Conversation options"
+          >
+            <MoreVertical className="h-5 w-5" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={toggleBlock} disabled={working}>
+              {blocked ? (
+                <>
+                  <ShieldCheck className="mr-2 h-4 w-4" /> Unblock {other.name}
+                </>
+              ) : (
+                <>
+                  <Ban className="mr-2 h-4 w-4" /> Block {other.name}
+                </>
+              )}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setReportOpen(true)} className="text-destructive">
+              <Flag className="mr-2 h-4 w-4" /> Report conversation
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </header>
+
+      <ReportDialog
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        targetType="conversation"
+        targetId={conversation.id}
+        reportedUserId={other.id}
+        excerpt={conversation.last_message}
+        subjectName={other.name}
+      />
 
       <div className="flex-1 space-y-2 overflow-y-auto px-4 py-4">
         {(messages ?? []).length === 0 && (
