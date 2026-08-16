@@ -16,7 +16,9 @@ import { db, otherParty, type Conversation, type DirectMessage } from "@/lib/db"
 import { useAuth } from "@/lib/auth";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { FindStudentDialog } from "@/components/FindStudentDialog";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/_authenticated/messages")({
   validateSearch: z.object({ c: z.string().optional() }),
@@ -140,7 +142,11 @@ function MessagesPage() {
               className="pl-9"
             />
           </div>
+          <div className="mt-2">
+            <FindStudentDialog />
+          </div>
         </div>
+
         <div className="flex-1 overflow-y-auto">
           {isLoading ? (
             <div className="flex justify-center py-10 text-muted-foreground">

@@ -8,6 +8,7 @@ import {
   CalendarCheck,
   Bookmark,
   Trophy,
+  Swords,
   Users,
   Settings,
   Shield,
@@ -57,6 +58,7 @@ const growItems = [
   { title: "Earn Credits", url: "/credits", icon: Gift },
   { title: "Library", url: "/saved", icon: Bookmark },
   { title: "Leaderboard", url: "/leaderboard", icon: Trophy },
+  { title: "Tournaments", url: "/tournaments", icon: Swords },
 ];
 
 export function AppSidebar() {

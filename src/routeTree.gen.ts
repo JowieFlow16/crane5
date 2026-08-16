@@ -15,6 +15,7 @@ import { Route as McpRouteImport } from './routes/mcp'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedTournamentsRouteImport } from './routes/_authenticated/tournaments'
 import { Route as AuthenticatedTimetableRouteImport } from './routes/_authenticated/timetable'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedScenariosRouteImport } from './routes/_authenticated/scenarios'
@@ -65,6 +66,12 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedTournamentsRoute =
+  AuthenticatedTournamentsRouteImport.update({
+    id: '/tournaments',
+    path: '/tournaments',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedTimetableRoute = AuthenticatedTimetableRouteImport.update({
   id: '/timetable',
   path: '/timetable',
@@ -193,6 +200,7 @@ export interface FileRoutesByFullPath {
   '/scenarios': typeof AuthenticatedScenariosRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/timetable': typeof AuthenticatedTimetableRoute
+  '/tournaments': typeof AuthenticatedTournamentsRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/queue/drain': typeof ApiPublicQueueDrainRoute
@@ -220,6 +228,7 @@ export interface FileRoutesByTo {
   '/scenarios': typeof AuthenticatedScenariosRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/timetable': typeof AuthenticatedTimetableRoute
+  '/tournaments': typeof AuthenticatedTournamentsRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/queue/drain': typeof ApiPublicQueueDrainRoute
@@ -249,6 +258,7 @@ export interface FileRoutesById {
   '/_authenticated/scenarios': typeof AuthenticatedScenariosRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/timetable': typeof AuthenticatedTimetableRoute
+  '/_authenticated/tournaments': typeof AuthenticatedTournamentsRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/queue/drain': typeof ApiPublicQueueDrainRoute
@@ -278,6 +288,7 @@ export interface FileRouteTypes {
     | '/scenarios'
     | '/settings'
     | '/timetable'
+    | '/tournaments'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/api/public/queue/drain'
@@ -305,6 +316,7 @@ export interface FileRouteTypes {
     | '/scenarios'
     | '/settings'
     | '/timetable'
+    | '/tournaments'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/api/public/queue/drain'
@@ -333,6 +345,7 @@ export interface FileRouteTypes {
     | '/_authenticated/scenarios'
     | '/_authenticated/settings'
     | '/_authenticated/timetable'
+    | '/_authenticated/tournaments'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/api/public/queue/drain'
@@ -395,6 +408,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/tournaments': {
+      id: '/_authenticated/tournaments'
+      path: '/tournaments'
+      fullPath: '/tournaments'
+      preLoaderRoute: typeof AuthenticatedTournamentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/timetable': {
       id: '/_authenticated/timetable'
@@ -555,6 +575,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedScenariosRoute: typeof AuthenticatedScenariosRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTimetableRoute: typeof AuthenticatedTimetableRoute
+  AuthenticatedTournamentsRoute: typeof AuthenticatedTournamentsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -573,6 +594,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedScenariosRoute: AuthenticatedScenariosRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTimetableRoute: AuthenticatedTimetableRoute,
+  AuthenticatedTournamentsRoute: AuthenticatedTournamentsRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

@@ -527,6 +527,36 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_reward_claims: {
+        Row: {
+          amount: number
+          claim_date: string
+          created_at: string
+          id: string
+          kind: string
+          meta: Json
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          claim_date?: string
+          created_at?: string
+          id?: string
+          kind: string
+          meta?: Json
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          claim_date?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          meta?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       direct_messages: {
         Row: {
           content: string
@@ -1334,6 +1364,128 @@ export type Database = {
           },
         ]
       }
+      tournament_entries: {
+        Row: {
+          avatar_url: string | null
+          awarded_credits: number
+          class_level: string | null
+          created_at: string
+          display_name: string | null
+          finished_at: string | null
+          id: string
+          rank: number | null
+          score: number
+          time_ms: number
+          total: number
+          tournament_id: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          awarded_credits?: number
+          class_level?: string | null
+          created_at?: string
+          display_name?: string | null
+          finished_at?: string | null
+          id?: string
+          rank?: number | null
+          score?: number
+          time_ms?: number
+          total?: number
+          tournament_id: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          awarded_credits?: number
+          class_level?: string | null
+          created_at?: string
+          display_name?: string | null
+          finished_at?: string | null
+          id?: string
+          rank?: number | null
+          score?: number
+          time_ms?: number
+          total?: number
+          tournament_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_entries_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tournaments: {
+        Row: {
+          class_level: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          difficulty: string
+          ends_at: string
+          finalized_at: string | null
+          id: string
+          kind: string
+          prize_credits: number
+          prize_xp: number
+          published: boolean
+          questions: Json
+          seconds_per_question: number
+          starts_at: string
+          subject: string | null
+          title: string
+          updated_at: string
+          winners_count: number
+        }
+        Insert: {
+          class_level?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          difficulty?: string
+          ends_at?: string
+          finalized_at?: string | null
+          id?: string
+          kind?: string
+          prize_credits?: number
+          prize_xp?: number
+          published?: boolean
+          questions?: Json
+          seconds_per_question?: number
+          starts_at?: string
+          subject?: string | null
+          title: string
+          updated_at?: string
+          winners_count?: number
+        }
+        Update: {
+          class_level?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          difficulty?: string
+          ends_at?: string
+          finalized_at?: string | null
+          id?: string
+          kind?: string
+          prize_credits?: number
+          prize_xp?: number
+          published?: boolean
+          questions?: Json
+          seconds_per_question?: number
+          starts_at?: string
+          subject?: string | null
+          title?: string
+          updated_at?: string
+          winners_count?: number
+        }
+        Relationships: []
+      }
       user_ai_plans: {
         Row: {
           created_at: string
@@ -1428,6 +1580,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_bonus_requests: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: undefined
+      }
+      add_xp_for: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: undefined
+      }
       ai_cost_overview: { Args: never; Returns: Json }
       ai_effective_limits: {
         Args: { p_user_id: string }
@@ -1459,15 +1619,26 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      claim_top_rank_bonus: { Args: never; Returns: Json }
       consume_ai_quota: {
         Args: { p_kind?: string; p_user_id: string }
         Returns: Json
       }
+      finalize_tournament: { Args: { p_tournament_id: string }; Returns: Json }
       record_ai_result: {
         Args: { p_success: boolean; p_user_id: string }
         Returns: undefined
       }
       record_app_share: { Args: { p_channel?: string }; Returns: Json }
+      submit_tournament_entry: {
+        Args: {
+          p_score: number
+          p_time_ms: number
+          p_total: number
+          p_tournament_id: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "student" | "teacher" | "parent" | "admin"
