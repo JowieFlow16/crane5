@@ -461,6 +461,7 @@ function Thread({
           </button>
         </div>
       </div>
+      )}
     </>
   );
 }
