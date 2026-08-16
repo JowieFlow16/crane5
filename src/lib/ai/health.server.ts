@@ -1,8 +1,18 @@
 // Server-only provider health tracking, gateway metrics, response cache and
-// request queue. State is per server instance (workers are stateless between
-// cold starts) which is exactly what health/cooldown decisions need.
+// request queue.
+//
+// Every worker keeps a fast in-process copy of this state and mirrors it to the
+// durable control plane, so a circuit breaker or parked key learned by one
+// worker is respected by all of them.
 
 import { getGatewayConfig } from "./registry.server";
+import {
+  durableHealth,
+  durableKeys,
+  persistHealth,
+  persistKeyState,
+  refreshControlPlane,
+} from "./control-plane.server";
 
 export interface ProviderHealth {
   id: string;
@@ -21,20 +31,35 @@ const health = new Map<string, ProviderHealth>();
 function ensure(id: string): ProviderHealth {
   let h = health.get(id);
   if (!h) {
+    // Seed from the shared control plane so a fresh worker inherits what the
+    // rest of the fleet already knows about this provider.
+    const shared = durableHealth().find((r) => r.providerId === id);
     h = {
       id,
-      success: 0,
-      failure: 0,
-      consecutiveFailures: 0,
-      avgLatencyMs: 0,
+      success: shared?.success ?? 0,
+      failure: shared?.failure ?? 0,
+      consecutiveFailures: shared?.consecutiveFailures ?? 0,
+      avgLatencyMs: shared?.avgLatencyMs ?? 0,
       lastSuccessAt: null,
       lastFailureAt: null,
-      lastError: null,
-      disabledUntil: null,
+      lastError: shared?.lastError ?? null,
+      disabledUntil: shared?.disabledUntil ?? null,
     };
     health.set(id, h);
   }
   return h;
+}
+
+function share(h: ProviderHealth) {
+  persistHealth({
+    providerId: h.id,
+    success: h.success,
+    failure: h.failure,
+    consecutiveFailures: h.consecutiveFailures,
+    avgLatencyMs: h.avgLatencyMs,
+    disabledUntil: h.disabledUntil,
+    lastError: h.lastError,
+  });
 }
 
 export function recordSuccess(id: string, latencyMs: number) {
@@ -44,6 +69,7 @@ export function recordSuccess(id: string, latencyMs: number) {
   h.disabledUntil = null;
   h.lastSuccessAt = Date.now();
   h.avgLatencyMs = h.avgLatencyMs ? Math.round(h.avgLatencyMs * 0.7 + latencyMs * 0.3) : latencyMs;
+  share(h);
 }
 
 export function recordFailure(id: string, reason: string) {
@@ -58,7 +84,9 @@ export function recordFailure(id: string, reason: string) {
     const factor = Math.min(2 ** (h.consecutiveFailures - cfg.failureThreshold), 10);
     h.disabledUntil = Date.now() + Math.min(cfg.cooldownMs * factor, 600_000);
   }
+  share(h);
 }
+
 
 export function isAvailable(id: string): boolean {
   const h = health.get(id);
