@@ -197,10 +197,20 @@ interface ExecuteOptions<T> {
   /** Ordered model chain for this request (task routing policy). */
   models?: (p: ProviderDef) => string[];
   cacheKey?: string;
+  /** Metadata stored alongside a durable cache entry (never student-specific). */
+  cacheMeta?: CacheLookupMeta;
   /** Called on every resolved response with the raw payload + routing facts. */
   onResolved?: (
     data: Record<string, unknown>,
-    info: { provider: string; model: string; latencyMs: number },
+    info: {
+      provider: string;
+      model: string;
+      latencyMs: number;
+      queueMs: number;
+      retries: number;
+      correlationId: string;
+      cacheHit: boolean;
+    },
   ) => void;
 }
 
@@ -211,22 +221,39 @@ interface ExecuteOptions<T> {
  */
 export async function execute<T>(opts: ExecuteOptions<T>): Promise<T> {
   const { capability } = opts;
+  const correlationId = newCorrelationId();
+  // Keep the shared control-plane snapshot warm without blocking the request.
+  refreshControlPlane();
+
+  const policy = activePolicy();
+  if (policy?.blocksNewRequests) throw new Error("AI_MAINTENANCE");
 
   if (opts.cacheKey) {
     const cached = cacheGet<T>(opts.cacheKey);
     if (cached !== undefined) {
-      log("cache-hit", { capability });
+      log("cache-hit", { capability, correlationId, tier: "memory" });
       return cached;
+    }
+    // L2: answers other workers have already produced for this exact question.
+    const shared = await durableCacheGet<T>(opts.cacheKey);
+    if (shared !== undefined) {
+      metrics.cacheHits += 1;
+      cacheSet(opts.cacheKey, shared);
+      log("cache-hit", { capability, correlationId, tier: "durable" });
+      return shared;
     }
   }
 
+  const enqueuedAt = Date.now();
   return withSlot(async () => {
+    const queueMs = Date.now() - enqueuedAt;
     const cfg = getGatewayConfig();
     const providers = selectProviders(capability).slice(0, cfg.maxProviderAttempts);
     if (providers.length === 0) throw new Error("AI_UNAVAILABLE");
 
     metrics.requests += 1;
     noteCapability(capability);
+
 
     const errors: string[] = [];
     let attempts = 0;
