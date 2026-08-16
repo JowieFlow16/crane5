@@ -65,6 +65,11 @@ export async function logAiRequest(rec: AiUsageRecord): Promise<void> {
       cached_tokens: Math.max(0, Math.round(rec.cachedTokens ?? 0)),
       estimated_cost: Number(rec.estimatedCost.toFixed(8)),
       latency_ms: Math.max(0, Math.round(rec.latencyMs)),
+      queue_ms: Math.max(0, Math.round(rec.queueMs ?? 0)),
+      retry_count: Math.max(0, Math.round(rec.retryCount ?? 0)),
+      cache_hit: rec.cacheHit ?? false,
+      correlation_id: rec.correlationId ?? null,
+
       status: rec.status,
       // Truncated, sanitised message — never a stack trace or a secret.
       error_message: rec.errorMessage ? rec.errorMessage.slice(0, 300) : null,
