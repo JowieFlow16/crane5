@@ -147,10 +147,29 @@ function ensureKey(providerId: string, index: number): KeyState {
   const id = keyId(providerId, index);
   let s = keys.get(id);
   if (!s) {
-    s = { providerId, index, parkedUntil: null, reason: null, uses: 0 };
+    // Inherit shared parking so a cold worker does not immediately retry a key
+    // another worker already found rate limited or out of credits.
+    const shared = durableKeys().find((r) => r.providerId === providerId && r.index === index);
+    s = {
+      providerId,
+      index,
+      parkedUntil: shared?.parkedUntil ?? null,
+      reason: (shared?.reason as KeyFailureKind | null) ?? null,
+      uses: shared?.uses ?? 0,
+    };
     keys.set(id, s);
   }
   return s;
+}
+
+function shareKey(s: KeyState) {
+  persistKeyState({
+    providerId: s.providerId,
+    index: s.index,
+    parkedUntil: s.parkedUntil,
+    reason: s.reason,
+    uses: s.uses,
+  });
 }
 
 export function isKeyAvailable(providerId: string, index: number): boolean {
@@ -159,13 +178,18 @@ export function isKeyAvailable(providerId: string, index: number): boolean {
   if (Date.now() >= s.parkedUntil) {
     s.parkedUntil = null;
     s.reason = null;
+    shareKey(s);
     return true;
   }
   return false;
 }
 
 export function noteKeyUse(providerId: string, index: number) {
-  ensureKey(providerId, index).uses += 1;
+  const s = ensureKey(providerId, index);
+  s.uses += 1;
+  // Use counters only spread load, so mirroring every tenth call is plenty and
+  // keeps the hot path off the database.
+  if (s.uses % 10 === 0) shareKey(s);
 }
 
 /** Park a key that is out of quota / rate limited / invalid. */
@@ -179,7 +203,9 @@ export function parkKey(
   s.parkedUntil = Date.now() + cooldownMs;
   s.reason = kind;
   metrics.keyRotations += 1;
+  shareKey(s);
 }
+
 
 /** Key indexes to try for a provider, least-recently-loaded first. */
 export function orderKeys(providerId: string, total: number): number[] {
