@@ -9,6 +9,10 @@ import {
   Loader2,
   ArrowLeft,
   Search,
+  MoreVertical,
+  Ban,
+  Flag,
+  ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
