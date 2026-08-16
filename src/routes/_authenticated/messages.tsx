@@ -16,7 +16,9 @@ import { db, otherParty, type Conversation, type DirectMessage } from "@/lib/db"
 import { useAuth } from "@/lib/auth";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { FindStudentDialog } from "@/components/FindStudentDialog";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/_authenticated/messages")({
   validateSearch: z.object({ c: z.string().optional() }),
