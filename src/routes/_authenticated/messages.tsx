@@ -120,6 +120,13 @@ function MessagesPage() {
     };
   }, [qc, user]);
 
+  const { data: blocks } = useQuery({
+    queryKey: ["my-blocks", user?.id],
+    enabled: !!user,
+    queryFn: listMyBlocks,
+  });
+  const blockedIds = useMemo(() => new Set((blocks ?? []).map((b) => b.blocked_id)), [blocks]);
+
   const active = useMemo(
     () => (conversations ?? []).find((c) => c.id === activeId) ?? null,
     [conversations, activeId],
