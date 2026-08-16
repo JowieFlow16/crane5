@@ -1,15 +1,30 @@
 import { cn } from "@/lib/utils";
-import crane5Logo from "@/assets/crane5-logo.png.asset.json";
+import crane5Mark from "@/assets/crane5-mark.png.asset.json";
 
+/**
+ * The Crane5 mark, always rendered on its own dark emerald disc so the crane
+ * and its white outlines stay crisp in light mode, dark mode and on top of the
+ * brand gradients.
+ */
 export function Crane5Mark({ className }: { className?: string }) {
   return (
-    <img
-      src={crane5Logo.url}
-      alt="Crane5 AI logo"
-      className={cn("shrink-0 rounded-full object-contain", className)}
-    />
+    <span
+      className={cn(
+        "logo-badge relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full",
+        className,
+      )}
+    >
+      <img
+        src={crane5Mark.url}
+        alt="Crane5 AI logo"
+        className="h-[82%] w-[82%] object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.45)]"
+        loading="eager"
+        decoding="async"
+      />
+    </span>
   );
 }
+
 
 export function Logo({
   className,
