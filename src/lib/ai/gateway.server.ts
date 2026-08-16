@@ -233,9 +233,12 @@ export async function execute<T>(opts: ExecuteOptions<T>): Promise<T> {
   const correlationId = newCorrelationId();
   // Keep the shared control-plane snapshot warm without blocking the request.
   refreshControlPlane();
+  refreshBudget();
 
   const policy = activePolicy();
   if (policy?.blocksNewRequests) throw new Error("AI_MAINTENANCE");
+  // Platform-wide spend guard: per-student quotas cannot protect the budget.
+  await assertBudget();
 
   if (opts.cacheKey) {
     const cached = cacheGet<T>(opts.cacheKey);
