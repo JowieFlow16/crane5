@@ -140,7 +140,11 @@ function MessagesPage() {
               className="pl-9"
             />
           </div>
+          <div className="mt-2">
+            <FindStudentDialog />
+          </div>
         </div>
+
         <div className="flex-1 overflow-y-auto">
           {isLoading ? (
             <div className="flex justify-center py-10 text-muted-foreground">
