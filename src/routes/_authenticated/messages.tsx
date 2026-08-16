@@ -421,6 +421,22 @@ function Thread({
         <div ref={bottomRef} />
       </div>
 
+      <ReportDialog
+        open={!!reportMsg}
+        onOpenChange={(v) => !v && setReportMsg(null)}
+        targetType="message"
+        targetId={reportMsg?.id ?? null}
+        reportedUserId={reportMsg?.sender_id ?? null}
+        excerpt={reportMsg?.content ?? null}
+        subjectName="this message"
+      />
+
+      {blocked ? (
+        <div className="flex flex-wrap items-center gap-2 border-t border-border bg-card p-4 text-sm text-muted-foreground sm:rounded-br-2xl">
+          <Ban className="h-4 w-4" />
+          You blocked {other.name}. Unblock from the menu above to chat again.
+        </div>
+      ) : (
       <div className="border-t border-border bg-card p-3 sm:rounded-br-2xl">
         <div className="flex items-end gap-2">
           <Textarea
