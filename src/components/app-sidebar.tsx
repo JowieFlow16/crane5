@@ -13,7 +13,9 @@ import {
   Shield,
   LogOut,
   MessagesSquare,
-  GraduationCap,
+  CalendarClock,
+  Wand2,
+  Gift,
 } from "lucide-react";
 import {
   Sidebar,
@@ -40,17 +42,19 @@ const learnItems = [
   { title: "AI Tutor", url: "/chat", icon: MessageCircle },
   { title: "Quizzes", url: "/quiz", icon: ListChecks },
   { title: "Revision", url: "/revision", icon: NotebookPen },
+  { title: "Scenarios", url: "/scenarios", icon: Wand2 },
   { title: "Flashcards", url: "/flashcards", icon: Layers },
 ];
 
 const connectItems = [
   { title: "Messages", url: "/messages", icon: MessagesSquare },
-  { title: "Find a Teacher", url: "/teachers", icon: GraduationCap },
   { title: "Community", url: "/community", icon: Users },
 ];
 
 const growItems = [
   { title: "Planner", url: "/planner", icon: CalendarCheck },
+  { title: "Timetable", url: "/timetable", icon: CalendarClock },
+  { title: "Earn Credits", url: "/credits", icon: Gift },
   { title: "Library", url: "/saved", icon: Bookmark },
   { title: "Leaderboard", url: "/leaderboard", icon: Trophy },
 ];
@@ -58,7 +62,7 @@ const growItems = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const { isAdmin, isTeacher, profile, signOut } = useAuth();
+  const { isAdmin, profile, signOut } = useAuth();
   const { stats } = useStats();
   const path = useRouterState({ select: (r) => r.location.pathname });
   const isActive = (url: string) => path === url;
@@ -122,14 +126,6 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/teach")}>
-                  <Link to="/teach" className="flex items-center gap-3">
-                    <GraduationCap className="h-4 w-4 shrink-0" />
-                    {!collapsed && <span>{isTeacher ? "Teacher Center" : "Become a Teacher"}</span>}
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

@@ -111,6 +111,10 @@ export async function getAiUsageSnapshot(userId: string) {
     plan: string;
     plan_id: string;
     unlimited: boolean;
+    base_request_limit: number;
+    bonus_requests: number;
+    shares_today: number;
+    shares_to_next_bonus: number;
     request_limit: number;
     image_limit: number;
     requests_today: number;

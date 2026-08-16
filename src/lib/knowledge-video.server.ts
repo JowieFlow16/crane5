@@ -35,6 +35,20 @@ export function parseVideoUrl(url: string): { platform: string; videoId: string 
   return null;
 }
 
+/** A YouTube (or YouTube Music) playlist link. */
+export function parsePlaylistUrl(url: string): { playlistId: string } | null {
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    return null;
+  }
+  const host = u.hostname.replace(/^www\./, "").toLowerCase();
+  if (!host.endsWith("youtube.com") && !host.endsWith("youtube-nocookie.com")) return null;
+  const list = u.searchParams.get("list");
+  return list ? { playlistId: list } : null;
+}
+
 function decodeEntities(s: string): string {
   return s
     .replace(/&amp;#39;/g, "'")
@@ -216,9 +230,19 @@ async function youtubeLesson(videoId: string): Promise<VideoLesson> {
       : "";
 
   if (!body) {
-    throw new Error(
-      "That video has no captions or description Crane5 can read. Try a video with subtitles turned on.",
-    );
+    // No captions and no description — let Crane5 watch the video itself.
+    const watched = await watchVideoWithAI(`https://www.youtube.com/watch?v=${videoId}`, title);
+    if (!watched) {
+      throw new Error(
+        "Crane5 couldn't read or watch that video. Try another link, or upload the notes as a file.",
+      );
+    }
+    return {
+      title,
+      text: `${header}\n\nLesson transcript (watched by Crane5):\n${watched}`.slice(0, 60_000),
+      platform: "youtube",
+      videoId,
+    };
   }
 
   return {
@@ -258,7 +282,9 @@ async function genericVideoLesson(url: string, platform: string): Promise<VideoL
     if (d) description = tidy(d[1]);
   }
   if (description.length < 80) {
-    throw new Error("Couldn't read enough text from that video link.");
+    const watched = await watchVideoWithAI(url, title);
+    if (!watched) throw new Error("Couldn't read or watch that video link.");
+    description = watched;
   }
   return {
     title: title.slice(0, 200),
@@ -266,6 +292,56 @@ async function genericVideoLesson(url: string, platform: string): Promise<VideoL
     platform,
     videoId: null,
   };
+}
+
+/**
+ * Videos with no captions and no useful description: hand the video itself to a
+ * multimodal model and keep its faithful lesson transcript.
+ */
+async function watchVideoWithAI(url: string, title: string): Promise<string | null> {
+  try {
+    const { callAI } = await import("./ai-gateway.server");
+    const raw = await callAI({
+      task: "ADMIN_CONTENT",
+      capability: "vision",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You watch educational videos and write a faithful, detailed lesson transcript for a study knowledge base. Capture every explanation, definition, worked example, formula (LaTeX) and diagram description in order. Use Markdown. Do not summarise loosely and do not invent content.",
+        },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: `Write the full lesson content of this video ("${title}").` },
+            { type: "video_url", video_url: { url } },
+          ],
+        },
+      ],
+    });
+    const text = tidy(raw);
+    return text.length > 300 ? text : null;
+  } catch (err) {
+    console.error("[knowledge-video] AI watch failed:", err);
+    return null;
+  }
+}
+
+/** Every video id inside a YouTube playlist (in order, de-duplicated). */
+export async function listPlaylistVideos(playlistId: string): Promise<string[]> {
+  const html = await get(`https://www.youtube.com/playlist?list=${encodeURIComponent(playlistId)}&hl=en`);
+  if (!html) throw new Error("Couldn't open that playlist.");
+  const ids: string[] = [];
+  for (const m of html.matchAll(/"videoId":"([\w-]{11})"/g)) {
+    if (!ids.includes(m[1])) ids.push(m[1]);
+  }
+  if (ids.length === 0) throw new Error("That playlist looks empty or private.");
+  return ids;
+}
+
+/** Build a lesson straight from a YouTube video id. */
+export async function fetchVideoLessonById(videoId: string): Promise<VideoLesson> {
+  return youtubeLesson(videoId);
 }
 
 /** Read a video link into plain text Crane5 can learn from. */

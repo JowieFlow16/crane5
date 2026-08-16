@@ -94,24 +94,19 @@ export interface PostComment {
   created_at: string;
 }
 
-export type TeacherStatus = "pending" | "approved" | "rejected";
-
-export interface TeacherProfile {
+export interface TimetableSlot {
   id: string;
-  full_name: string | null;
-  avatar_url: string | null;
-  headline: string | null;
-  bio: string | null;
-  school: string | null;
-  subjects: string[];
-  experience_years: number;
-  class_levels: string[];
-  contact_note: string | null;
-  status: TeacherStatus;
-  rating_avg: number;
-  students_helped: number;
+  user_id: string;
+  /** 0 = Sunday … 6 = Saturday */
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  subject: string;
+  topic: string | null;
+  activity: string;
+  reminder_minutes: number;
+  reminders_on: boolean;
   created_at: string;
-  updated_at: string;
 }
 
 export interface Conversation {

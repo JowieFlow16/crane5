@@ -383,18 +383,15 @@ export const getOrCreateConversation = createServerFn({ method: "POST" })
       .maybeSingle();
     if (existing) return existing;
 
-    const [{ data: profs }, { data: roleRows }] = await Promise.all([
-      supabaseAdmin.from("profiles").select("id, full_name, avatar_url").in("id", [lo, hi]),
-      supabaseAdmin.from("user_roles").select("user_id, role").in("user_id", [lo, hi]),
-    ]);
+    const { data: profs } = await supabaseAdmin
+      .from("profiles")
+      .select("id, full_name, avatar_url")
+      .in("id", [lo, hi]);
     const profOf = (id: string) =>
       (profs ?? []).find((p) => p.id === id) as
         | { full_name: string | null; avatar_url: string | null }
         | undefined;
-    const roleOf = (id: string) =>
-      (roleRows ?? []).some((r) => r.user_id === id && r.role === "teacher")
-        ? "teacher"
-        : "student";
+    const roleOf = (_id: string) => "student";
 
     const { data: created, error } = await supabaseAdmin
       .from("conversations")
@@ -412,192 +409,6 @@ export const getOrCreateConversation = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
     return created;
-  });
-
-// ============================================================================
-// Teacher Copilot — AI tools exclusively for verified teachers
-// ============================================================================
-
-/** Lesson plan generator (NCDC competency-based). */
-export const generateLessonPlan = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z
-      .object({
-        subject: z.string(),
-        topic: z.string().min(1),
-        classLevel: z.string(),
-        duration: z.string().default("80 minutes"),
-        notes: z.string().max(1000).optional(),
-      })
-      .parse(input),
-  )
-  .handler(async ({ data, context }) => {
-    const { withAiQuota } = await import("./ai-usage.server");
-    return withAiQuota(context.userId as string, "request", async () => {
-      const { callAI } = await import("./ai-gateway.server");
-      const { NCDC_TEACHER_PERSONA, NCDC_FRAMEWORK_BLOCK } = await import("./ncdc-framework");
-      const content = await callAI({
-        task: "ADMIN_CONTENT",
-        userId: context.userId as string,
-        subject: data.subject,
-        messages: [
-          { role: "system", content: NCDC_TEACHER_PERSONA + NCDC_FRAMEWORK_BLOCK },
-          {
-            role: "user",
-            content: `Create a complete, classroom-ready NCDC lesson plan.
-  Subject: ${data.subject}
-  Topic: ${data.topic}
-  Class: ${data.classLevel}
-  Lesson duration: ${data.duration}
-  ${data.notes ? `Teacher notes: ${data.notes}` : ""}
-
-  Return well-formatted Markdown with these sections:
-  1. **Lesson Overview** (topic, class, time, competency focus)
-  2. **Learning Outcome(s)** — split into Knowledge, Understanding, Skills, Values
-  3. **Generic skills & cross-cutting issues** addressed
-  4. **Materials / local resources** (realistic for a Ugandan school)
-  5. **Lesson sequence** in a Markdown table: | Phase | Time | Teacher activity | Learner activity | (Intro/Development/Conclusion) — use authentic Ugandan examples
-  6. **Differentiation** for mixed abilities
-  7. **Assessment** — 2 quick NCDC-style scenario items (tagged CK/CU/AP/UE) with a short marking guide
-  8. **Homework / extension**
-  Use LaTeX for any maths and a Mermaid diagram if a process helps.`,
-          },
-        ],
-      });
-      return { content };
-    });
-  });
-
-/** Exam / item builder that returns a ready-to-print paper + marking guide. */
-export const generateExam = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z
-      .object({
-        subject: z.string(),
-        topic: z.string().optional(),
-        classLevel: z.string(),
-        count: z.number().min(2).max(15).default(6),
-        difficulty: z.enum(["Easy", "Medium", "Hard", "Mixed"]).default("Mixed"),
-      })
-      .parse(input),
-  )
-  .handler(async ({ data, context }) => {
-    const { withAiQuota } = await import("./ai-usage.server");
-    return withAiQuota(context.userId as string, "request", async () => {
-      const { callAI } = await import("./ai-gateway.server");
-      const {
-        NCDC_TEACHER_PERSONA,
-        NCDC_NOTATION,
-        NCDC_COMPETENCY_LEVELS,
-        NCDC_ITEM_FRAMEWORK,
-        NCDC_SUBJECT_CONSTRUCTS,
-      } = await import("./ncdc-framework");
-      const content = await callAI({
-        task: "ADMIN_CONTENT",
-        userId: context.userId as string,
-        subject: data.subject,
-        messages: [
-          {
-            role: "system",
-            content: `${NCDC_TEACHER_PERSONA}${NCDC_COMPETENCY_LEVELS}${NCDC_ITEM_FRAMEWORK}${NCDC_SUBJECT_CONSTRUCTS}${NCDC_NOTATION}`,
-          },
-          {
-            role: "user",
-            content: `Set an NCDC ${data.difficulty} assessment paper with ${data.count} items.
-  Subject: ${data.subject}${data.topic ? `\nTopic: ${data.topic}` : ""}
-  Class: ${data.classLevel}
-
-  Return clean Markdown with two clearly separated parts:
-  ## PART A — Question Paper
-  - A short header (Subject, Class, Time, Instructions).
-  - Number each item. Build EVERY item on an authentic Ugandan real-life scenario, then a task demanding higher-order thinking (apply/analyse/evaluate). Progress from CK/CU toward AP/UE. Show mark allocations, e.g. (04 marks).
-  ## PART B — Marking Guide
-  - For each item: the competency level (CK/CU/AP/UE), expected response / model answer, and a RACE-based scoring scheme (Relevance, Accuracy, Coherence, Excellence) in a Markdown table.
-  Use LaTeX for maths.`,
-          },
-        ],
-      });
-      return { content };
-    });
-  });
-
-/** Draft a reply to a student's DM in the teacher's voice. */
-export const draftReply = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z
-      .object({
-        studentMessage: z.string().min(1).max(2000),
-        subject: z.string().optional(),
-        tone: z.enum(["Warm", "Concise", "Detailed"]).default("Warm"),
-      })
-      .parse(input),
-  )
-  .handler(async ({ data, context }) => {
-    const { withAiQuota } = await import("./ai-usage.server");
-    return withAiQuota(context.userId as string, "request", async () => {
-      const { callAI } = await import("./ai-gateway.server");
-      const { NCDC_TEACHER_PERSONA, NCDC_NOTATION } = await import("./ncdc-framework");
-      const content = await callAI({
-        task: "NORMAL_TUTORING",
-        userId: context.userId as string,
-        subject: data.subject,
-        messages: [
-          { role: "system", content: NCDC_TEACHER_PERSONA + NCDC_NOTATION },
-          {
-            role: "user",
-            content: `A student sent this message${data.subject ? ` about ${data.subject}` : ""}:
-  """${data.studentMessage}"""
-
-  Draft a ${data.tone.toLowerCase()}, encouraging reply I (the teacher) can send. Explain the concept simply and correctly with a live Ugandan example, and end with a small check-for-understanding question. Return ONLY the message text (no preamble), ready to send.`,
-          },
-        ],
-      });
-      return { content };
-    });
-  });
-
-/** Summarise recent student questions into class insights for a teacher. */
-export const classInsights = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z
-      .object({
-        messages: z.array(z.string()).min(1).max(60),
-        subjects: z.array(z.string()).optional(),
-      })
-      .parse(input),
-  )
-  .handler(async ({ data, context }) => {
-    const { withAiQuota } = await import("./ai-usage.server");
-    return withAiQuota(context.userId as string, "request", async () => {
-      const { callAI } = await import("./ai-gateway.server");
-      const { NCDC_TEACHER_PERSONA, NCDC_NOTATION } = await import("./ncdc-framework");
-      const content = await callAI({
-        task: "NORMAL_TUTORING",
-        userId: context.userId as string,
-        messages: [
-          { role: "system", content: NCDC_TEACHER_PERSONA + NCDC_NOTATION },
-          {
-            role: "user",
-            content: `Here are recent questions/messages students sent me${
-              data.subjects?.length ? ` (I teach ${data.subjects.join(", ")})` : ""
-            }:
-  ${data.messages.map((m, i) => `${i + 1}. ${m}`).join("\n")}
-
-  Analyse them and return concise Markdown with:
-  - **Common struggles / misconceptions** (bullet list)
-  - **Priority topics to reteach** (ranked)
-  - **2 quick classroom actions** for tomorrow
-  - **1 NCDC scenario item** I can use to check the weakest area (with the competency level tagged).
-  Keep it practical and short.`,
-          },
-        ],
-      });
-      return { content };
-    });
   });
 
 // ---- AI quiz marking (structured output) ----
@@ -714,5 +525,160 @@ export const markQuiz = createServerFn({ method: "POST" })
         recommendations: parsed.recommendations,
         summary: parsed.summary,
       };
+    });
+  });
+
+// ---- Personal revision timetable generator ----
+export interface TimetablePlanSlot {
+  day: number;
+  start: string;
+  end: string;
+  subject: string;
+  topic: string;
+  activity: string;
+}
+
+const timetableSchema = z.object({
+  slots: z
+    .array(
+      z.object({
+        day: z.number().int().min(0).max(6),
+        start: z.string().max(8),
+        end: z.string().max(8),
+        subject: z.string().max(120),
+        topic: z.string().max(200).default(""),
+        activity: z.string().max(80).default("Revision"),
+      }),
+    )
+    .default([]),
+  advice: z.string().default(""),
+});
+
+export const generateTimetable = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        subjects: z.array(z.string().max(120)).min(1).max(20),
+        classLevel: z.string().max(10).default("S4"),
+        studyDays: z.array(z.number().int().min(0).max(6)).min(1).max(7),
+        startHour: z.number().int().min(4).max(22).default(17),
+        endHour: z.number().int().min(5).max(23).default(21),
+        sessionMinutes: z.number().int().min(30).max(120).default(45),
+        weakSubjects: z.array(z.string().max(120)).max(20).default([]),
+        goal: z.string().max(400).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { guardAiRequest } = await import("./ai/abuse.server");
+    guardAiRequest(context.userId as string);
+    const { withAiQuota } = await import("./ai-usage.server");
+
+    return withAiQuota(context.userId as string, "request", async () => {
+      const { callAI, parseJsonResponse } = await import("./ai-gateway.server");
+      const raw = await callAI({
+        json: true,
+        task: "STUDY_PLAN",
+        userId: context.userId as string,
+        messages: [
+          {
+            role: "system",
+            content: `${NCDC_PERSONA}\n\nYou build realistic personal revision timetables for Ugandan secondary students. Respect boarding-school routines, prep time and rest. Return ONLY valid JSON.`,
+          },
+          {
+            role: "user",
+            content: `Build a weekly revision timetable for a ${data.classLevel} learner.
+Subjects: ${data.subjects.join(", ")}
+${data.weakSubjects.length ? `Needs extra time on: ${data.weakSubjects.join(", ")}` : ""}
+Study days (0=Sunday…6=Saturday): ${data.studyDays.join(", ")}
+Daily window: ${data.startHour}:00 to ${data.endHour}:00, sessions of ${data.sessionMinutes} minutes with short breaks between them.
+${data.goal ? `Learner's goal: ${data.goal}` : ""}
+Rules:
+- Cover EVERY subject across the week; give weak subjects roughly double the slots.
+- Rotate activity types: "Notes", "Past paper", "Practice questions", "Flashcards", "Group discussion", "Recap".
+- Give each slot a specific NCDC topic for that subject and class.
+- Never overlap slots, never exceed the daily window, and leave at least one lighter day.
+Return JSON exactly: {"slots":[{"day":1,"start":"17:00","end":"17:45","subject":"Physics","topic":"Moments and levers","activity":"Practice questions"}],"advice":"two-sentence coaching note"}`,
+          },
+        ],
+      });
+      const parsed = timetableSchema.parse(parseJsonResponse<unknown>(raw));
+      return parsed;
+    });
+  });
+
+// ---- Scenario generator (NCDC situational learning) ----
+export interface GeneratedScenario {
+  title: string;
+  scenario: string;
+  tasks: string[];
+  competencies: string[];
+  markingGuide: string[];
+  extension: string;
+}
+
+const scenarioSchema = z.object({
+  title: z.string().default("Scenario"),
+  scenario: z.string().default(""),
+  tasks: z.array(z.string()).default([]),
+  competencies: z.array(z.string()).default([]),
+  markingGuide: z.array(z.string()).default([]),
+  extension: z.string().default(""),
+});
+
+export const generateScenario = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        subject: z.string().max(120),
+        topic: z.string().min(1).max(200),
+        classLevel: z.string().max(10).default("S4"),
+        context: z.string().max(300).optional(),
+        difficulty: z.enum(["easy", "medium", "hard"]).default("medium"),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { guardAiRequest } = await import("./ai/abuse.server");
+    guardAiRequest(context.userId as string, data.topic);
+    const { withAiQuota } = await import("./ai-usage.server");
+
+    return withAiQuota(context.userId as string, "request", async (): Promise<GeneratedScenario> => {
+      const { callAI, parseJsonResponse } = await import("./ai-gateway.server");
+      const { retrieveKnowledge } = await import("./knowledge-context.server");
+      const { context: ref } = await retrieveKnowledge({
+        query: `${data.subject} ${data.topic}`,
+        subject: data.subject,
+        limit: 3,
+        charsPerDoc: 1800,
+      });
+
+      const raw = await callAI({
+        json: true,
+        task: "REVISION",
+        userId: context.userId as string,
+        subject: data.subject,
+        messages: [
+          {
+            role: "system",
+            content: `${NCDC_PERSONA}${NCDC_ITEM_FRAMEWORK}${NCDC_COMPETENCY_LEVELS}${NCDC_SUBJECT_CONSTRUCTS}${NCDC_ANSWERING_APPROACH}${NCDC_VISUAL_OUTPUT}${NCDC_NOTATION}\n\nYou write authentic Ugandan situational (scenario-based) learning items. Return ONLY valid JSON.`,
+          },
+          {
+            role: "user",
+            content: `Write a ${data.difficulty} situational learning scenario for ${data.subject} — topic "${data.topic}" at ${data.classLevel}.${
+              data.context ? ` Set it in this context: ${data.context}.` : ""
+            }
+Rules:
+- The scenario is a real Ugandan situation (market in Owino, a Nile-side farm, a boda business, a school science club, a Kampala clinic…) written in 120–200 words with real data the learner must use.
+- "tasks" are 3–5 graded demands moving from understanding → application → evaluation, each tagged with its competency level (CK/CU/AP/UE).
+- Use Markdown, LaTeX for any maths, tables for data, and a \`\`\`mermaid diagram when a process is involved.
+- "markingGuide" gives the expected answer points per task.
+Return JSON exactly: {"title":"…","scenario":"markdown","tasks":["AP — …"],"competencies":["…"],"markingGuide":["Task 1: …"],"extension":"one harder follow-up challenge"}${ref}`,
+          },
+        ],
+      });
+      return scenarioSchema.parse(parseJsonResponse<unknown>(raw)) as GeneratedScenario;
     });
   });

@@ -1,6 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { learnFromLink, learnFromVideo, refreshLinkSources } from "@/lib/knowledge.functions";
+import {
+  learnFromFile,
+  learnFromLink,
+  learnFromPlaylist,
+  learnFromVideo,
+  refreshLinkSources,
+} from "@/lib/knowledge.functions";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "motion/react";
@@ -12,17 +18,11 @@ import {
   Search,
   ShieldAlert,
   Database,
-  GraduationCap,
-  Check,
-  X,
-  BadgeCheck,
-  School,
   Link as LinkIcon,
   RefreshCw,
   Video,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { db, type TeacherProfile } from "@/lib/db";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,14 +47,12 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
 });
 
-const cnStatus = (status: string) =>
-  status === "approved"
-    ? "rounded-full bg-success/15 px-2 py-0.5 text-[0.7rem] font-medium capitalize text-success"
-    : status === "rejected"
-      ? "rounded-full bg-destructive/10 px-2 py-0.5 text-[0.7rem] font-medium capitalize text-destructive"
-      : "rounded-full bg-amber-500/15 px-2 py-0.5 text-[0.7rem] font-medium capitalize text-amber-600";
 const CLASSES = ["S1", "S2", "S3", "S4", "S5", "S6"];
-const DOC_TYPES = ["notes", "past paper", "marking guide", "textbook", "teacher resource"];
+/** Sentinel for "applies to every subject / every class" training material. */
+const ALL = "__all__";
+/** Turn a select value into what the server stores (null = all). */
+const orAll = (v: string) => (v === ALL ? undefined : v);
+const DOC_TYPES = ["notes", "past paper", "marking guide", "textbook", "syllabus", "reference"];
 
 function AdminPage() {
   const { user, isAdmin, loading } = useAuth();
@@ -83,34 +81,6 @@ function AdminPage() {
     },
   });
 
-  const { data: teacherApps } = useQuery({
-    queryKey: ["teacher-applications"],
-    enabled: isAdmin,
-    queryFn: async (): Promise<TeacherProfile[]> => {
-      const { data } = await db
-        .from("teacher_profiles")
-        .select("*")
-        .order("created_at", { ascending: false });
-      return (data as TeacherProfile[]) ?? [];
-    },
-  });
-
-  const reviewTeacher = async (t: TeacherProfile, status: "approved" | "rejected") => {
-    const { error } = await db
-      .from("teacher_profiles")
-      .update({ status } as never)
-      .eq("id", t.id);
-    if (error) {
-      toast.error("Couldn't update application.");
-      return;
-    }
-    if (status === "approved") {
-      await db.from("user_roles").insert({ user_id: t.id, role: "teacher" } as never);
-    }
-    qc.invalidateQueries({ queryKey: ["teacher-applications"] });
-    toast.success(status === "approved" ? "Teacher approved 🎓" : "Application rejected.");
-  };
-
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !name.trim()) return;
@@ -125,7 +95,7 @@ function AdminPage() {
       let text = contentText.trim();
 
       if (file) {
-        storagePath = `${subject}/${Date.now()}-${file.name}`;
+        storagePath = `${orAll(subject) ?? "all"}/${Date.now()}-${file.name}`;
         const { error: upErr } = await supabase.storage
           .from("curriculum-docs")
           .upload(storagePath, file);
@@ -139,8 +109,8 @@ function AdminPage() {
 
       const { error } = await supabase.from("documents").insert({
         name: name.trim(),
-        subject,
-        class_level: classLevel as never,
+        subject: orAll(subject) ?? null,
+        class_level: (orAll(classLevel) ?? null) as never,
         doc_type: docType,
         storage_path: storagePath,
         file_size: fileSize,
@@ -212,80 +182,6 @@ function AdminPage() {
         Upload curriculum documents. Pasted text becomes searchable by the AI tutor (RAG).
       </p>
 
-      {/* Teacher applications */}
-      <section className="mt-8">
-        <div className="flex items-center gap-2">
-          <GraduationCap className="h-5 w-5 text-primary" />
-          <h2 className="font-display text-xl font-bold">Teacher applications</h2>
-          {(teacherApps ?? []).some((t) => t.status === "pending") && (
-            <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-600">
-              {(teacherApps ?? []).filter((t) => t.status === "pending").length} pending
-            </span>
-          )}
-        </div>
-        <div className="mt-3 space-y-2">
-          {(teacherApps ?? []).length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-              No teacher applications yet.
-            </div>
-          ) : (
-            (teacherApps ?? []).map((t) => (
-              <div
-                key={t.id}
-                className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-card sm:flex-row sm:items-center"
-              >
-                {t.avatar_url ? (
-                  <img
-                    src={t.avatar_url}
-                    alt=""
-                    className="h-12 w-12 shrink-0 rounded-xl object-cover"
-                  />
-                ) : (
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-primary text-lg font-bold text-primary-foreground">
-                    {(t.full_name ?? "T").charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="truncate font-medium">{t.full_name ?? "Teacher"}</span>
-                    {t.status === "approved" && <BadgeCheck className="h-4 w-4 text-primary" />}
-                    <span className={cnStatus(t.status)}>{t.status}</span>
-                  </div>
-                  {t.headline && (
-                    <p className="truncate text-sm text-muted-foreground">{t.headline}</p>
-                  )}
-                  <div className="mt-0.5 flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground">
-                    {t.school && (
-                      <span className="inline-flex items-center gap-1">
-                        <School className="h-3.5 w-3.5" /> {t.school}
-                      </span>
-                    )}
-                    <span>{t.experience_years} yrs</span>
-                    <span className="truncate">{(t.subjects ?? []).join(", ")}</span>
-                  </div>
-                </div>
-                {t.status !== "approved" && (
-                  <button
-                    onClick={() => reviewTeacher(t, "approved")}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-success/15 px-3 py-1.5 text-sm font-medium text-success hover:bg-success/25"
-                  >
-                    <Check className="h-4 w-4" /> Approve
-                  </button>
-                )}
-                {t.status !== "rejected" && (
-                  <button
-                    onClick={() => reviewTeacher(t, "rejected")}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1.5 text-sm font-medium text-destructive hover:bg-destructive/20"
-                  >
-                    <X className="h-4 w-4" /> Reject
-                  </button>
-                )}
-              </div>
-            ))
-          )}
-        </div>
-      </section>
-
       <div className="mt-10 flex items-center gap-2">
         <Database className="h-5 w-5 text-primary" />
         <h2 className="font-display text-xl font-bold">Knowledge base documents</h2>
@@ -317,7 +213,9 @@ function AdminPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {SUBJECTS.map((s) => (
+                  <SelectItem value={ALL}>All subjects</SelectItem>
+                  <SelectItem value={ALL}>All subjects</SelectItem>
+            {SUBJECTS.map((s) => (
                     <SelectItem key={s} value={s}>
                       {s}
                     </SelectItem>
@@ -332,7 +230,9 @@ function AdminPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {CLASSES.map((c) => (
+                  <SelectItem value={ALL}>All classes</SelectItem>
+                  <SelectItem value={ALL}>All classes</SelectItem>
+            {CLASSES.map((c) => (
                     <SelectItem key={c} value={c}>
                       {c}
                     </SelectItem>
@@ -393,7 +293,8 @@ function AdminPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All subjects</SelectItem>
-                {SUBJECTS.map((s) => (
+                <SelectItem value={ALL}>All subjects</SelectItem>
+            {SUBJECTS.map((s) => (
                   <SelectItem key={s} value={s}>
                     {s}
                   </SelectItem>
@@ -444,6 +345,8 @@ function AdminPage() {
 
       <VideoLearning isAdmin={isAdmin} />
 
+      <FileLearning isAdmin={isAdmin} />
+
       <AiControlPlaneAdmin />
       <AiGatewayAdmin />
 
@@ -474,8 +377,8 @@ function LinkLearning({ isAdmin }: { isAdmin: boolean }) {
       const res = await learn({
         data: {
           url: url.trim(),
-          subject: linkSubject,
-          classLevel: linkClass,
+          subject: orAll(linkSubject),
+          classLevel: orAll(linkClass),
           docType: "web link",
         },
       });
@@ -528,6 +431,7 @@ function LinkLearning({ isAdmin }: { isAdmin: boolean }) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value={ALL}>All subjects</SelectItem>
             {SUBJECTS.map((s) => (
               <SelectItem key={s} value={s}>
                 {s}
@@ -540,6 +444,7 @@ function LinkLearning({ isAdmin }: { isAdmin: boolean }) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value={ALL}>All classes</SelectItem>
             {CLASSES.map((c) => (
               <SelectItem key={c} value={c}>
                 {c}
@@ -568,6 +473,7 @@ function LinkLearning({ isAdmin }: { isAdmin: boolean }) {
 function VideoLearning({ isAdmin }: { isAdmin: boolean }) {
   const qc = useQueryClient();
   const learn = useServerFn(learnFromVideo);
+  const learnList = useServerFn(learnFromPlaylist);
   const [url, setUrl] = useState("");
   const [subject, setSubject] = useState("Mathematics");
   const [classLevel, setClassLevel] = useState("S4");
@@ -580,10 +486,20 @@ function VideoLearning({ isAdmin }: { isAdmin: boolean }) {
     if (!url.trim()) return;
     setBusy(true);
     try {
-      const res = await learn({
-        data: { url: url.trim(), subject, classLevel },
-      });
-      toast.success(`Learned ${res.characters.toLocaleString()} characters from “${res.title}”.`);
+      const clean = url.trim();
+      if (/[?&]list=/.test(clean)) {
+        const res = await learnList({
+          data: { url: clean, subject: orAll(subject), classLevel: orAll(classLevel), limit: 15 },
+        });
+        toast.success(
+          `Learned ${res.learned} of ${res.total} videos in that playlist${res.failed ? ` (${res.failed} skipped)` : ""}.`,
+        );
+      } else {
+        const res = await learn({
+          data: { url: clean, subject: orAll(subject), classLevel: orAll(classLevel) },
+        });
+        toast.success(`Learned ${res.characters.toLocaleString()} characters from “${res.title}”.`);
+      }
       setUrl("");
       qc.invalidateQueries({ queryKey: ["documents"] });
     } catch (err) {
@@ -597,11 +513,12 @@ function VideoLearning({ isAdmin }: { isAdmin: boolean }) {
     <section className="mt-10">
       <div className="flex items-center gap-2">
         <Video className="h-5 w-5 text-primary" />
-        <h2 className="font-display text-xl font-bold">Learning from video links</h2>
+        <h2 className="font-display text-xl font-bold">Learning from videos &amp; playlists</h2>
       </div>
       <p className="mt-1 text-sm text-muted-foreground">
-        Paste a YouTube, Vimeo or other video link. Crane5 reads its captions (or description) and
-        adds the lesson to its knowledge base. Videos with subtitles work best.
+        Paste any video link — YouTube, a full playlist (?list=…), Vimeo, Khan Academy or a direct
+        video file. Crane5 reads the captions when they exist, and watches the video itself when they
+        don't.
       </p>
       <form
         onSubmit={submit}
@@ -610,7 +527,7 @@ function VideoLearning({ isAdmin }: { isAdmin: boolean }) {
         <Input
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://www.youtube.com/watch?v=…"
+          placeholder="Video or playlist link — https://www.youtube.com/watch?v=… or …?list=…"
           type="url"
           required
         />
@@ -619,6 +536,7 @@ function VideoLearning({ isAdmin }: { isAdmin: boolean }) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value={ALL}>All subjects</SelectItem>
             {SUBJECTS.map((s) => (
               <SelectItem key={s} value={s}>
                 {s}
@@ -631,6 +549,7 @@ function VideoLearning({ isAdmin }: { isAdmin: boolean }) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value={ALL}>All classes</SelectItem>
             {CLASSES.map((c) => (
               <SelectItem key={c} value={c}>
                 {c}
@@ -641,6 +560,126 @@ function VideoLearning({ isAdmin }: { isAdmin: boolean }) {
         <Button type="submit" variant="hero" disabled={busy}>
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
           Learn video
+        </Button>
+      </form>
+    </section>
+  );
+}
+
+/** Continuous learning from documents: PDFs, Word files, slides and text. */
+function FileLearning({ isAdmin }: { isAdmin: boolean }) {
+  const qc = useQueryClient();
+  const learn = useServerFn(learnFromFile);
+  const [file, setFile] = useState<File | null>(null);
+  const [title, setTitle] = useState("");
+  const [subject, setSubject] = useState(ALL);
+  const [classLevel, setClassLevel] = useState(ALL);
+  const [busy, setBusy] = useState(false);
+
+  if (!isAdmin) return null;
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!file) {
+      toast.error("Choose a file first.");
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("That file is over 15 MB. Split it or upload a smaller version.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(new Error("Couldn't read that file."));
+        reader.readAsDataURL(file);
+      });
+
+      const res = await learn({
+        data: {
+          filename: file.name,
+          mimeType: file.type || "application/octet-stream",
+          dataUrl,
+          name: title.trim() || undefined,
+          subject: orAll(subject),
+          classLevel: orAll(classLevel),
+          docType: "notes",
+        },
+      });
+      toast.success(`Learned ${res.characters.toLocaleString()} characters from that ${res.kind}.`);
+      setFile(null);
+      setTitle("");
+      qc.invalidateQueries({ queryKey: ["documents"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't learn from that file.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="mt-10">
+      <div className="flex items-center gap-2">
+        <FileText className="h-5 w-5 text-primary" />
+        <h2 className="font-display text-xl font-bold">Learning from documents</h2>
+      </div>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Upload a PDF, Word document, slide deck or text file. Crane5 extracts the full text —
+        including scanned PDFs — and adds it to its knowledge base.
+      </p>
+      <form
+        onSubmit={submit}
+        className="mt-4 grid gap-3 rounded-2xl border border-border bg-card p-5 shadow-card sm:grid-cols-2"
+      >
+        <div className="space-y-1.5 sm:col-span-2">
+          <Label htmlFor="kfile">File</Label>
+          <Input
+            id="kfile"
+            type="file"
+            accept=".pdf,.docx,.pptx,.txt,.md,.csv,.json"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          />
+        </div>
+        <div className="space-y-1.5 sm:col-span-2">
+          <Label htmlFor="ktitle">Title (optional)</Label>
+          <Input
+            id="ktitle"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="NCDC Biology syllabus S1–S4"
+          />
+        </div>
+        <Select value={subject} onValueChange={setSubject}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>All subjects</SelectItem>
+            {SUBJECTS.map((s) => (
+              <SelectItem key={s} value={s}>
+                {s}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={classLevel} onValueChange={setClassLevel}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>All classes</SelectItem>
+            {CLASSES.map((c) => (
+              <SelectItem key={c} value={c}>
+                {c}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button type="submit" variant="hero" disabled={busy} className="sm:col-span-2">
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+          Teach Crane5 this document
         </Button>
       </form>
     </section>
