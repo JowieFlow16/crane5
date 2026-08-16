@@ -1,4 +1,6 @@
+import { providerOverride } from "./control-plane.server";
 // Server-only provider registry + gateway configuration.
+
 //
 // Adding a new provider requires ONLY:
 //   1. add an entry to PROVIDERS below (endpoint + key env + models)
