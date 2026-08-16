@@ -18,9 +18,18 @@ export interface AiUsageRecord {
   cachedTokens?: number;
   estimatedCost: number;
   latencyMs: number;
+  /** Time the request waited for a worker slot before dispatch. */
+  queueMs?: number;
+  /** Failover/retry attempts before the answer resolved. */
+  retryCount?: number;
+  /** True when the answer came from the shared cache instead of a provider. */
+  cacheHit?: boolean;
+  /** Request tracing id, shared with the structured gateway logs. */
+  correlationId?: string | null;
   status: "success" | "error";
   errorMessage?: string | null;
 }
+
 
 /** OpenAI-compatible usage block, plus OpenRouter's cost extension. */
 export interface RawUsage {
