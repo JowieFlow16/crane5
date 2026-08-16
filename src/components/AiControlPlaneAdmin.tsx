@@ -4,13 +4,22 @@ import {
   activatePolicy,
   getControlPlane,
   resolveAlert,
+  drainQueue,
   updateFeatureFlag,
   updateProvider,
 } from "@/lib/control-plane.functions";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { AlertTriangle, BellRing, Database, Server, SlidersHorizontal } from "lucide-react";
+import {
+  AlertTriangle,
+  BellRing,
+  Database,
+  ListOrdered,
+  Server,
+  SlidersHorizontal,
+  Wallet,
+} from "lucide-react";
 
 type Row = Record<string, unknown>;
 
@@ -56,6 +65,7 @@ export function AiControlPlaneAdmin() {
   const patchFlag = useServerFn(updateFeatureFlag);
   const setPolicy = useServerFn(activatePolicy);
   const closeAlert = useServerFn(resolveAlert);
+  const runDrain = useServerFn(drainQueue);
 
   const { data, isLoading } = useQuery({
     queryKey: ["ai-control-plane"],
@@ -66,6 +76,15 @@ export function AiControlPlaneAdmin() {
   const invalidate = () => qc.invalidateQueries({ queryKey: ["ai-control-plane"] });
   const fail = (err: unknown) =>
     toast.error(err instanceof Error ? err.message : "Could not save that change");
+
+  const drainMutation = useMutation({
+    mutationFn: () => runDrain(),
+    onSuccess: (r) => {
+      toast.success(`Processed ${r.processed} job(s)${r.failed ? `, ${r.failed} failed` : ""}`);
+      invalidate();
+    },
+    onError: fail,
+  });
 
   const providerMutation = useMutation({
     mutationFn: (input: { id: string; enabled: boolean }) => patchProvider({ data: input }),
