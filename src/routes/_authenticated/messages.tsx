@@ -21,6 +21,14 @@ import { useAuth } from "@/lib/auth";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { FindStudentDialog } from "@/components/FindStudentDialog";
+import { ReportDialog } from "@/components/ReportDialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { blockUser, listMyBlocks, unblockUser } from "@/lib/moderation";
 import { cn } from "@/lib/utils";
 
 
