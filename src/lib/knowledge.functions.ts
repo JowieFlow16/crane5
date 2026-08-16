@@ -179,3 +179,101 @@ export const refreshLinkSources = createServerFn({ method: "POST" })
     }
     return { updated, failed, checked: rows?.length ?? 0 };
   });
+
+/** Admin: teach Crane5 from an entire video playlist (YouTube). */
+export const learnFromPlaylist = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        url: z.string().url().max(2000),
+        subject: z.string().max(80).optional(),
+        classLevel: z.string().max(10).optional(),
+        limit: z.number().int().min(1).max(30).default(15),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId as string);
+
+    const { parsePlaylistUrl, listPlaylistVideos, fetchVideoLessonById } = await import(
+      "./knowledge-video.server"
+    );
+    const parsed = parsePlaylistUrl(data.url);
+    if (!parsed) throw new Error("That isn't a playlist link (it needs a ?list=… part).");
+
+    const ids = (await listPlaylistVideos(parsed.playlistId)).slice(0, data.limit);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    let learned = 0;
+    let failed = 0;
+    for (const id of ids) {
+      const sourceUrl = `https://www.youtube.com/watch?v=${id}`;
+      try {
+        const lesson = await fetchVideoLessonById(id);
+        await supabaseAdmin.from("documents").delete().eq("source_url", sourceUrl);
+        const { error } = await supabaseAdmin.from("documents").insert({
+          name: lesson.title.slice(0, 200),
+          subject: data.subject ?? null,
+          class_level: (data.classLevel ?? null) as never,
+          doc_type: "playlist video",
+          storage_path: `video/${id}`,
+          content_text: lesson.text,
+          source_url: sourceUrl,
+          source_type: "video",
+          last_fetched_at: new Date().toISOString(),
+          uploaded_by: context.userId as string,
+        } as never);
+        if (error) throw new Error(error.message);
+        learned++;
+      } catch {
+        failed++;
+      }
+    }
+    if (learned === 0) throw new Error("Couldn't learn from any video in that playlist.");
+    return { learned, failed, total: ids.length };
+  });
+
+/** Admin: teach Crane5 from an uploaded document (PDF, Word, slides, text). */
+export const learnFromFile = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        filename: z.string().min(1).max(200),
+        mimeType: z.string().max(150),
+        /** data:<mime>;base64,… (max ~15 MB encoded) */
+        dataUrl: z.string().max(21_000_000),
+        name: z.string().max(200).optional(),
+        subject: z.string().max(80).optional(),
+        classLevel: z.string().max(10).optional(),
+        docType: z.string().max(60).default("notes"),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId as string);
+
+    const { extractFileText } = await import("./knowledge-file.server");
+    const { text, kind } = await extractFileText({
+      filename: data.filename,
+      mimeType: data.mimeType,
+      dataUrl: data.dataUrl,
+    });
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("documents").insert({
+      name: (data.name?.trim() || data.filename).slice(0, 200),
+      subject: data.subject ?? null,
+      class_level: (data.classLevel ?? null) as never,
+      doc_type: data.docType || kind,
+      storage_path: `file/${Date.now()}-${data.filename}`,
+      content_text: text,
+      source_type: "file",
+      last_fetched_at: new Date().toISOString(),
+      uploaded_by: context.userId as string,
+    } as never);
+    if (error) throw new Error(error.message);
+
+    return { ok: true, characters: text.length, kind };
+  });
