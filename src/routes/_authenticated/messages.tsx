@@ -384,8 +384,18 @@ function Thread({
               key={m.id}
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              className={cn("flex", mine ? "justify-end" : "justify-start")}
+              className={cn("group flex items-end gap-1", mine ? "justify-end" : "justify-start")}
             >
+              {!mine && (
+                <button
+                  onClick={() => setReportMsg(m)}
+                  className="order-2 shrink-0 rounded-full p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100 focus:opacity-100"
+                  aria-label="Report this message"
+                  title="Report this message"
+                >
+                  <Flag className="h-3.5 w-3.5" />
+                </button>
+              )}
               <div
                 className={cn(
                   "max-w-[80%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-sm shadow-sm",
