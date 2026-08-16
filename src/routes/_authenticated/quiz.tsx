@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { Loader2, CheckCircle2, XCircle, Trophy, RotateCcw, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { generateQuiz, type QuizQuestion } from "@/lib/ai.functions";
+import { generateQuiz, markQuiz, type QuizQuestion } from "@/lib/ai.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,6 +49,7 @@ function isCorrect(q: QuizQuestion, given: string) {
 function QuizPage() {
   const { user } = useAuth();
   const callGenerate = useServerFn(generateQuiz);
+  const callMark = useServerFn(markQuiz);
 
   const [stage, setStage] = useState<Stage>("setup");
   const [subject, setSubject] = useState("Mathematics");
@@ -61,6 +62,10 @@ function QuizPage() {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [answers, setAnswers] = useState<string[]>([]);
   const [score, setScore] = useState(0);
+  const [marks, setMarks] = useState<boolean[]>([]);
+  const [feedback, setFeedback] = useState<string[]>([]);
+  const [recommendations, setRecommendations] = useState<string[]>([]);
+  const [summary, setSummary] = useState("");
 
   const generate = async () => {
     setBusy(true);
@@ -80,14 +85,43 @@ function QuizPage() {
   };
 
   const submit = async () => {
-    let correct = 0;
-    const weak: string[] = [];
-    questions.forEach((q, i) => {
-      if (isCorrect(q, answers[i])) correct++;
-      else weak.push(q.topic);
-    });
-    setScore(correct);
+    setBusy(true);
+    // Local marking first so results are instant, then AI marking refines it
+    // (accepts equivalent wording, units and spelling slips on short answers).
+    let correctFlags = questions.map((q, i) => isCorrect(q, answers[i]));
+    let weak = Array.from(
+      new Set(questions.filter((_, i) => !correctFlags[i]).map((q) => q.topic)),
+    );
+    setMarks(correctFlags);
+    setScore(correctFlags.filter(Boolean).length);
     setStage("results");
+
+    try {
+      const marked = await callMark({
+        data: {
+          subject,
+          topic: topic || undefined,
+          items: questions.map((q, i) => ({
+            question: q.question,
+            type: q.type,
+            expected: q.answer,
+            given: answers[i] ?? "",
+            topic: q.topic,
+          })),
+        },
+      });
+      correctFlags = questions.map((_, i) => marked.results[i]?.correct ?? correctFlags[i]);
+      weak = marked.weakAreas.length ? marked.weakAreas : weak;
+      setMarks(correctFlags);
+      setScore(marked.score);
+      setFeedback(marked.results.map((r) => r.feedback));
+      setRecommendations(marked.recommendations);
+      setSummary(marked.summary);
+    } catch {
+      /* keep the instant local marking */
+    } finally {
+      setBusy(false);
+    }
 
     if (user) {
       try {
@@ -108,10 +142,10 @@ function QuizPage() {
           user_id: user.id,
           subject,
           topic: topic || null,
-          score: correct,
+          score: correctFlags.filter(Boolean).length,
           total: questions.length,
           answers: answers as unknown as import("@/integrations/supabase/types").Json,
-          weak_areas: Array.from(new Set(weak)),
+          weak_areas: weak,
         });
       } catch {
         /* non-blocking */
@@ -124,6 +158,10 @@ function QuizPage() {
     setQuestions([]);
     setAnswers([]);
     setScore(0);
+    setMarks([]);
+    setFeedback([]);
+    setRecommendations([]);
+    setSummary("");
   };
 
   return (
@@ -325,7 +363,7 @@ function QuizPage() {
 
             <div className="mt-6 space-y-4">
               {questions.map((q, i) => {
-                const ok = isCorrect(q, answers[i]);
+                const ok = marks[i] ?? isCorrect(q, answers[i]);
                 return (
                   <div key={i} className="rounded-2xl border border-border bg-card p-5 shadow-card">
                     <div className="flex items-start gap-2">
@@ -347,6 +385,9 @@ function QuizPage() {
                         <span className="font-medium">💡 Explanation</span>
                         <Markdown>{q.explanation}</Markdown>
                       </div>
+                      {feedback[i] && (
+                        <p className="text-xs text-muted-foreground">📝 {feedback[i]}</p>
+                      )}
                       {q.competency && (
                         <p className="text-xs text-muted-foreground">🎯 {q.competency}</p>
                       )}
@@ -355,6 +396,20 @@ function QuizPage() {
                 );
               })}
             </div>
+
+            {(summary || recommendations.length > 0) && (
+              <div className="mt-6 rounded-2xl border border-border bg-card p-5 shadow-card">
+                <h2 className="font-display text-lg font-semibold">Examiner's comment</h2>
+                {summary && <p className="mt-1 text-sm text-muted-foreground">{summary}</p>}
+                {recommendations.length > 0 && (
+                  <ul className="mt-3 space-y-1 text-sm">
+                    {recommendations.map((r, i) => (
+                      <li key={i}>• {r}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
 
             <div className="mt-6 flex gap-3">
               <Button onClick={reset} variant="hero" size="lg" className="flex-1">

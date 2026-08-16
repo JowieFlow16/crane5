@@ -13,6 +13,8 @@ import {
   type Capability,
   type ProviderDef,
 } from "./registry.server";
+import { AI_MODELS, routeTask, type TaskType } from "./models.server";
+import { logAiRequest, readUsage } from "./usage-log.server";
 import {
   cacheGet,
   cacheSet,
@@ -29,6 +31,7 @@ import {
   withSlot,
   type KeyFailureKind,
 } from "./health.server";
+
 
 export type ContentPart =
   | { type: "text"; text: string }
@@ -48,12 +51,19 @@ export interface ChatOptions {
   temperature?: number;
   /** Capability hint used for provider specialisation. Defaults to "text". */
   capability?: Capability;
+  /** Internal task type; decides model + reasoning level. Never user-supplied. */
+  task?: TaskType;
+  /** Who the request is for (usage/cost attribution only). */
+  userId?: string;
+  conversationId?: string;
+  subject?: string;
   /**
    * Opt-in caching for non-personalised, repeatable content (explanations,
    * summaries, revision material). Never set this for conversations.
    */
   cacheKey?: string;
 }
+
 
 const RETRYABLE_STATUS = new Set([408, 409, 425, 429, 500, 502, 503, 504, 522, 524]);
 
@@ -184,8 +194,16 @@ interface ExecuteOptions<T> {
   /** Extract the result; return undefined to treat the response as a failure. */
   extract: (data: Record<string, unknown>, p: ProviderDef) => T | undefined;
   modelOverride?: string;
+  /** Ordered model chain for this request (task routing policy). */
+  models?: (p: ProviderDef) => string[];
   cacheKey?: string;
+  /** Called on every resolved response with the raw payload + routing facts. */
+  onResolved?: (
+    data: Record<string, unknown>,
+    info: { provider: string; model: string; latencyMs: number },
+  ) => void;
 }
+
 
 /**
  * Core routing loop: healthiest provider first, every candidate model,
@@ -215,7 +233,9 @@ export async function execute<T>(opts: ExecuteOptions<T>): Promise<T> {
     const startedAll = Date.now();
 
     for (const p of providers) {
-      const models = opts.modelOverride ? [opts.modelOverride] : providerModels(p, capability);
+      const models = opts.modelOverride
+        ? [opts.modelOverride]
+        : (opts.models?.(p) ?? providerModels(p, capability));
       const allKeys = providerKeys(p);
       let providerExhausted = false;
 
@@ -246,6 +266,7 @@ export async function execute<T>(opts: ExecuteOptions<T>): Promise<T> {
             metrics.totalLatencyMs += Date.now() - startedAll;
             metrics.lastProvider = p.id;
             log("resolved", { capability, provider: p.id, model, keyIndex, latency, attempts });
+            opts.onResolved?.(data, { provider: p.id, model, latencyMs: latency });
             if (opts.cacheKey) cacheSet(opts.cacheKey, value);
             return value;
           } catch (err) {
@@ -302,30 +323,113 @@ function hasNonText(messages: ChatMessage[]) {
   );
 }
 
+/** Build the provider-specific request body for one chat call. */
+export function buildChatBody(
+  p: ProviderDef,
+  model: string,
+  opts: ChatOptions,
+  policyTemperature: number,
+  reasoning: "low" | "medium" | "high",
+  stream = false,
+) {
+  const isOpenRouter = p.id === "openrouter";
+  return {
+    model,
+    messages: opts.messages,
+    temperature: opts.temperature ?? policyTemperature,
+    ...(stream ? { stream: true, stream_options: { include_usage: true } } : {}),
+    ...(isOpenRouter
+      ? {
+          // Hidden chain-of-thought: we ask for reasoning effort but exclude the
+          // raw reasoning trace from the response — students only see answers.
+          reasoning: { effort: reasoning, exclude: true },
+          usage: { include: true },
+        }
+      : {}),
+    ...(!isOpenRouter && model.startsWith("openai/gpt-5") ? { reasoning_effort: "none" } : {}),
+    ...(opts.json ? { response_format: { type: "json_object" } } : {}),
+  };
+}
+
+/** Model chain for a chat request, per provider. */
+export function chatModels(opts: ChatOptions, capability: Capability) {
+  const policy = routeTask(opts.task);
+  return (p: ProviderDef) => {
+    if (p.id !== "openrouter") return providerModels(p, capability);
+    if (capability === "vision") return [AI_MODELS.vision, AI_MODELS.premium];
+    return policy.models;
+  };
+}
+
 export async function chat(opts: ChatOptions): Promise<string> {
   const capability: Capability = opts.capability ?? (hasNonText(opts.messages) ? "vision" : "text");
+  const policy = routeTask(opts.task);
+  const startedAt = Date.now();
 
-  return execute<string>({
-    capability,
-    modelOverride: opts.model,
-    cacheKey: opts.cacheKey ? `chat:${hashKey(opts.cacheKey)}` : undefined,
-    build: (_p, model) => ({
-      path: "/chat/completions",
-      body: {
-        model,
-        messages: opts.messages,
-        temperature: opts.temperature ?? 0.6,
-        ...(model.startsWith("openai/gpt-5") ? { reasoning_effort: "none" } : {}),
-        ...(opts.json ? { response_format: { type: "json_object" } } : {}),
+  try {
+    return await execute<string>({
+      capability,
+      modelOverride: opts.model,
+      models: chatModels(opts, capability),
+      cacheKey: opts.cacheKey ? `chat:${hashKey(opts.cacheKey)}` : undefined,
+      build: (p, model) => ({
+        path: "/chat/completions",
+        body: buildChatBody(p, model, opts, policy.temperature, policy.reasoning),
+      }),
+      extract: (data) => {
+        const d = data as { choices?: { message?: { content?: string } }[] };
+        const content = d.choices?.[0]?.message?.content ?? "";
+        return content.trim() ? content : undefined;
       },
-    }),
-    extract: (data) => {
-      const d = data as { choices?: { message?: { content?: string } }[] };
-      const content = d.choices?.[0]?.message?.content ?? "";
-      return content.trim() ? content : undefined;
-    },
+      onResolved: (data, info) => {
+        void recordChatUsage(opts, data, info, "success");
+      },
+    });
+  } catch (err) {
+    void logAiRequest({
+      userId: opts.userId ?? null,
+      conversationId: opts.conversationId ?? null,
+      provider: "openrouter",
+      model: policy.models[0] ?? AI_MODELS.primary,
+      taskType: opts.task ?? "NORMAL_TUTORING",
+      subject: opts.subject ?? null,
+      inputTokens: 0,
+      outputTokens: 0,
+      reasoningTokens: 0,
+      estimatedCost: 0,
+      latencyMs: Date.now() - startedAt,
+      status: "error",
+      errorMessage: err instanceof Error ? err.message : String(err),
+    });
+    throw err;
+  }
+}
+
+async function recordChatUsage(
+  opts: ChatOptions,
+  data: Record<string, unknown>,
+  info: { provider: string; model: string; latencyMs: number },
+  status: "success" | "error",
+) {
+  const u = readUsage(data) ?? {};
+  await logAiRequest({
+    userId: opts.userId ?? null,
+    conversationId: opts.conversationId ?? null,
+    provider: info.provider,
+    model: info.model,
+    taskType: opts.task ?? "NORMAL_TUTORING",
+    subject: opts.subject ?? null,
+    inputTokens: u.prompt_tokens ?? 0,
+    outputTokens: u.completion_tokens ?? 0,
+    reasoningTokens: u.completion_tokens_details?.reasoning_tokens ?? 0,
+    cachedTokens: u.prompt_tokens_details?.cached_tokens ?? 0,
+    // OpenRouter reports the real charged cost; never estimated blindly.
+    estimatedCost: u.cost ?? u.total_cost ?? 0,
+    latencyMs: info.latencyMs,
+    status,
   });
 }
+
 
 function pickImage(data: Record<string, unknown>): string | undefined {
   const d = data as {
