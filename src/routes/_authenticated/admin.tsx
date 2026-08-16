@@ -1,6 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { learnFromLink, learnFromVideo, refreshLinkSources } from "@/lib/knowledge.functions";
+import {
+  learnFromFile,
+  learnFromLink,
+  learnFromPlaylist,
+  learnFromVideo,
+  refreshLinkSources,
+} from "@/lib/knowledge.functions";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "motion/react";
@@ -42,6 +48,10 @@ export const Route = createFileRoute("/_authenticated/admin")({
 });
 
 const CLASSES = ["S1", "S2", "S3", "S4", "S5", "S6"];
+/** Sentinel for "applies to every subject / every class" training material. */
+const ALL = "__all__";
+/** Turn a select value into what the server stores (null = all). */
+const orAll = (v: string) => (v === ALL ? undefined : v);
 const DOC_TYPES = ["notes", "past paper", "marking guide", "textbook", "syllabus", "reference"];
 
 function AdminPage() {
@@ -203,7 +213,9 @@ function AdminPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {SUBJECTS.map((s) => (
+                  <SelectItem value={ALL}>All subjects</SelectItem>
+                  <SelectItem value={ALL}>All subjects</SelectItem>
+            {SUBJECTS.map((s) => (
                     <SelectItem key={s} value={s}>
                       {s}
                     </SelectItem>
@@ -218,7 +230,9 @@ function AdminPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {CLASSES.map((c) => (
+                  <SelectItem value={ALL}>All classes</SelectItem>
+                  <SelectItem value={ALL}>All classes</SelectItem>
+            {CLASSES.map((c) => (
                     <SelectItem key={c} value={c}>
                       {c}
                     </SelectItem>
@@ -279,7 +293,8 @@ function AdminPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All subjects</SelectItem>
-                {SUBJECTS.map((s) => (
+                <SelectItem value={ALL}>All subjects</SelectItem>
+            {SUBJECTS.map((s) => (
                   <SelectItem key={s} value={s}>
                     {s}
                   </SelectItem>
@@ -330,6 +345,8 @@ function AdminPage() {
 
       <VideoLearning isAdmin={isAdmin} />
 
+      <FileLearning isAdmin={isAdmin} />
+
       <AiControlPlaneAdmin />
       <AiGatewayAdmin />
 
@@ -360,8 +377,8 @@ function LinkLearning({ isAdmin }: { isAdmin: boolean }) {
       const res = await learn({
         data: {
           url: url.trim(),
-          subject: linkSubject,
-          classLevel: linkClass,
+          subject: orAll(linkSubject),
+          classLevel: orAll(linkClass),
           docType: "web link",
         },
       });
@@ -414,6 +431,7 @@ function LinkLearning({ isAdmin }: { isAdmin: boolean }) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value={ALL}>All subjects</SelectItem>
             {SUBJECTS.map((s) => (
               <SelectItem key={s} value={s}>
                 {s}
@@ -426,6 +444,7 @@ function LinkLearning({ isAdmin }: { isAdmin: boolean }) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value={ALL}>All classes</SelectItem>
             {CLASSES.map((c) => (
               <SelectItem key={c} value={c}>
                 {c}
@@ -454,6 +473,7 @@ function LinkLearning({ isAdmin }: { isAdmin: boolean }) {
 function VideoLearning({ isAdmin }: { isAdmin: boolean }) {
   const qc = useQueryClient();
   const learn = useServerFn(learnFromVideo);
+  const learnList = useServerFn(learnFromPlaylist);
   const [url, setUrl] = useState("");
   const [subject, setSubject] = useState("Mathematics");
   const [classLevel, setClassLevel] = useState("S4");
@@ -466,10 +486,20 @@ function VideoLearning({ isAdmin }: { isAdmin: boolean }) {
     if (!url.trim()) return;
     setBusy(true);
     try {
-      const res = await learn({
-        data: { url: url.trim(), subject, classLevel },
-      });
-      toast.success(`Learned ${res.characters.toLocaleString()} characters from “${res.title}”.`);
+      const clean = url.trim();
+      if (/[?&]list=/.test(clean)) {
+        const res = await learnList({
+          data: { url: clean, subject: orAll(subject), classLevel: orAll(classLevel), limit: 15 },
+        });
+        toast.success(
+          `Learned ${res.learned} of ${res.total} videos in that playlist${res.failed ? ` (${res.failed} skipped)` : ""}.`,
+        );
+      } else {
+        const res = await learn({
+          data: { url: clean, subject: orAll(subject), classLevel: orAll(classLevel) },
+        });
+        toast.success(`Learned ${res.characters.toLocaleString()} characters from “${res.title}”.`);
+      }
       setUrl("");
       qc.invalidateQueries({ queryKey: ["documents"] });
     } catch (err) {
@@ -483,11 +513,12 @@ function VideoLearning({ isAdmin }: { isAdmin: boolean }) {
     <section className="mt-10">
       <div className="flex items-center gap-2">
         <Video className="h-5 w-5 text-primary" />
-        <h2 className="font-display text-xl font-bold">Learning from video links</h2>
+        <h2 className="font-display text-xl font-bold">Learning from videos &amp; playlists</h2>
       </div>
       <p className="mt-1 text-sm text-muted-foreground">
-        Paste a YouTube, Vimeo or other video link. Crane5 reads its captions (or description) and
-        adds the lesson to its knowledge base. Videos with subtitles work best.
+        Paste any video link — YouTube, a full playlist (?list=…), Vimeo, Khan Academy or a direct
+        video file. Crane5 reads the captions when they exist, and watches the video itself when they
+        don't.
       </p>
       <form
         onSubmit={submit}
@@ -496,7 +527,7 @@ function VideoLearning({ isAdmin }: { isAdmin: boolean }) {
         <Input
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://www.youtube.com/watch?v=…"
+          placeholder="Video or playlist link — https://www.youtube.com/watch?v=… or …?list=…"
           type="url"
           required
         />
@@ -505,6 +536,7 @@ function VideoLearning({ isAdmin }: { isAdmin: boolean }) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value={ALL}>All subjects</SelectItem>
             {SUBJECTS.map((s) => (
               <SelectItem key={s} value={s}>
                 {s}
@@ -517,6 +549,7 @@ function VideoLearning({ isAdmin }: { isAdmin: boolean }) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value={ALL}>All classes</SelectItem>
             {CLASSES.map((c) => (
               <SelectItem key={c} value={c}>
                 {c}
@@ -527,6 +560,126 @@ function VideoLearning({ isAdmin }: { isAdmin: boolean }) {
         <Button type="submit" variant="hero" disabled={busy}>
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
           Learn video
+        </Button>
+      </form>
+    </section>
+  );
+}
+
+/** Continuous learning from documents: PDFs, Word files, slides and text. */
+function FileLearning({ isAdmin }: { isAdmin: boolean }) {
+  const qc = useQueryClient();
+  const learn = useServerFn(learnFromFile);
+  const [file, setFile] = useState<File | null>(null);
+  const [title, setTitle] = useState("");
+  const [subject, setSubject] = useState(ALL);
+  const [classLevel, setClassLevel] = useState(ALL);
+  const [busy, setBusy] = useState(false);
+
+  if (!isAdmin) return null;
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!file) {
+      toast.error("Choose a file first.");
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("That file is over 15 MB. Split it or upload a smaller version.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(new Error("Couldn't read that file."));
+        reader.readAsDataURL(file);
+      });
+
+      const res = await learn({
+        data: {
+          filename: file.name,
+          mimeType: file.type || "application/octet-stream",
+          dataUrl,
+          name: title.trim() || undefined,
+          subject: orAll(subject),
+          classLevel: orAll(classLevel),
+          docType: "notes",
+        },
+      });
+      toast.success(`Learned ${res.characters.toLocaleString()} characters from that ${res.kind}.`);
+      setFile(null);
+      setTitle("");
+      qc.invalidateQueries({ queryKey: ["documents"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't learn from that file.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="mt-10">
+      <div className="flex items-center gap-2">
+        <FileText className="h-5 w-5 text-primary" />
+        <h2 className="font-display text-xl font-bold">Learning from documents</h2>
+      </div>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Upload a PDF, Word document, slide deck or text file. Crane5 extracts the full text —
+        including scanned PDFs — and adds it to its knowledge base.
+      </p>
+      <form
+        onSubmit={submit}
+        className="mt-4 grid gap-3 rounded-2xl border border-border bg-card p-5 shadow-card sm:grid-cols-2"
+      >
+        <div className="space-y-1.5 sm:col-span-2">
+          <Label htmlFor="kfile">File</Label>
+          <Input
+            id="kfile"
+            type="file"
+            accept=".pdf,.docx,.pptx,.txt,.md,.csv,.json"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          />
+        </div>
+        <div className="space-y-1.5 sm:col-span-2">
+          <Label htmlFor="ktitle">Title (optional)</Label>
+          <Input
+            id="ktitle"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="NCDC Biology syllabus S1–S4"
+          />
+        </div>
+        <Select value={subject} onValueChange={setSubject}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>All subjects</SelectItem>
+            {SUBJECTS.map((s) => (
+              <SelectItem key={s} value={s}>
+                {s}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={classLevel} onValueChange={setClassLevel}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>All classes</SelectItem>
+            {CLASSES.map((c) => (
+              <SelectItem key={c} value={c}>
+                {c}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button type="submit" variant="hero" disabled={busy} className="sm:col-span-2">
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+          Teach Crane5 this document
         </Button>
       </form>
     </section>
