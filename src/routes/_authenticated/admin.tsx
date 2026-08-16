@@ -95,7 +95,7 @@ function AdminPage() {
       let text = contentText.trim();
 
       if (file) {
-        storagePath = `${subject}/${Date.now()}-${file.name}`;
+        storagePath = `${orAll(subject) ?? "all"}/${Date.now()}-${file.name}`;
         const { error: upErr } = await supabase.storage
           .from("curriculum-docs")
           .upload(storagePath, file);
@@ -109,8 +109,8 @@ function AdminPage() {
 
       const { error } = await supabase.from("documents").insert({
         name: name.trim(),
-        subject,
-        class_level: classLevel as never,
+        subject: orAll(subject) ?? null,
+        class_level: (orAll(classLevel) ?? null) as never,
         doc_type: docType,
         storage_path: storagePath,
         file_size: fileSize,
