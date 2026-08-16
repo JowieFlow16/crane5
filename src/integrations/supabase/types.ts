@@ -479,6 +479,54 @@ export type Database = {
         }
         Relationships: []
       }
+      content_reports: {
+        Row: {
+          admin_note: string | null
+          created_at: string
+          details: string | null
+          excerpt: string | null
+          id: string
+          reason: string
+          reported_user_id: string | null
+          reporter_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          target_id: string | null
+          target_type: string
+        }
+        Insert: {
+          admin_note?: string | null
+          created_at?: string
+          details?: string | null
+          excerpt?: string | null
+          id?: string
+          reason: string
+          reported_user_id?: string | null
+          reporter_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          target_id?: string | null
+          target_type: string
+        }
+        Update: {
+          admin_note?: string | null
+          created_at?: string
+          details?: string | null
+          excerpt?: string | null
+          id?: string
+          reason?: string
+          reported_user_id?: string | null
+          reporter_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          target_id?: string | null
+          target_type?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           created_at: string
@@ -1520,6 +1568,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_blocks: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
