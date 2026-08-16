@@ -352,6 +352,7 @@ export type Database = {
       }
       ai_usage: {
         Row: {
+          bonus_requests: number
           created_at: string
           failed_requests: number
           images_today: number
@@ -364,6 +365,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          bonus_requests?: number
           created_at?: string
           failed_requests?: number
           images_today?: number
@@ -376,6 +378,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          bonus_requests?: number
           created_at?: string
           failed_requests?: number
           images_today?: number
@@ -870,6 +873,8 @@ export type Database = {
           full_name: string | null
           id: string
           learning_goal: string | null
+          onboarded: boolean
+          referral_source: string | null
           school: string | null
           updated_at: string
         }
@@ -883,6 +888,8 @@ export type Database = {
           full_name?: string | null
           id: string
           learning_goal?: string | null
+          onboarded?: boolean
+          referral_source?: string | null
           school?: string | null
           updated_at?: string
         }
@@ -896,6 +903,8 @@ export type Database = {
           full_name?: string | null
           id?: string
           learning_goal?: string | null
+          onboarded?: boolean
+          referral_source?: string | null
           school?: string | null
           updated_at?: string
         }
@@ -1046,6 +1055,30 @@ export type Database = {
           quiz_type?: string
           subject?: string
           topic?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      referral_shares: {
+        Row: {
+          channel: string
+          created_at: string
+          id: string
+          share_date: string
+          user_id: string
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          id?: string
+          share_date?: string
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          id?: string
+          share_date?: string
           user_id?: string
         }
         Relationships: []
@@ -1227,6 +1260,48 @@ export type Database = {
         }
         Relationships: []
       }
+      timetable_slots: {
+        Row: {
+          activity: string
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          reminder_minutes: number
+          reminders_on: boolean
+          start_time: string
+          subject: string
+          topic: string | null
+          user_id: string
+        }
+        Insert: {
+          activity?: string
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          reminder_minutes?: number
+          reminders_on?: boolean
+          start_time: string
+          subject: string
+          topic?: string | null
+          user_id: string
+        }
+        Update: {
+          activity?: string
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          reminder_minutes?: number
+          reminders_on?: boolean
+          start_time?: string
+          subject?: string
+          topic?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       topics: {
         Row: {
           class_level: Database["public"]["Enums"]["class_level"] | null
@@ -1392,6 +1467,7 @@ export type Database = {
         Args: { p_success: boolean; p_user_id: string }
         Returns: undefined
       }
+      record_app_share: { Args: { p_channel?: string }; Returns: Json }
     }
     Enums: {
       app_role: "student" | "teacher" | "parent" | "admin"

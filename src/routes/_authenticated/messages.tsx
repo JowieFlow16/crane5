@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { motion } from "motion/react";
 import {
@@ -9,16 +8,12 @@ import {
   Send,
   Loader2,
   ArrowLeft,
-  Sparkles,
-  GraduationCap,
   Search,
 } from "lucide-react";
 import { toast } from "sonner";
-import { aiErrorMessage } from "@/lib/ai-errors";
 import { supabase } from "@/integrations/supabase/client";
 import { db, otherParty, type Conversation, type DirectMessage } from "@/lib/db";
 import { useAuth } from "@/lib/auth";
-import { draftReply } from "@/lib/ai.functions";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -68,7 +63,7 @@ function Avatar({
 }
 
 function MessagesPage() {
-  const { user, isTeacher } = useAuth();
+  const { user } = useAuth();
   const { c: activeId } = Route.useSearch();
   const navigate = Route.useNavigate();
   const qc = useQueryClient();
@@ -153,7 +148,7 @@ function MessagesPage() {
             </div>
           ) : filtered.length === 0 ? (
             <div className="p-8 text-center text-sm text-muted-foreground">
-              No chats yet. Find a teacher or tap “Message” on a profile to start.
+              No chats yet. Meet other students on the Community or Leaderboard, then tap “Message”.
             </div>
           ) : (
             filtered.map((c) => {
@@ -171,9 +166,6 @@ function MessagesPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       <span className="truncate font-medium">{o.name}</span>
-                      {o.role === "teacher" && (
-                        <GraduationCap className="h-3.5 w-3.5 shrink-0 text-primary" />
-                      )}
                       <span className="ml-auto shrink-0 text-[0.65rem] text-muted-foreground">
                         {timeAgo(c.last_at)}
                       </span>
@@ -200,7 +192,6 @@ function MessagesPage() {
           <Thread
             conversation={active}
             myId={user.id}
-            isTeacher={isTeacher}
             onBack={() => navigate({ search: {} })}
           />
         ) : (
@@ -217,21 +208,17 @@ function MessagesPage() {
 function Thread({
   conversation,
   myId,
-  isTeacher,
   onBack,
 }: {
   conversation: Conversation;
   myId: string;
-  isTeacher: boolean;
   onBack: () => void;
 }) {
   const qc = useQueryClient();
   const other = otherParty(conversation, myId);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
-  const [drafting, setDrafting] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const doDraft = useServerFn(draftReply);
 
   const { data: messages } = useQuery({
     queryKey: ["dm-thread", conversation.id],
@@ -282,26 +269,6 @@ function Thread({
     setSending(false);
   };
 
-  const draft = async () => {
-    const lastFromStudent = [...(messages ?? [])].reverse().find((m) => m.sender_id === other.id);
-    if (!lastFromStudent) {
-      toast.error("No student message to reply to yet.");
-      return;
-    }
-    setDrafting(true);
-    try {
-      const { content } = await doDraft({
-        data: { studentMessage: lastFromStudent.content },
-      });
-      setText(content);
-      toast.success("AI draft ready — edit then send.");
-    } catch (err) {
-      toast.error(aiErrorMessage(err, "Couldn't draft a reply."));
-    } finally {
-      setDrafting(false);
-    }
-  };
-
   return (
     <>
       <header className="flex items-center gap-3 border-b border-border bg-card px-4 py-3 sm:rounded-tr-2xl">
@@ -316,9 +283,8 @@ function Thread({
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
             <p className="truncate font-medium">{other.name}</p>
-            {other.role === "teacher" && <GraduationCap className="h-4 w-4 text-primary" />}
           </div>
-          <p className="text-xs capitalize text-muted-foreground">{other.role}</p>
+          <p className="text-xs text-muted-foreground">Student</p>
         </div>
       </header>
 
@@ -362,20 +328,6 @@ function Thread({
       </div>
 
       <div className="border-t border-border bg-card p-3 sm:rounded-br-2xl">
-        {isTeacher && (
-          <button
-            onClick={draft}
-            disabled={drafting}
-            className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/20 disabled:opacity-60"
-          >
-            {drafting ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Sparkles className="h-3.5 w-3.5" />
-            )}
-            Draft reply with AI
-          </button>
-        )}
         <div className="flex items-end gap-2">
           <Textarea
             value={text}
