@@ -18,9 +18,18 @@ export interface AiUsageRecord {
   cachedTokens?: number;
   estimatedCost: number;
   latencyMs: number;
+  /** Time the request waited for a worker slot before dispatch. */
+  queueMs?: number;
+  /** Failover/retry attempts before the answer resolved. */
+  retryCount?: number;
+  /** True when the answer came from the shared cache instead of a provider. */
+  cacheHit?: boolean;
+  /** Request tracing id, shared with the structured gateway logs. */
+  correlationId?: string | null;
   status: "success" | "error";
   errorMessage?: string | null;
 }
+
 
 /** OpenAI-compatible usage block, plus OpenRouter's cost extension. */
 export interface RawUsage {
@@ -56,6 +65,11 @@ export async function logAiRequest(rec: AiUsageRecord): Promise<void> {
       cached_tokens: Math.max(0, Math.round(rec.cachedTokens ?? 0)),
       estimated_cost: Number(rec.estimatedCost.toFixed(8)),
       latency_ms: Math.max(0, Math.round(rec.latencyMs)),
+      queue_ms: Math.max(0, Math.round(rec.queueMs ?? 0)),
+      retry_count: Math.max(0, Math.round(rec.retryCount ?? 0)),
+      cache_hit: rec.cacheHit ?? false,
+      correlation_id: rec.correlationId ?? null,
+
       status: rec.status,
       // Truncated, sanitised message — never a stack trace or a secret.
       error_message: rec.errorMessage ? rec.errorMessage.slice(0, 300) : null,

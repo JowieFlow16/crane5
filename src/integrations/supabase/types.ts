@@ -14,6 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_budgets: {
+        Row: {
+          alert_thresholds: number[]
+          daily_limit: number
+          enforce: boolean
+          id: string
+          monthly_limit: number
+          scope: string
+          updated_at: string
+        }
+        Insert: {
+          alert_thresholds?: number[]
+          daily_limit?: number
+          enforce?: boolean
+          id: string
+          monthly_limit?: number
+          scope?: string
+          updated_at?: string
+        }
+        Update: {
+          alert_thresholds?: number[]
+          daily_limit?: number
+          enforce?: boolean
+          id?: string
+          monthly_limit?: number
+          scope?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ai_cache_entries: {
+        Row: {
+          capability: string
+          class_level: string | null
+          created_at: string
+          expires_at: string
+          hits: number
+          id: string
+          last_hit_at: string | null
+          prompt_preview: string | null
+          subject: string | null
+          value: Json
+        }
+        Insert: {
+          capability?: string
+          class_level?: string | null
+          created_at?: string
+          expires_at: string
+          hits?: number
+          id: string
+          last_hit_at?: string | null
+          prompt_preview?: string | null
+          subject?: string | null
+          value: Json
+        }
+        Update: {
+          capability?: string
+          class_level?: string | null
+          created_at?: string
+          expires_at?: string
+          hits?: number
+          id?: string
+          last_hit_at?: string | null
+          prompt_preview?: string | null
+          subject?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
+      ai_key_state: {
+        Row: {
+          key_index: number
+          parked_until: string | null
+          provider_id: string
+          reason: string | null
+          updated_at: string
+          uses: number
+        }
+        Insert: {
+          key_index: number
+          parked_until?: string | null
+          provider_id: string
+          reason?: string | null
+          updated_at?: string
+          uses?: number
+        }
+        Update: {
+          key_index?: number
+          parked_until?: string | null
+          provider_id?: string
+          reason?: string | null
+          updated_at?: string
+          uses?: number
+        }
+        Relationships: []
+      }
       ai_plans: {
         Row: {
           created_at: string
@@ -47,10 +143,150 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_policies: {
+        Row: {
+          active: boolean
+          allow_premium: boolean
+          blocks_new_requests: boolean
+          description: string | null
+          id: string
+          max_concurrency: number | null
+          name: string
+          prefer_cheap: boolean
+          quota_multiplier: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          allow_premium?: boolean
+          blocks_new_requests?: boolean
+          description?: string | null
+          id: string
+          max_concurrency?: number | null
+          name: string
+          prefer_cheap?: boolean
+          quota_multiplier?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          allow_premium?: boolean
+          blocks_new_requests?: boolean
+          description?: string | null
+          id?: string
+          max_concurrency?: number | null
+          name?: string
+          prefer_cheap?: boolean
+          quota_multiplier?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ai_providers_config: {
+        Row: {
+          cost_profile: string
+          enabled: boolean
+          id: string
+          label: string
+          max_concurrency: number | null
+          notes: string | null
+          priority: number
+          updated_at: string
+        }
+        Insert: {
+          cost_profile?: string
+          enabled?: boolean
+          id: string
+          label: string
+          max_concurrency?: number | null
+          notes?: string | null
+          priority?: number
+          updated_at?: string
+        }
+        Update: {
+          cost_profile?: string
+          enabled?: boolean
+          id?: string
+          label?: string
+          max_concurrency?: number | null
+          notes?: string | null
+          priority?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ai_queue_jobs: {
+        Row: {
+          attempts: number
+          correlation_id: string | null
+          created_at: string
+          dedupe_key: string | null
+          error_message: string | null
+          finished_at: string | null
+          id: string
+          kind: string
+          locked_at: string | null
+          max_attempts: number
+          payload: Json
+          priority: number
+          result: Json | null
+          run_after: string
+          started_at: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          attempts?: number
+          correlation_id?: string | null
+          created_at?: string
+          dedupe_key?: string | null
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          kind: string
+          locked_at?: string | null
+          max_attempts?: number
+          payload?: Json
+          priority?: number
+          result?: Json | null
+          run_after?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          attempts?: number
+          correlation_id?: string | null
+          created_at?: string
+          dedupe_key?: string | null
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          kind?: string
+          locked_at?: string | null
+          max_attempts?: number
+          payload?: Json
+          priority?: number
+          result?: Json | null
+          run_after?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       ai_request_log: {
         Row: {
+          cache_hit: boolean
           cached_tokens: number
           conversation_id: string | null
+          correlation_id: string | null
           created_at: string
           error_message: string | null
           estimated_cost: number
@@ -60,15 +296,19 @@ export type Database = {
           model: string
           output_tokens: number
           provider: string
+          queue_ms: number
           reasoning_tokens: number
+          retry_count: number
           status: string
           subject: string | null
           task_type: string
           user_id: string | null
         }
         Insert: {
+          cache_hit?: boolean
           cached_tokens?: number
           conversation_id?: string | null
+          correlation_id?: string | null
           created_at?: string
           error_message?: string | null
           estimated_cost?: number
@@ -78,15 +318,19 @@ export type Database = {
           model: string
           output_tokens?: number
           provider: string
+          queue_ms?: number
           reasoning_tokens?: number
+          retry_count?: number
           status?: string
           subject?: string | null
           task_type: string
           user_id?: string | null
         }
         Update: {
+          cache_hit?: boolean
           cached_tokens?: number
           conversation_id?: string | null
+          correlation_id?: string | null
           created_at?: string
           error_message?: string | null
           estimated_cost?: number
@@ -96,7 +340,9 @@ export type Database = {
           model?: string
           output_tokens?: number
           provider?: string
+          queue_ms?: number
           reasoning_tokens?: number
+          retry_count?: number
           status?: string
           subject?: string | null
           task_type?: string
@@ -140,6 +386,36 @@ export type Database = {
           total_requests?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_id: string | null
+          created_at: string
+          id: string
+          meta: Json
+          target: string | null
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          meta?: Json
+          target?: string | null
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          meta?: Json
+          target?: string | null
         }
         Relationships: []
       }
@@ -331,6 +607,33 @@ export type Database = {
           storage_path?: string
           subject?: string | null
           uploaded_by?: string | null
+        }
+        Relationships: []
+      }
+      feature_flags: {
+        Row: {
+          description: string | null
+          enabled: boolean
+          key: string
+          label: string
+          rollout_percent: number
+          updated_at: string
+        }
+        Insert: {
+          description?: string | null
+          enabled?: boolean
+          key: string
+          label: string
+          rollout_percent?: number
+          updated_at?: string
+        }
+        Update: {
+          description?: string | null
+          enabled?: boolean
+          key?: string
+          label?: string
+          rollout_percent?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -628,6 +931,45 @@ export type Database = {
         }
         Relationships: []
       }
+      provider_health: {
+        Row: {
+          avg_latency_ms: number
+          consecutive_failures: number
+          disabled_until: string | null
+          failure: number
+          last_error: string | null
+          last_failure_at: string | null
+          last_success_at: string | null
+          provider_id: string
+          success: number
+          updated_at: string
+        }
+        Insert: {
+          avg_latency_ms?: number
+          consecutive_failures?: number
+          disabled_until?: string | null
+          failure?: number
+          last_error?: string | null
+          last_failure_at?: string | null
+          last_success_at?: string | null
+          provider_id: string
+          success?: number
+          updated_at?: string
+        }
+        Update: {
+          avg_latency_ms?: number
+          consecutive_failures?: number
+          disabled_until?: string | null
+          failure?: number
+          last_error?: string | null
+          last_failure_at?: string | null
+          last_success_at?: string | null
+          provider_id?: string
+          success?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       quiz_results: {
         Row: {
           answers: Json
@@ -765,6 +1107,69 @@ export type Database = {
           id?: string
           name?: string
           slug?: string
+        }
+        Relationships: []
+      }
+      system_alerts: {
+        Row: {
+          component: string
+          created_at: string
+          dedupe_key: string | null
+          description: string | null
+          id: string
+          recommended_action: string | null
+          resolved: boolean
+          resolved_at: string | null
+          severity: string
+          title: string
+        }
+        Insert: {
+          component: string
+          created_at?: string
+          dedupe_key?: string | null
+          description?: string | null
+          id?: string
+          recommended_action?: string | null
+          resolved?: boolean
+          resolved_at?: string | null
+          severity?: string
+          title: string
+        }
+        Update: {
+          component?: string
+          created_at?: string
+          dedupe_key?: string | null
+          description?: string | null
+          id?: string
+          recommended_action?: string | null
+          resolved?: boolean
+          resolved_at?: string | null
+          severity?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      system_metrics: {
+        Row: {
+          created_at: string
+          id: string
+          meta: Json
+          name: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meta?: Json
+          name: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meta?: Json
+          name?: string
+          value?: number
         }
         Relationships: []
       }

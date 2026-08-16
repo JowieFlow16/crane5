@@ -1,4 +1,6 @@
+import { providerOverride } from "./control-plane.server";
 // Server-only provider registry + gateway configuration.
+
 //
 // Adding a new provider requires ONLY:
 //   1. add an entry to PROVIDERS below (endpoint + key env + models)
@@ -328,18 +330,34 @@ export function getGatewayConfig(): GatewayConfig {
  * Providers that can serve a capability right now: at least one configured
  * key, not disabled, and at least one candidate model. Ordered by capability
  * preference first, then global priority.
+ *
+ * The durable control plane may override enablement and priority so an
+ * administrator can reorder or disable a provider without a deploy. When it
+ * has nothing to say, the in-code configuration below is used unchanged.
  */
 export function candidateProviders(cap: Capability): ProviderDef[] {
   const cfg = getGatewayConfig();
   const order = [...(cfg.preferences[cap] ?? []), ...cfg.priority];
   const seen = new Set<string>();
-  const out: ProviderDef[] = [];
-  for (const id of order) {
-    if (seen.has(id) || cfg.disabled.includes(id)) continue;
+  const out: { p: ProviderDef; rank: number; override: number | null }[] = [];
+  order.forEach((id, rank) => {
+    if (seen.has(id) || cfg.disabled.includes(id)) return;
     seen.add(id);
     const p = getProvider(id);
-    if (!p || providerKeys(p).length === 0 || providerModels(p, cap).length === 0) continue;
-    out.push(p);
-  }
-  return out;
+    if (!p || providerKeys(p).length === 0 || providerModels(p, cap).length === 0) return;
+    const managed = providerOverride(id);
+    if (managed && !managed.enabled) return;
+    out.push({ p, rank, override: managed ? managed.priority : null });
+  });
+
+  // Admin priority wins; anything without a managed priority keeps its
+  // in-code position after the managed ones.
+  out.sort((a, b) => {
+    if (a.override !== null && b.override !== null) return a.override - b.override || a.rank - b.rank;
+    if (a.override !== null) return -1;
+    if (b.override !== null) return 1;
+    return a.rank - b.rank;
+  });
+  return out.map((x) => x.p);
 }
+
