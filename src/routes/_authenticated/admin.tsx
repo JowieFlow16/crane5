@@ -355,6 +355,7 @@ function AdminPage() {
       <AiObservabilityAdmin />
       <AiLimitsAdmin />
       <TournamentsAdmin />
+      <ModerationQueue />
     </div>
   );
 }
