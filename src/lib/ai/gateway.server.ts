@@ -432,6 +432,7 @@ export async function chat(opts: ChatOptions): Promise<string> {
       modelOverride: opts.model,
       models: chatModels(opts, capability),
       cacheKey: opts.cacheKey ? `chat:${hashKey(opts.cacheKey)}` : undefined,
+      cacheMeta: { subject: opts.subject ?? null, promptPreview: opts.cacheKey ?? null },
       build: (p, model) => ({
         path: "/chat/completions",
         body: buildChatBody(p, model, opts, policy.temperature, policy.reasoning),
@@ -465,10 +466,20 @@ export async function chat(opts: ChatOptions): Promise<string> {
   }
 }
 
+interface ResolvedInfo {
+  provider: string;
+  model: string;
+  latencyMs: number;
+  queueMs?: number;
+  retries?: number;
+  correlationId?: string;
+  cacheHit?: boolean;
+}
+
 async function recordChatUsage(
   opts: ChatOptions,
   data: Record<string, unknown>,
-  info: { provider: string; model: string; latencyMs: number },
+  info: ResolvedInfo,
   status: "success" | "error",
 ) {
   const u = readUsage(data) ?? {};
@@ -486,9 +497,14 @@ async function recordChatUsage(
     // OpenRouter reports the real charged cost; never estimated blindly.
     estimatedCost: u.cost ?? u.total_cost ?? 0,
     latencyMs: info.latencyMs,
+    queueMs: info.queueMs ?? 0,
+    retryCount: info.retries ?? 0,
+    cacheHit: info.cacheHit ?? false,
+    correlationId: info.correlationId ?? null,
     status,
   });
 }
+
 
 
 function pickImage(data: Record<string, unknown>): string | undefined {
