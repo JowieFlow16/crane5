@@ -39,6 +39,15 @@ export const chatTutor = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { guardAiRequest, validateUserMessage, trimConversation } = await import(
+      "./ai/abuse.server"
+    );
+    const { classifyTask } = await import("./ai/models.server");
+
+    const lastUserRaw = [...data.messages].reverse().find((m) => m.role === "user");
+    guardAiRequest(context.userId as string, lastUserRaw?.content ?? "");
+    if (lastUserRaw) lastUserRaw.content = validateUserMessage(lastUserRaw.content);
+
     const { withAiQuota } = await import("./ai-usage.server");
     return withAiQuota(context.userId as string, "request", async () => {
       const { callAI } = await import("./ai-gateway.server");
@@ -73,7 +82,7 @@ export const chatTutor = createServerFn({ method: "POST" })
 
       // Attach files to the most recent user message as multimodal parts.
       const outgoing: { role: "user" | "assistant"; content: string | ContentPart[] }[] = [
-        ...data.messages,
+        ...trimConversation(data.messages),
       ];
       if (hasAttachments) {
         let lastUserIdx = -1;
@@ -105,6 +114,13 @@ export const chatTutor = createServerFn({ method: "POST" })
       try {
         const content = await callAI({
           messages: [{ role: "system", content: system }, ...outgoing],
+          task: classifyTask({
+            subject: data.subject,
+            text: typeof lastUser?.content === "string" ? lastUser.content : "",
+          }),
+          capability: hasAttachments ? "vision" : undefined,
+          userId: context.userId as string,
+          subject: data.subject,
         });
         return { content, usedSources: docs?.map((d) => d.name) ?? [] };
       } catch {
@@ -130,6 +146,21 @@ export interface QuizQuestion {
   /** The competency / Learning Outcome the item assesses. */
   competency?: string;
 }
+
+const quizQuestionSchema = z.object({
+  question: z.string().min(1),
+  type: z.enum(["mcq", "short"]).catch("short"),
+  options: z.array(z.string()).optional(),
+  answer: z.string().min(1),
+  explanation: z.string().default(""),
+  topic: z.string().default("General"),
+  scenario: z.string().optional(),
+  competency: z.string().optional(),
+});
+
+const quizPayloadSchema = z.object({
+  questions: z.array(quizQuestionSchema).min(1),
+});
 
 export const generateQuiz = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -166,7 +197,9 @@ export const generateQuiz = createServerFn({ method: "POST" })
 
       const raw = await callAI({
         json: true,
-        temperature: 0.7,
+        task: "QUIZ_GENERATION",
+        userId: context.userId as string,
+        subject: data.subject,
         messages: [
           {
             role: "system",
@@ -192,8 +225,9 @@ export const generateQuiz = createServerFn({ method: "POST" })
         ],
       });
 
-      const parsed = parseJsonResponse<{ questions: QuizQuestion[] }>(raw);
-      return parsed;
+      const parsed = parseJsonResponse<unknown>(raw);
+      // Structured-output contract: never hand the UI a malformed quiz.
+      return quizPayloadSchema.parse(parsed);
     });
   });
 
@@ -223,6 +257,9 @@ export const generateRevision = createServerFn({ method: "POST" })
 
       const raw = await callAI({
         json: true,
+        task: "REVISION",
+        userId: context.userId as string,
+        subject: data.subject,
         messages: [
           {
             role: "system",
@@ -277,7 +314,9 @@ export const generateFlashcards = createServerFn({ method: "POST" })
 
       const raw = await callAI({
         json: true,
-        temperature: 0.5,
+        task: "REVISION",
+        userId: context.userId as string,
+        subject: data.subject,
         messages: [
           {
             role: "system",
@@ -399,7 +438,9 @@ export const generateLessonPlan = createServerFn({ method: "POST" })
       const { callAI } = await import("./ai-gateway.server");
       const { NCDC_TEACHER_PERSONA, NCDC_FRAMEWORK_BLOCK } = await import("./ncdc-framework");
       const content = await callAI({
-        temperature: 0.6,
+        task: "ADMIN_CONTENT",
+        userId: context.userId as string,
+        subject: data.subject,
         messages: [
           { role: "system", content: NCDC_TEACHER_PERSONA + NCDC_FRAMEWORK_BLOCK },
           {
@@ -454,7 +495,9 @@ export const generateExam = createServerFn({ method: "POST" })
         NCDC_SUBJECT_CONSTRUCTS,
       } = await import("./ncdc-framework");
       const content = await callAI({
-        temperature: 0.6,
+        task: "ADMIN_CONTENT",
+        userId: context.userId as string,
+        subject: data.subject,
         messages: [
           {
             role: "system",
@@ -498,7 +541,9 @@ export const draftReply = createServerFn({ method: "POST" })
       const { callAI } = await import("./ai-gateway.server");
       const { NCDC_TEACHER_PERSONA, NCDC_NOTATION } = await import("./ncdc-framework");
       const content = await callAI({
-        temperature: 0.6,
+        task: "NORMAL_TUTORING",
+        userId: context.userId as string,
+        subject: data.subject,
         messages: [
           { role: "system", content: NCDC_TEACHER_PERSONA + NCDC_NOTATION },
           {
@@ -531,7 +576,8 @@ export const classInsights = createServerFn({ method: "POST" })
       const { callAI } = await import("./ai-gateway.server");
       const { NCDC_TEACHER_PERSONA, NCDC_NOTATION } = await import("./ncdc-framework");
       const content = await callAI({
-        temperature: 0.5,
+        task: "NORMAL_TUTORING",
+        userId: context.userId as string,
         messages: [
           { role: "system", content: NCDC_TEACHER_PERSONA + NCDC_NOTATION },
           {
@@ -551,5 +597,122 @@ export const classInsights = createServerFn({ method: "POST" })
         ],
       });
       return { content };
+    });
+  });
+
+// ---- AI quiz marking (structured output) ----
+export interface MarkedAnswer {
+  index: number;
+  correct: boolean;
+  awarded: number;
+  feedback: string;
+}
+
+export interface QuizMarking {
+  score: number;
+  total: number;
+  percentage: number;
+  results: MarkedAnswer[];
+  weakAreas: string[];
+  recommendations: string[];
+  summary: string;
+}
+
+const markingSchema = z.object({
+  results: z
+    .array(
+      z.object({
+        index: z.number(),
+        correct: z.boolean(),
+        awarded: z.number().min(0).max(1).default(0),
+        feedback: z.string().default(""),
+      }),
+    )
+    .default([]),
+  weakAreas: z.array(z.string()).default([]),
+  recommendations: z.array(z.string()).default([]),
+  summary: z.string().default(""),
+});
+
+export const markQuiz = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        subject: z.string(),
+        topic: z.string().optional(),
+        items: z
+          .array(
+            z.object({
+              question: z.string().max(4000),
+              type: z.enum(["mcq", "short"]),
+              expected: z.string().max(2000),
+              given: z.string().max(4000),
+              topic: z.string().max(200).optional(),
+            }),
+          )
+          .min(1)
+          .max(15),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { guardAiRequest } = await import("./ai/abuse.server");
+    guardAiRequest(context.userId as string);
+
+    const { withAiQuota } = await import("./ai-usage.server");
+    return withAiQuota(context.userId as string, "request", async (): Promise<QuizMarking> => {
+      const { callAI, parseJsonResponse } = await import("./ai-gateway.server");
+
+      const raw = await callAI({
+        json: true,
+        task: "QUIZ_MARKING",
+        userId: context.userId as string,
+        subject: data.subject,
+        messages: [
+          {
+            role: "system",
+            content: `${NCDC_PERSONA}\n\nYou are marking a learner's quiz exactly like an NCDC examiner using a scoring guide.${NCDC_COMPETENCY_LEVELS}${NCDC_NOTATION}\n\nMarking rules:\n- Mark on MEANING, not exact wording. Accept correct answers phrased differently, with spelling slips, or with equivalent units/forms.\n- A blank answer is always wrong.\n- Feedback must be one or two encouraging sentences telling the learner exactly what to fix.\n- Return ONLY valid JSON.`,
+          },
+          {
+            role: "user",
+            content: `Subject: ${data.subject}${data.topic ? ` — topic: ${data.topic}` : ""}\n\nMark these answers:\n${data.items
+              .map(
+                (it, i) =>
+                  `#${i}\nQuestion: ${it.question}\nExpected answer: ${it.expected}\nLearner answered: ${it.given || "(no answer)"}`,
+              )
+              .join("\n\n")}\n\nReturn JSON exactly: {"results":[{"index":0,"correct":true,"awarded":1,"feedback":"..."}],"weakAreas":["sub-topic"],"recommendations":["what to revise next"],"summary":"two-sentence overall comment"}`,
+          },
+        ],
+      });
+
+      const parsed = markingSchema.parse(parseJsonResponse<unknown>(raw));
+      const results: MarkedAnswer[] = data.items.map((it, i) => {
+        const r = parsed.results.find((x) => x.index === i);
+        return {
+          index: i,
+          correct: r?.correct ?? false,
+          awarded: r?.correct ? 1 : (r?.awarded ?? 0),
+          feedback: r?.feedback ?? "",
+        };
+      });
+      const score = results.filter((r) => r.correct).length;
+      const weak = parsed.weakAreas.length
+        ? parsed.weakAreas
+        : Array.from(
+            new Set(
+              results.filter((r) => !r.correct).map((r) => data.items[r.index]?.topic ?? "General"),
+            ),
+          );
+
+      return {
+        score,
+        total: data.items.length,
+        percentage: Math.round((score / data.items.length) * 100),
+        results,
+        weakAreas: weak,
+        recommendations: parsed.recommendations,
+        summary: parsed.summary,
+      };
     });
   });

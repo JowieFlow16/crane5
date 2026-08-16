@@ -41,9 +41,9 @@ export interface ProviderDef {
 }
 
 const OPENAI_STYLE_HEADERS =
-  (title = "Crane5 AI") =>
+  (title = "Crane5") =>
   () => ({
-    "HTTP-Referer": process.env.OPENROUTER_SITE_URL ?? "https://lovable.dev",
+    "HTTP-Referer": process.env.OPENROUTER_SITE_URL ?? "https://crane5.com",
     "X-Title": process.env.OPENROUTER_APP_NAME ?? title,
   });
 
@@ -60,15 +60,18 @@ export const PROVIDERS: ProviderDef[] = [
     defaultBaseUrl: "https://openrouter.ai/api/v1",
     headers: OPENAI_STYLE_HEADERS(),
     imageApi: "chat",
+    // Paid production models only — no ":free" variants anywhere.
+    // The task router (models.server.ts) normally supplies the exact model;
+    // these are the defaults when no task policy applies.
     models: {
-      text: ["openai/gpt-oss-20b:free", "google/gemma-4-31b-it:free"],
-
-      code: ["openai/gpt-oss-20b:free", "google/gemma-4-31b-it:free"],
-      vision: ["google/gemma-4-31b-it:free"],
-      image: ["google/gemini-2.5-flash-image", "google/gemini-2.0-flash-exp:free"],
+      text: ["openai/gpt-oss-120b", "qwen/qwen3.5-122b-a10b"],
+      code: ["openai/gpt-oss-120b", "qwen/qwen3.5-122b-a10b"],
+      vision: ["anthropic/claude-sonnet-4.6"],
+      image: ["google/gemini-2.5-flash-image"],
       embedding: ["openai/text-embedding-3-small"],
     },
   },
+
   {
     id: "requesty",
     label: "Requesty",
@@ -241,12 +244,12 @@ function envNum(name: string, fallback: number): number {
 // Gateway configuration (all env-overridable)
 // ---------------------------------------------------------------------------
 
-// Lovable AI leads: it is always funded and needs no user-supplied key, so the
-// tutor never goes dark. The bring-your-own-key providers sit behind it as
-// extra capacity and failover.
+// OpenRouter (paid models) is Crane5's production AI gateway and leads every
+// capability. Lovable AI stays registered as a last-resort failover only, so a
+// provider outage never takes the tutor completely dark.
 const DEFAULT_PRIORITY = [
-  "lovable",
   "openrouter",
+  "lovable",
   "requesty",
   "aimlapi",
   "ofox",
@@ -257,15 +260,15 @@ const DEFAULT_PRIORITY = [
 
 /** Capability-specific preferred provider order (provider specialisation). */
 const DEFAULT_PREFERENCES: Partial<Record<Capability, string[]>> = {
-  text: ["lovable", "openrouter", "requesty", "ofox"],
-  code: ["lovable", "openrouter", "aimlapi", "requesty"],
-  vision: ["lovable", "openrouter", "requesty"],
-  image: ["lovable", "aimlapi", "haimaker", "openrouter"],
+  text: ["openrouter", "lovable"],
+  code: ["openrouter", "lovable"],
+  vision: ["openrouter", "lovable"],
+  image: ["openrouter", "lovable", "aimlapi", "haimaker"],
   video: ["aimlapi"],
   audio: ["aimlapi"],
   tts: ["aimlapi"],
   stt: ["aimlapi"],
-  embedding: ["lovable", "openrouter", "aimlapi"],
+  embedding: ["openrouter", "lovable", "aimlapi"],
 };
 
 export interface GatewayConfig {
@@ -302,8 +305,8 @@ export function getGatewayConfig(): GatewayConfig {
     priority: envList("AI_PROVIDER_PRIORITY") ?? DEFAULT_PRIORITY,
     disabled: envList("AI_DISABLED_PROVIDERS") ?? [],
     preferences,
-    requestTimeoutMs: envNum("AI_TIMEOUT_MS", 15_000),
-    hedgeAfterMs: envNum("AI_HEDGE_AFTER_MS", 3_500),
+    requestTimeoutMs: envNum("AI_TIMEOUT_MS", 75_000),
+    hedgeAfterMs: envNum("AI_HEDGE_AFTER_MS", 25_000),
     // Try every registered provider before giving up, so a run of broke or
     // rate-limited keys can never hide a healthy provider further down the list.
     maxProviderAttempts: envNum("AI_MAX_PROVIDER_ATTEMPTS", PROVIDERS.length),

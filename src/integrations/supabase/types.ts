@@ -47,6 +47,63 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_request_log: {
+        Row: {
+          cached_tokens: number
+          conversation_id: string | null
+          created_at: string
+          error_message: string | null
+          estimated_cost: number
+          id: string
+          input_tokens: number
+          latency_ms: number
+          model: string
+          output_tokens: number
+          provider: string
+          reasoning_tokens: number
+          status: string
+          subject: string | null
+          task_type: string
+          user_id: string | null
+        }
+        Insert: {
+          cached_tokens?: number
+          conversation_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          estimated_cost?: number
+          id?: string
+          input_tokens?: number
+          latency_ms?: number
+          model: string
+          output_tokens?: number
+          provider: string
+          reasoning_tokens?: number
+          status?: string
+          subject?: string | null
+          task_type: string
+          user_id?: string | null
+        }
+        Update: {
+          cached_tokens?: number
+          conversation_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          estimated_cost?: number
+          id?: string
+          input_tokens?: number
+          latency_ms?: number
+          model?: string
+          output_tokens?: number
+          provider?: string
+          reasoning_tokens?: number
+          status?: string
+          subject?: string | null
+          task_type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       ai_usage: {
         Row: {
           created_at: string
@@ -891,6 +948,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      ai_cost_overview: { Args: never; Returns: Json }
       ai_effective_limits: {
         Args: { p_user_id: string }
         Returns: {
