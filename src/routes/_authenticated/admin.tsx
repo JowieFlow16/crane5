@@ -41,6 +41,7 @@ import { AiGatewayAdmin } from "@/components/AiGatewayAdmin";
 import { AiObservabilityAdmin } from "@/components/AiObservabilityAdmin";
 import { AiControlPlaneAdmin } from "@/components/AiControlPlaneAdmin";
 import { TournamentsAdmin } from "@/components/TournamentsAdmin";
+import { ModerationQueue } from "@/components/ModerationQueue";
 import { SUBJECTS } from "@/lib/subjects";
 
 export const Route = createFileRoute("/_authenticated/admin")({
