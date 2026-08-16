@@ -212,50 +212,152 @@ function AuthPage() {
                 : "We'll email you a reset link."}
           </p>
 
+          {mode === "register" && (
+            <div className="mt-5 flex items-center gap-2">
+              {STEP_LABELS.map((label, i) => (
+                <div key={label} className="flex flex-1 flex-col gap-1.5">
+                  <div
+                    className={cn(
+                      "h-1.5 rounded-full transition-colors",
+                      i <= step ? "bg-gradient-primary" : "bg-muted",
+                    )}
+                  />
+                  {i === step && (
+                    <span className="text-[0.65rem] font-medium text-muted-foreground">
+                      {label}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="mt-6" />
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === "register" && (
+            {mode === "register" && step === 0 && (
+              <div className="space-y-1.5">
+                <Label htmlFor="name">Full name</Label>
+                <Input
+                  id="name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Nakato Aisha"
+                  required
+                />
+              </div>
+            )}
+
+            {mode === "register" && step === 1 && (
               <>
                 <div className="space-y-1.5">
-                  <Label htmlFor="name">Full name</Label>
+                  <Label htmlFor="school" className="flex items-center gap-1.5">
+                    <School className="h-3.5 w-3.5 text-primary" /> Your school
+                  </Label>
                   <Input
-                    id="name"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Nakato Aisha"
-                    required
+                    id="school"
+                    value={school}
+                    onChange={(e) => setSchool(e.target.value)}
+                    placeholder="Kampala Secondary School"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="class">Class</Label>
-                  <Select value={classLevel} onValueChange={setClassLevel}>
-                    <SelectTrigger id="class">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CLASS_LEVELS.map((c) => (
-                        <SelectItem key={c} value={c}>
-                          {c}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="class">Your class</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {CLASS_LEVELS.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => setClassLevel(c)}
+                        className={cn(
+                          "rounded-xl border py-2.5 text-sm font-semibold transition-colors",
+                          classLevel === c
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border text-muted-foreground hover:bg-muted",
+                        )}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </>
             )}
-            <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                required
-              />
-            </div>
-            {mode !== "reset" && (
+
+            {mode === "register" && step === 2 && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5">
+                  <BookOpen className="h-3.5 w-3.5 text-primary" /> Subjects you offer
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  We use these to build your revision timetable. Pick at least one.
+                </p>
+                <div className="flex max-h-64 flex-wrap gap-1.5 overflow-y-auto rounded-xl border border-border p-2.5">
+                  {SUBJECTS.map((s) => {
+                    const on = subjects.includes(s);
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() =>
+                          setSubjects(on ? subjects.filter((x) => x !== s) : [...subjects, s])
+                        }
+                        className={cn(
+                          "inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                          on
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border text-muted-foreground hover:bg-muted",
+                        )}
+                      >
+                        {on && <Check className="h-3 w-3" />}
+                        {s}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {mode === "register" && step === 3 && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5">
+                  <Compass className="h-3.5 w-3.5 text-primary" /> Where did you hear about Crane5?
+                </Label>
+                <div className="grid gap-2">
+                  {HEARD_OPTIONS.map((o) => (
+                    <button
+                      key={o.value}
+                      type="button"
+                      onClick={() => setHeard(o.value)}
+                      className={cn(
+                        "flex items-center justify-between rounded-xl border px-3.5 py-2.5 text-sm font-medium transition-colors",
+                        heard === o.value
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border text-muted-foreground hover:bg-muted",
+                      )}
+                    >
+                      {o.label}
+                      {heard === o.value && <Check className="h-4 w-4" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {(mode !== "register" || step === 0) && (
+              <div className="space-y-1.5">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  required
+                />
+              </div>
+            )}
+            {mode !== "reset" && (mode !== "register" || step === 0) && (
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
@@ -280,15 +382,48 @@ function AuthPage() {
                 />
               </div>
             )}
-            <Button type="submit" variant="hero" className="w-full" disabled={busy}>
-              {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-              {mode === "login"
-                ? "Sign in"
-                : mode === "register"
-                  ? "Create account"
-                  : "Send reset link"}
-            </Button>
+
+            {mode === "register" ? (
+              <div className="flex gap-2">
+                {step > 0 && (
+                  <Button type="button" variant="outline" onClick={() => setStep(step - 1)}>
+                    <ArrowLeft className="h-4 w-4" /> Back
+                  </Button>
+                )}
+                {step < STEP_LABELS.length - 1 ? (
+                  <Button
+                    type="button"
+                    variant="hero"
+                    className="flex-1"
+                    onClick={() => {
+                      if (step === 0 && (!fullName.trim() || !email.trim() || password.length < 6)) {
+                        toast.error("Add your name, email and a password of 6+ characters.");
+                        return;
+                      }
+                      if (step === 2 && subjects.length === 0) {
+                        toast.error("Pick at least one subject.");
+                        return;
+                      }
+                      setStep(step + 1);
+                    }}
+                  >
+                    Continue <ArrowRight className="h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button type="submit" variant="hero" className="flex-1" disabled={busy || !heard}>
+                    {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+                    Create account
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <Button type="submit" variant="hero" className="w-full" disabled={busy}>
+                {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+                {mode === "login" ? "Sign in" : "Send reset link"}
+              </Button>
+            )}
           </form>
+
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
             {mode === "login" ? (
