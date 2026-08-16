@@ -39,6 +39,7 @@ import {
   refreshControlPlane,
   type CacheLookupMeta,
 } from "./control-plane.server";
+import { assertBudget, refreshBudget, shouldDegrade } from "./budget.server";
 
 
 
@@ -233,9 +234,12 @@ export async function execute<T>(opts: ExecuteOptions<T>): Promise<T> {
   const correlationId = newCorrelationId();
   // Keep the shared control-plane snapshot warm without blocking the request.
   refreshControlPlane();
+  refreshBudget();
 
   const policy = activePolicy();
   if (policy?.blocksNewRequests) throw new Error("AI_MAINTENANCE");
+  // Platform-wide spend guard: per-student quotas cannot protect the budget.
+  await assertBudget();
 
   if (opts.cacheKey) {
     const cached = cacheGet<T>(opts.cacheKey);
@@ -411,13 +415,31 @@ export function buildChatBody(
   };
 }
 
-/** Model chain for a chat request, per provider. */
+/**
+ * Cost-aware model chain: pick the cheapest model that still clears the task's
+ * quality bar. The active operating mode and the platform budget decide how
+ * aggressive that gets — vision work always keeps a multimodal model.
+ */
 export function chatModels(opts: ChatOptions, capability: Capability) {
   const policy = routeTask(opts.task);
   return (p: ProviderDef) => {
     if (p.id !== "openrouter") return providerModels(p, capability);
     if (capability === "vision") return [AI_MODELS.vision, AI_MODELS.premium];
-    return policy.models;
+
+    const mode = activePolicy();
+    const cheapFirst = mode?.preferCheap === true || shouldDegrade();
+    const allowPremium = mode?.allowPremium !== false && !shouldDegrade();
+
+    let models = [...policy.models];
+    if (!allowPremium) {
+      const trimmed = models.filter((m) => m !== AI_MODELS.premium);
+      if (trimmed.length) models = trimmed;
+    }
+    if (cheapFirst) {
+      // Secondary model is the cheap one; try it before the primary.
+      models.sort((a, b) => Number(a === AI_MODELS.primary) - Number(b === AI_MODELS.primary));
+    }
+    return models;
   };
 }
 

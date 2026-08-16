@@ -95,3 +95,12 @@ export const resolveAlert = createServerFn({ method: "POST" })
     const { closeAlert } = await import("./ai/control-plane-admin.server");
     return closeAlert(data.id, context.userId);
   });
+
+/** Process one batch of queued AI jobs immediately. */
+export const drainQueue = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context as never);
+    const { drainQueueOnce } = await import("./ai/control-plane-admin.server");
+    return drainQueueOnce(context.userId);
+  });
