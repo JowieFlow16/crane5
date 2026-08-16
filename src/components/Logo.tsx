@@ -23,7 +23,7 @@ export function Logo({
 }) {
   return (
     <div className={cn("flex min-w-0 items-center gap-2.5", className)}>
-      <Crane5Mark className="h-9 w-9 shrink-0" />
+      <Crane5Mark className="h-11 w-11 shrink-0" />
       {showText && (
         <span className="flex min-w-0 flex-col leading-none">
           <span className="truncate font-display text-lg font-bold tracking-tight">
