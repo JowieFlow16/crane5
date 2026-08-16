@@ -247,6 +247,7 @@ function Thread({
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [reportMsg, setReportMsg] = useState<DirectMessage | null>(null);
   const [working, setWorking] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
