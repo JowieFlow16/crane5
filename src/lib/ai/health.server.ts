@@ -11,8 +11,8 @@ import {
   durableKeys,
   persistHealth,
   persistKeyState,
-  refreshControlPlane,
 } from "./control-plane.server";
+
 
 export interface ProviderHealth {
   id: string;
