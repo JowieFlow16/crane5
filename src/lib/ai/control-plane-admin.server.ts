@@ -38,20 +38,27 @@ export interface ControlPlaneView {
   alerts: Row[];
   cache: { entries: number; hits: number };
   gateway: ReturnType<typeof buildGatewayStats>;
+  budget: Awaited<ReturnType<typeof import("./budget.server").budgetState>>;
+  queue: Awaited<ReturnType<typeof import("./queue.server").queueStats>>;
 }
 
 export async function readControlPlane(): Promise<ControlPlaneView> {
   const client = await db();
-  const [providers, health, keys, policies, flags, budgets, alerts, cache] = await Promise.all([
-    q(client, "ai_providers_config").select("*"),
-    q(client, "provider_health").select("*"),
-    q(client, "ai_key_state").select("*"),
-    q(client, "ai_policies").select("*"),
-    q(client, "feature_flags").select("*"),
-    q(client, "ai_budgets").select("*"),
-    q(client, "system_alerts").select("*").order("created_at", { ascending: false }).limit(25),
-    q(client, "ai_cache_entries").select("hits"),
-  ]);
+  const { budgetState } = await import("./budget.server");
+  const { queueStats } = await import("./queue.server");
+  const [providers, health, keys, policies, flags, budgets, alerts, cache, budget, queue] =
+    await Promise.all([
+      q(client, "ai_providers_config").select("*"),
+      q(client, "provider_health").select("*"),
+      q(client, "ai_key_state").select("*"),
+      q(client, "ai_policies").select("*"),
+      q(client, "feature_flags").select("*"),
+      q(client, "ai_budgets").select("*"),
+      q(client, "system_alerts").select("*").order("created_at", { ascending: false }).limit(25),
+      q(client, "ai_cache_entries").select("hits"),
+      budgetState(),
+      queueStats(),
+    ]);
 
   const cacheRows = cache.data ?? [];
   return {
@@ -67,7 +74,36 @@ export async function readControlPlane(): Promise<ControlPlaneView> {
       hits: cacheRows.reduce((sum, r) => sum + Number(r["hits"] ?? 0), 0),
     },
     gateway: buildGatewayStats(),
+    budget,
+    queue,
   };
+}
+
+/** Process a small batch of queued jobs on demand (admin "Run now" button). */
+export async function drainQueueOnce(actorId: string) {
+  const { claimJobs, completeJob, failJob, requeueStale } = await import("./queue.server");
+  const { handlerFor } = await import("./queue-handlers.server");
+  await requeueStale();
+  const batch = await claimJobs(5);
+  let processed = 0;
+  let failed = 0;
+  for (const job of batch) {
+    const handler = handlerFor(job.kind);
+    if (!handler) {
+      await failJob(job, `No handler for job kind "${job.kind}"`);
+      failed += 1;
+      continue;
+    }
+    try {
+      await completeJob(job.id, await handler(job));
+      processed += 1;
+    } catch (err) {
+      await failJob(job, err instanceof Error ? err.message : String(err));
+      failed += 1;
+    }
+  }
+  await writeAudit({ actorId, action: "queue.drain", meta: { processed, failed } });
+  return { claimed: batch.length, processed, failed };
 }
 
 export async function patchProvider(
