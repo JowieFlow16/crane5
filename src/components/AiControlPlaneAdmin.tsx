@@ -179,6 +179,54 @@ export function AiControlPlaneAdmin() {
       </Section>
 
       <div className="grid gap-3 sm:grid-cols-2">
+        <Section title="Platform budget" icon={<Wallet className="h-3 w-3" />}>
+          <p className="text-lg font-semibold">
+            ${data.budget.spentToday.toFixed(4)}
+            <span className="text-xs font-normal text-muted-foreground">
+              {" "}
+              / ${data.budget.dailyLimit.toFixed(2)} today
+            </span>
+          </p>
+          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
+            <div
+              className={`h-full ${data.budget.exhausted ? "bg-destructive" : data.budget.degrade ? "bg-amber-500" : "bg-primary"}`}
+              style={{ width: `${Math.min(data.budget.dayPercent, 100)}%` }}
+            />
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            This month ${data.budget.spentMonth.toFixed(4)} of $
+            {data.budget.monthlyLimit.toFixed(2)} ({data.budget.monthPercent}%)
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {data.budget.exhausted
+              ? "Budget spent — new AI requests are refused."
+              : data.budget.degrade
+                ? "Cost-saving routing active (cheapest acceptable model)."
+                : "Normal cost-aware routing."}
+          </p>
+        </Section>
+
+        <Section title="Job queue" icon={<ListOrdered className="h-3 w-3" />}>
+          <p className="text-lg font-semibold">{data.queue.pending.toLocaleString()}</p>
+          <p className="text-xs text-muted-foreground">
+            waiting · {data.queue.running} running · {data.queue.dead} dead-letter
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Oldest wait {Math.round(data.queue.oldestPendingMs / 1000)}s · {data.queue.done} done
+          </p>
+          <Button
+            size="sm"
+            variant="outline"
+            className="mt-2"
+            disabled={drainMutation.isPending}
+            onClick={() => drainMutation.mutate()}
+          >
+            {drainMutation.isPending ? "Processing…" : "Process queue now"}
+          </Button>
+        </Section>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
         <Section title="Feature flags" icon={<SlidersHorizontal className="h-3 w-3" />}>
           <div className="space-y-1.5">
             {data.flags.map((raw) => {
