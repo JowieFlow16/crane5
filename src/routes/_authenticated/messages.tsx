@@ -234,17 +234,39 @@ function MessagesPage() {
 function Thread({
   conversation,
   myId,
+  blocked,
   onBack,
 }: {
   conversation: Conversation;
   myId: string;
+  blocked: boolean;
   onBack: () => void;
 }) {
   const qc = useQueryClient();
   const other = otherParty(conversation, myId);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [working, setWorking] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  const toggleBlock = async () => {
+    setWorking(true);
+    try {
+      if (blocked) {
+        await unblockUser(myId, other.id);
+        toast.success(`${other.name} unblocked.`);
+      } else {
+        await blockUser(myId, other.id);
+        toast.success(`${other.name} blocked — you won't exchange messages anymore.`);
+      }
+      await qc.invalidateQueries({ queryKey: ["my-blocks", myId] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't update block.");
+    } finally {
+      setWorking(false);
+    }
+  };
 
   const { data: messages } = useQuery({
     queryKey: ["dm-thread", conversation.id],
