@@ -11,12 +11,15 @@ async function db() {
   return supabaseAdmin;
 }
 
+export type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
+type Row = Record<string, Json>;
+
 const q = (client: Awaited<ReturnType<typeof db>>, table: string) =>
   client.from(table as never) as unknown as {
-    select: (cols: string) => Promise<{ data: Record<string, unknown>[] | null }> & {
-      eq: (c: string, v: unknown) => Promise<{ data: Record<string, unknown>[] | null }>;
+    select: (cols: string) => Promise<{ data: Row[] | null }> & {
+      eq: (c: string, v: unknown) => Promise<{ data: Row[] | null }>;
       order: (c: string, o?: { ascending: boolean }) => {
-        limit: (n: number) => Promise<{ data: Record<string, unknown>[] | null }>;
+        limit: (n: number) => Promise<{ data: Row[] | null }>;
       };
     };
     update: (values: Record<string, unknown>) => {
@@ -26,13 +29,13 @@ const q = (client: Awaited<ReturnType<typeof db>>, table: string) =>
   };
 
 export interface ControlPlaneView {
-  providers: Record<string, unknown>[];
-  health: Record<string, unknown>[];
-  keys: Record<string, unknown>[];
-  policies: Record<string, unknown>[];
-  flags: Record<string, unknown>[];
-  budgets: Record<string, unknown>[];
-  alerts: Record<string, unknown>[];
+  providers: Row[];
+  health: Row[];
+  keys: Row[];
+  policies: Row[];
+  flags: Row[];
+  budgets: Row[];
+  alerts: Row[];
   cache: { entries: number; hits: number };
   gateway: ReturnType<typeof buildGatewayStats>;
 }
