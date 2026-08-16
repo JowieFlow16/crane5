@@ -9,6 +9,10 @@ import {
   Loader2,
   ArrowLeft,
   Search,
+  MoreVertical,
+  Ban,
+  Flag,
+  ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +21,14 @@ import { useAuth } from "@/lib/auth";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { FindStudentDialog } from "@/components/FindStudentDialog";
+import { ReportDialog } from "@/components/ReportDialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { blockUser, listMyBlocks, unblockUser } from "@/lib/moderation";
 import { cn } from "@/lib/utils";
 
 
@@ -108,6 +120,13 @@ function MessagesPage() {
     };
   }, [qc, user]);
 
+  const { data: blocks } = useQuery({
+    queryKey: ["my-blocks", user?.id],
+    enabled: !!user,
+    queryFn: listMyBlocks,
+  });
+  const blockedIds = useMemo(() => new Set((blocks ?? []).map((b) => b.blocked_id)), [blocks]);
+
   const active = useMemo(
     () => (conversations ?? []).find((c) => c.id === activeId) ?? null,
     [conversations, activeId],
@@ -198,6 +217,7 @@ function MessagesPage() {
           <Thread
             conversation={active}
             myId={user.id}
+            blocked={blockedIds.has(otherParty(active, user.id).id)}
             onBack={() => navigate({ search: {} })}
           />
         ) : (
@@ -214,17 +234,40 @@ function MessagesPage() {
 function Thread({
   conversation,
   myId,
+  blocked,
   onBack,
 }: {
   conversation: Conversation;
   myId: string;
+  blocked: boolean;
   onBack: () => void;
 }) {
   const qc = useQueryClient();
   const other = otherParty(conversation, myId);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportMsg, setReportMsg] = useState<DirectMessage | null>(null);
+  const [working, setWorking] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  const toggleBlock = async () => {
+    setWorking(true);
+    try {
+      if (blocked) {
+        await unblockUser(myId, other.id);
+        toast.success(`${other.name} unblocked.`);
+      } else {
+        await blockUser(myId, other.id);
+        toast.success(`${other.name} blocked — you won't exchange messages anymore.`);
+      }
+      await qc.invalidateQueries({ queryKey: ["my-blocks", myId] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't update block.");
+    } finally {
+      setWorking(false);
+    }
+  };
 
   const { data: messages } = useQuery({
     queryKey: ["dm-thread", conversation.id],
@@ -290,9 +333,44 @@ function Thread({
           <div className="flex items-center gap-1.5">
             <p className="truncate font-medium">{other.name}</p>
           </div>
-          <p className="text-xs text-muted-foreground">Student</p>
+          <p className="text-xs text-muted-foreground">{blocked ? "Blocked" : "Student"}</p>
         </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className="ml-auto rounded-md p-1.5 hover:bg-muted"
+            aria-label="Conversation options"
+          >
+            <MoreVertical className="h-5 w-5" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={toggleBlock} disabled={working}>
+              {blocked ? (
+                <>
+                  <ShieldCheck className="mr-2 h-4 w-4" /> Unblock {other.name}
+                </>
+              ) : (
+                <>
+                  <Ban className="mr-2 h-4 w-4" /> Block {other.name}
+                </>
+              )}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setReportOpen(true)} className="text-destructive">
+              <Flag className="mr-2 h-4 w-4" /> Report conversation
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </header>
+
+      <ReportDialog
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        targetType="conversation"
+        targetId={conversation.id}
+        reportedUserId={other.id}
+        excerpt={conversation.last_message}
+        subjectName={other.name}
+      />
 
       <div className="flex-1 space-y-2 overflow-y-auto px-4 py-4">
         {(messages ?? []).length === 0 && (
@@ -307,8 +385,18 @@ function Thread({
               key={m.id}
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              className={cn("flex", mine ? "justify-end" : "justify-start")}
+              className={cn("group flex items-end gap-1", mine ? "justify-end" : "justify-start")}
             >
+              {!mine && (
+                <button
+                  onClick={() => setReportMsg(m)}
+                  className="order-2 shrink-0 rounded-full p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100 focus:opacity-100"
+                  aria-label="Report this message"
+                  title="Report this message"
+                >
+                  <Flag className="h-3.5 w-3.5" />
+                </button>
+              )}
               <div
                 className={cn(
                   "max-w-[80%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-sm shadow-sm",
@@ -333,6 +421,22 @@ function Thread({
         <div ref={bottomRef} />
       </div>
 
+      <ReportDialog
+        open={!!reportMsg}
+        onOpenChange={(v) => !v && setReportMsg(null)}
+        targetType="message"
+        targetId={reportMsg?.id ?? null}
+        reportedUserId={reportMsg?.sender_id ?? null}
+        excerpt={reportMsg?.content ?? null}
+        subjectName="this message"
+      />
+
+      {blocked ? (
+        <div className="flex flex-wrap items-center gap-2 border-t border-border bg-card p-4 text-sm text-muted-foreground sm:rounded-br-2xl">
+          <Ban className="h-4 w-4" />
+          You blocked {other.name}. Unblock from the menu above to chat again.
+        </div>
+      ) : (
       <div className="border-t border-border bg-card p-3 sm:rounded-br-2xl">
         <div className="flex items-end gap-2">
           <Textarea
@@ -357,6 +461,7 @@ function Thread({
           </button>
         </div>
       </div>
+      )}
     </>
   );
 }
